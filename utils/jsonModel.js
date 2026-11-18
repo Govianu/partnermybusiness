@@ -386,4 +386,4 @@ function initialize() {
   loadData();
 }
 
-module.exports = { createModel, initialize };
+module.exports = { createModel, initialize, DATA_DIR };

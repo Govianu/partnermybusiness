@@ -11,7 +11,7 @@ npm install
 npm run dev              # http://localhost:3000
 ```
 
-For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
+For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without `BREVO_API_KEY` or SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
 
 ## Passwordless email sign-in
 
@@ -64,9 +64,22 @@ OTP attempt and request limits currently use in-memory rate limiting. Run a sing
 
 Run the focused upload and OTP tests with `node --test`.
 
-## Deploying
+## Deploying on Render
 
-Any Node host works (Render, Railway, a VPS). Set the `.env` values in the host's settings, and choose a persistent disk for `DATA_DIR` and `UPLOAD_DIR` so both `app-data.json` and uploads survive restarts and redeploys. Point partnermybusiness.ai's DNS at the host. Netlify only hosts static pages, so it can't run this server.
+The root `render.yaml` is configured for a free public test. It has no persistent disk and may sleep when idle; accounts, enquiries, uploads and lesson videos can be lost when it restarts or redeploys. Use it only as a temporary preview.
+
+For production, use a paid web service with a persistent disk mounted at `/var/data`, then set `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`. Review Render's current service and disk charges before upgrading.
+
+Set these values in Render's service settings:
+
+- `ADMIN_INVITE_CODE`: a private code for creating an admin account.
+- `BREVO_API_KEY`: a Brevo API key; verify the sender address in Brevo first. The free Render blueprint uses its HTTPS API because Render Free blocks outbound SMTP.
+- `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
+- `TEAM_INBOX`: where new enquiries are sent.
+
+The Blueprint generates `JWT_SECRET`; email links use Render's public URL automatically. For a custom domain, set `APP_URL` to that HTTPS address. On paid hosting, SMTP is also an option if the host allows outbound email ports. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; keep `HEYGEN_TEST_MODE=true` until a test video is verified.
+
+Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
 
 ## Dashboards: business-type specific, with skills and video lessons
 
@@ -117,9 +130,8 @@ and arranges payment. Buyers and sellers never see each other's email or phone.
 `render-paid.yaml.example` is the real-launch setup (Starter + 1 GB disk); rename it to `render.yaml` when you upgrade.
 
 1. Put this folder in a private GitHub repository (without `.env` and `data/`).
-2. In Render: New > Blueprint > choose the repository. It reads `render.yaml`.
-3. Fill the values it asks for: `ADMIN_INVITE_CODE` (a private team code), `APP_URL` (first the `onrender.com`
-   address, later `https://partnermybusiness.ai`) and `SMTP_PASS` (the Zoho app password). Approve the price (Starter + 1 GB disk).
-4. After the first deploy, check the logs for `[mail] SMTP connection OK`, sign up your team with the invite code, and test an enquiry.
-5. Custom domain: Settings > Custom Domains > add `partnermybusiness.ai` and `www`, add the DNS records Render shows
-   (never change MX records), then set `APP_URL=https://partnermybusiness.ai`.
+2. In Render, choose **New > Blueprint** and connect the repository; Render reads `render.yaml`.
+3. For the free preview, provide `ADMIN_INVITE_CODE`, `APP_URL`, and a Brevo API key. Data on this plan is temporary.
+4. For production, use `render-paid.yaml.example` as `render.yaml`, attach the configured persistent disk, and set a verified Brevo key or the Zoho `SMTP_PASS`.
+5. After deploy, check the logs for the email provider's connection status, sign up your team with the invite code, and test an enquiry.
+6. To use a custom domain, add it in Render, follow the displayed DNS instructions (do not change MX records), then set `APP_URL` to the HTTPS domain.

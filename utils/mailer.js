@@ -50,7 +50,7 @@ async function sendViaBrevo({ to, subject, html, text, replyTo }) {
     body: JSON.stringify(body)
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Brevo ${res.status}: ${data.message || data.code || 'request failed'}`);
+  if (!res.ok) throw new Error(data.message || data.code || `Brevo request failed (${res.status})`);
   return data.messageId;
 }
 
