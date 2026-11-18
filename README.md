@@ -68,7 +68,9 @@ Run the focused upload and OTP tests with `node --test`.
 
 ## Deploying on Render
 
-The root `render.yaml` is a Render Blueprint for this Node app. In Render, choose **New + > Blueprint**, connect this repository, and review the service and persistent-disk prices before creating them. The app needs a paid web service and persistent disk to keep partner accounts, uploads and lesson videos when it restarts or redeploys; Render's free service filesystem is temporary.
+The root `render.yaml` is configured for a free public test. In Render, choose **New + > Blueprint** and connect this repository. This free service has no persistent disk and may sleep when idle; accounts, enquiries, uploads and lesson videos stored on its filesystem can be lost when it restarts or redeploys. Use it only as a temporary preview, not as the reliable production site for real partners.
+
+For production, upgrade to a paid web service and attach a persistent disk mounted at `/var/data`, then set `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`. Review Render's current service and disk charges before upgrading or creating paid resources.
 
 Before using the live site, set these environment variables in the Render service settings (or provide them when Render prompts during Blueprint setup):
 
@@ -77,7 +79,7 @@ Before using the live site, set these environment variables in the Render servic
 - `MAIL_FROM`: the sender name/address approved by your email provider.
 - `TEAM_INBOX`: where new enquiries are sent.
 
-The Blueprint generates `JWT_SECRET` and points `DATA_DIR` and `UPLOAD_DIR` to the persistent disk. Email links use Render's generated public URL automatically; if you later attach a custom domain, set `APP_URL` to that HTTPS address. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; until then lessons continue to use their slide versions. Keep `HEYGEN_TEST_MODE=true` until you have verified a test video.
+The Blueprint generates `JWT_SECRET`; email links use Render's generated public URL automatically. If you later attach a custom domain, set `APP_URL` to that HTTPS address. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; until then lessons continue to use their slide versions. Keep `HEYGEN_TEST_MODE=true` until you have verified a test video.
 
 Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
 

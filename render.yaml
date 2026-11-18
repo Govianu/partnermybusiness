@@ -2,24 +2,20 @@ services:
   - type: web
     name: partnermybusiness-web
     runtime: node
-    plan: 0.5c-512mb
+    plan: free
     region: singapore
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
-    disk:
-      name: partnermybusiness-data
-      mountPath: /var/data
-      sizeGB: 10
     envVars:
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
         generateValue: true
       - key: DATA_DIR
-        value: /var/data
+        value: ./data
       - key: UPLOAD_DIR
-        value: /var/data/uploads
+        value: ./data/uploads
       - key: ADMIN_INVITE_CODE
         sync: false
       - key: SMTP_HOST
