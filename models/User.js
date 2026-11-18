@@ -1,0 +1,19 @@
+const { createModel } = require('../utils/jsonModel');
+
+module.exports = createModel('User', {
+  required: ['name', 'role'],
+  unique: ['email', 'handle'],
+  enums: {
+    role: ['business', 'associate', 'admin'],
+    status: ['pending', 'approved', 'rejected', 'imported']
+  },
+  defaults: {
+    status: 'pending',
+    business: { sops: [] },
+    associate: {}
+  },
+  refs: {
+    assignedManager: ['User', false],
+    importedBy: ['User', false]
+  }
+});

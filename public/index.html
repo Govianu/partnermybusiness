@@ -1,0 +1,1663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Partnermybusiness.ai | One business. Multiple revenue streams.</title>
+<meta name="description" content="Partnermybusiness helps restaurants, cafés, salons, spas, hotels and other physical businesses earn new revenue from the space, hours and customers they already have, through vetted partners and transparent revenue sharing.">
+<link rel="canonical" href="https://partnermybusiness.ai/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://partnermybusiness.ai/">
+<meta property="og:title" content="Partnermybusiness.ai | One business. Multiple revenue streams.">
+<meta property="og:description" content="Earn new revenue from the space, hours and customers your business already has, through vetted partners and transparent revenue sharing.">
+<meta name="theme-color" content="#142C7A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23142C7A'/%3E%3Cg fill='none' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M4 8c7 0 7 8 13 8' stroke='%236CE5BF'/%3E%3Cpath d='M4 16h13' stroke='%23FFC857'/%3E%3Cpath d='M4 24c7 0 7-8 13-8' stroke='%23FF9D8C'/%3E%3C/g%3E%3Ccircle cx='22.5' cy='16' r='5.5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light dark;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  /* brand */
+  --blue:#1B3A9E;
+  --bar:#142C7A;
+  --footer:#0C1A52;
+  --marigold:#F7B32B;
+  /* surfaces and text */
+  --ground:#F6F8FC;
+  --surface:#FFFFFF;
+  --ink:#0F1B3D;
+  --ink-2:#47537C;
+  --line:#D5DCEC;
+  --blue-text:#1B3A9E;
+  --blue-btn:#1B3A9E;
+  /* the four assets a business already has */
+  --space:#0B7A5B;  --space-soft:#DDF3EA;
+  --hours:#5B3FD1;  --hours-soft:#E9E4FB;
+  --foot:#94580A;   --foot-soft:#FDF0D3;  --foot-fill:#F7B32B;
+  --cost:#B93A27;   --cost-soft:#FBE3DE;
+  /* same four, tuned for the blue hero */
+  --space-b:#6CE5BF; --hours-b:#C6B9FF; --foot-b:#FFC857; --cost-b:#FF9D8C;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1230; --surface:#131C45; --ink:#ECF0FB; --ink-2:#AAB5D8; --line:#2B3768;
+    --blue-text:#A3B8FF; --blue-btn:#3E63E0;
+    --space:#6CE5BF; --space-soft:#0F3A30;
+    --hours:#C6B9FF; --hours-soft:#2A2260;
+    --foot:#FFC857;  --foot-soft:#3D2E0A; --foot-fill:#FFC857;
+    --cost:#FF9D8C;  --cost-soft:#45201A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1230; --surface:#131C45; --ink:#ECF0FB; --ink-2:#AAB5D8; --line:#2B3768;
+  --blue-text:#A3B8FF; --blue-btn:#3E63E0;
+  --space:#6CE5BF; --space-soft:#0F3A30;
+  --hours:#C6B9FF; --hours-soft:#2A2260;
+  --foot:#FFC857;  --foot-soft:#3D2E0A; --foot-fill:#FFC857;
+  --cost:#FF9D8C;  --cost-soft:#45201A;
+}
+html{
+  height:100%;
+  background:var(--bar);
+  scroll-padding-top:calc(env(safe-area-inset-top,0px) + 80px);
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;min-height:100%;
+  background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:1.0625rem;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%}
+a{color:var(--blue-text)}
+h1,h2,h3,h4,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{padding:0}
+.wrap{width:min(100% - 2.5rem,1120px);margin-inline:auto}
+.skip{position:absolute;left:-999px;top:0;background:var(--marigold);color:#1A1400;padding:.75rem 1rem;z-index:50;font-weight:600}
+.skip:focus{left:.5rem;top:.5rem}
+:focus-visible{outline:3px solid var(--blue-text);outline-offset:3px;border-radius:4px}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;padding:.7rem 1.35rem;border-radius:999px;
+  font:600 1rem/1.2 var(--body);text-decoration:none;text-align:center;
+  border:2px solid transparent;cursor:pointer;
+}
+.btn-gold{background:var(--marigold);color:#1A1400}
+.btn-gold:hover{background:#FFC650}
+.btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.btn-ghost:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+.btn-blue{background:var(--blue-btn);color:#fff}
+.btn-blue:hover{filter:brightness(1.12)}
+.btn-line{background:transparent;color:var(--blue-text);border-color:currentColor}
+.btn-line:hover{background:color-mix(in srgb,var(--blue-text) 10%,transparent)}
+.btn-sm{min-height:44px;padding:.5rem 1.1rem;font-size:.95rem;white-space:nowrap}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);color:#fff}
+.top :focus-visible,.hero :focus-visible,.world :focus-visible,.foot :focus-visible{outline-color:var(--marigold)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:64px}
+.brand{display:inline-flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:700;font-size:1.125rem;letter-spacing:-.01em}
+.brand svg{width:30px;height:30px;flex:none}
+.brand .tld{font-weight:500;color:#B9C8FF}
+.nav{display:none;gap:1.6rem}
+.nav a,.drawer a{color:#DCE4FF;text-decoration:none;font-size:.95rem;font-weight:500;white-space:nowrap}
+.nav a:hover,.drawer a:hover{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.top-actions{display:flex;align-items:center;gap:.5rem}
+.top-actions .btn{display:none}
+.menu-btn{width:44px;height:44px;border-radius:12px;border:1.5px solid rgba(255,255,255,.45);background:transparent;color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
+.menu-btn svg{width:22px;height:22px}
+.drawer{border-top:1px solid rgba(255,255,255,.16);padding:.5rem 0 1rem}
+.drawer a{display:flex;align-items:center;min-height:48px;font-size:1.05rem}
+@media (min-width:560px){.top-actions .btn{display:inline-flex}}
+@media (min-width:1080px){.nav{display:flex}.menu-btn{display:none}.drawer{display:none}}
+
+/* hero */
+.hero{
+  background-color:var(--blue);color:#fff;
+  background-image:
+    linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+.hero-in{display:grid;gap:2.75rem;padding-block:clamp(2.5rem,6vw,5rem) clamp(3rem,7vw,5.5rem)}
+h1{
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(2.6rem,7.4vw,4.1rem);line-height:1;letter-spacing:-.03em;
+  margin-bottom:1.4rem;text-wrap:balance;
+}
+.lede{font-size:clamp(1.0625rem,2.1vw,1.25rem);line-height:1.55;color:#E3E9FF;max-width:34rem;margin-bottom:0}
+.cta-row{display:flex;flex-wrap:wrap;gap:.75rem}
+.credo{margin-top:0;font-family:var(--display);font-weight:500;font-size:1.0625rem;color:#C9D5FF}
+.dot{width:.72rem;height:.72rem;border-radius:50%;display:inline-block;flex:none;background:var(--c)}
+.finder{background:var(--surface);color:var(--ink);border-radius:22px;padding:clamp(1.25rem,3vw,2rem);box-shadow:0 18px 40px rgba(5,14,56,.35)}
+.finder h2{font-size:1.45rem;max-width:none;margin-bottom:1.1rem;letter-spacing:-.01em}
+.finder .field{margin-bottom:1rem}
+.finder input,.finder select{background:var(--ground)}
+.loc-tools{display:flex;flex-wrap:wrap;gap:.35rem 1.25rem;margin-top:.55rem;align-items:center}
+.link-btn{background:none;border:0;padding:0;min-height:44px;font:600 .95rem var(--body);color:var(--blue-text);text-decoration:underline;text-underline-offset:3px;cursor:pointer;display:inline-flex;align-items:center}
+.finder :focus-visible{outline-color:var(--blue-text)}
+.finder .btn{width:100%;margin-top:.35rem}
+.finder .fine{margin-top:.85rem}
+.finder .seg{margin-bottom:1rem}
+.finder .seg span{background:var(--ground)}
+.status{font-size:.9rem;color:var(--ink-2);margin-top:.35rem;min-height:1.2em}
+.status.ok{color:var(--space);font-weight:600}
+.status.bad{color:var(--cost);font-weight:600}
+.hero-links{margin-top:.75rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center}
+.hero-links a{color:#fff;font-weight:600;text-underline-offset:4px;display:inline-flex;min-height:44px;align-items:center}
+@media (min-width:1000px){
+  .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);column-gap:3.5rem;row-gap:0;align-items:start}
+  .hero-copy{grid-column:1;grid-row:1}
+  .hero-extra{grid-column:1;grid-row:2;margin-top:1.75rem}
+  .finder{grid-column:2;grid-row:1 / span 2}
+}
+
+/* bands */
+.band{padding-block:clamp(3.5rem,8vw,6.5rem)}
+.band-alt{background:var(--surface)}
+h2{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.05;letter-spacing:-.022em;
+  max-width:20ch;margin-bottom:1rem;text-wrap:balance;
+}
+h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;letter-spacing:-.01em}
+.intro{font-size:1.125rem;color:var(--ink-2);max-width:38rem;margin-bottom:2.5rem}
+
+/* problem */
+.pairs{display:grid;border-top:1px solid var(--line)}
+.pair{padding:1.5rem 0;border-bottom:1px solid var(--line)}
+.pair h3{margin-bottom:.4rem}
+.pair p{color:var(--ink-2);max-width:32rem}
+.statement{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(1.5rem,3.6vw,2.3rem);line-height:1.18;letter-spacing:-.015em;
+  margin-top:3rem;max-width:24ch;
+}
+@media (min-width:760px){.pairs{grid-template-columns:1fr 1fr;column-gap:3.5rem}}
+
+/* steps */
+.how{display:grid;gap:2rem}
+.steps{list-style:none;counter-reset:s;border-top:1px solid var(--line)}
+.steps li{counter-increment:s;display:grid;grid-template-columns:2.75rem 1fr;gap:.25rem 1rem;padding:1.3rem 0;border-bottom:1px solid var(--line)}
+.steps li::before{content:counter(s);font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.1;color:var(--blue-text);grid-row:1 / span 2}
+.steps h3{font-size:1.2rem}
+.steps p{color:var(--ink-2);grid-column:2}
+@media (min-width:900px){
+  .how{grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:4rem;align-items:start}
+  .how-head{position:sticky;top:calc(env(safe-area-inset-top,0px) + 96px)}
+}
+
+/* dashboard */
+.kind{font-size:.95rem;font-weight:600;color:var(--blue-text);margin-bottom:.35rem}
+.statement.eg{margin:0 0 2rem;max-width:30ch;font-size:clamp(1.3rem,3vw,1.9rem)}
+.dash-h{font-size:1.35rem;margin:2rem 0 .85rem}
+.kpi-label .dot{margin-right:.4rem;vertical-align:baseline}
+.kpis5{grid-template-columns:1fr 1fr}
+.kpis5 .kpi{border-right:1px solid var(--line)}
+.kpis5 .kpi:nth-child(2n){border-right:0}
+.kpis5 .kpi.main{grid-column:1 / -1;border-right:0;border-bottom:0;background:color-mix(in srgb,var(--blue-btn) 8%,var(--surface))}
+.kpis5 .kpi-val{font-size:1.3rem}
+.kpis5 .kpi.main .kpi-val{font-size:2rem}
+@media (min-width:860px){
+  .kpis5{grid-template-columns:repeat(4,1fr) 1.5fr}
+  .kpis5 .kpi,.kpis5 .kpi:nth-child(2n){border-right:1px solid var(--line);border-bottom:0}
+  .kpis5 .kpi.main{grid-column:auto}
+  .kpis5 .kpi-val{font-size:1.45rem}
+  .kpis5 .kpi.main .kpi-val{font-size:2.1rem}
+}
+.ramp{display:grid;gap:0;margin:1rem 0 .85rem;border-top:1px solid var(--line)}
+.ramp div{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line)}
+.ramp dt{color:var(--ink-2)}
+.ramp dd{font-weight:700;font-variant-numeric:tabular-nums}
+@media (min-width:760px){.ramp{grid-template-columns:repeat(3,1fr);column-gap:2.5rem}}
+.acc{border:1px solid var(--line);border-radius:16px;background:var(--surface);margin-bottom:.75rem;border-bottom:1px solid var(--line)}
+.acc:first-of-type{border-top:1px solid var(--line)}
+.acc summary{padding:.9rem 1.1rem;min-height:60px;font-size:1.08rem;gap:.75rem;flex-wrap:wrap;justify-content:flex-start}
+.acc summary span:first-child{flex:1 1 auto}
+.acc summary::after{content:"";width:10px;height:10px;border-right:2.5px solid var(--blue-text);border-bottom:2.5px solid var(--blue-text);transform:rotate(45deg);margin:0 .35rem .25rem auto;flex:none;transition:transform .2s}
+.acc[open] summary::after{transform:rotate(-135deg);margin-bottom:-.25rem}
+@media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
+.acc-sum{font-size:.88rem;font-weight:500;color:var(--ink-2);flex:0 1 auto}
+.acc-body{padding:0 1.1rem 1.15rem}
+.acc-body input{background:var(--ground)}
+.acc-body > p{color:var(--ink);max-width:46rem;padding:0}
+.ticks{list-style:none;display:grid;gap:.1rem}
+.ticks li{position:relative;padding:.45rem 0 .45rem 1.6rem;border-bottom:1px dashed var(--line)}
+.ticks li:last-child{border-bottom:0}
+.ticks li::before{content:"";position:absolute;left:.15rem;top:1rem;width:.55rem;height:.55rem;border-radius:50%;background:var(--space)}
+@media (min-width:700px){.ticks{grid-template-columns:1fr 1fr;column-gap:2.5rem}}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:.25rem 0 .5rem}
+.chip{min-height:44px;padding:.5rem 1.05rem;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:500 .95rem/1.2 var(--body);cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--blue-text);color:var(--blue-text)}
+.acc-body .chip{background:var(--ground)}
+.hint-line{font-size:.9rem;color:var(--ink-2) !important;margin-bottom:.5rem}
+.sub-h{font-family:var(--body);font-weight:700;font-size:1rem;margin:1.25rem 0 .6rem}
+.idea{border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.6rem;background:var(--ground)}
+.idea h4{font-family:var(--display);font-size:1.1rem;line-height:1.25;margin-bottom:.15rem}
+.idea p.idea-who{font-size:.9rem;font-weight:600;color:var(--blue-text);margin-bottom:.4rem}
+.idea p{color:var(--ink);padding:0}
+.idea-meta{display:grid;gap:.5rem 2rem;margin-top:.75rem;padding-top:.7rem;border-top:1px solid var(--line)}
+.idea-meta dt{font-size:.82rem;color:var(--ink-2)}
+.idea-meta dd{font-weight:700}
+@media (min-width:640px){.idea-meta{grid-template-columns:1fr 1fr}}
+.models-dl div{padding:.6rem 0;border-bottom:1px dashed var(--line)}
+.models-dl div:last-child{border-bottom:0}
+.models-dl dt{font-weight:700}
+.models-dl dd{color:var(--ink-2)}
+.teaser{display:grid;border-top:1px solid var(--line)}
+.teaser div{padding:1.25rem 0;border-bottom:1px solid var(--line)}
+.teaser h3{font-size:1.1rem;margin-bottom:.25rem}
+.teaser p{color:var(--ink-2)}
+@media (min-width:760px){.teaser{grid-template-columns:repeat(3,1fr);column-gap:3rem}}
+.dash-head{display:grid;gap:1.5rem;margin-bottom:2rem}
+.dash-head h2{margin-bottom:.5rem}
+.dash-head .intro{margin-bottom:0}
+.dash-tools label{margin-bottom:.35rem}
+.loc-line{margin-top:.9rem;font-size:.95rem;color:var(--ink-2);overflow-wrap:anywhere}
+.map{width:100%;height:190px;border:1px solid var(--line);border-radius:14px;margin-top:.75rem;display:block}
+@media (min-width:900px){.dash-head{grid-template-columns:minmax(0,6fr) minmax(0,4fr);gap:4rem;align-items:end}}
+.kpis{display:grid;gap:0;border:1px solid var(--line);border-radius:18px;background:var(--surface);overflow:hidden;margin-bottom:1.5rem}
+.kpi{padding:1.1rem 1.25rem;border-bottom:1px solid var(--line)}
+.kpi:last-child{border-bottom:0}
+.kpi-label{display:block;font-size:.9rem;color:var(--ink-2);font-weight:500}
+.kpi-val{display:block;font-family:var(--display);font-weight:700;font-size:1.6rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi.main .kpi-val{font-size:2.2rem;color:var(--blue-text)}
+@media (min-width:760px){.kpis{grid-template-columns:1fr 1.4fr 1.2fr}.kpi{border-bottom:0;border-right:1px solid var(--line)}.kpi:last-child{border-right:0}}
+.kpis4{grid-template-columns:1fr 1fr}
+.kpis4 .kpi{border-right:1px solid var(--line)}
+.kpis4 .kpi:nth-child(2n){border-right:0}
+.kpis4 .kpi:nth-child(n+3){border-bottom:0}
+.kpis4 .kpi-val{font-size:1.35rem}
+.kpis4 .kpi.main .kpi-val{font-size:1.6rem}
+@media (min-width:760px){
+  .kpis4{grid-template-columns:1fr 1fr 1.3fr 1.2fr}
+  .kpis4 .kpi,.kpis4 .kpi:nth-child(2n){border-right:1px solid var(--line);border-bottom:0}
+  .kpis4 .kpi:last-child{border-right:0}
+  .kpis4 .kpi-val{font-size:1.6rem}
+  .kpis4 .kpi.main .kpi-val{font-size:2.2rem}
+}
+.mix{display:flex;height:22px;border-radius:11px;overflow:hidden;background:var(--line)}
+.mix span{display:block;height:100%;transition:flex-basis .25s}
+@media (prefers-reduced-motion:reduce){.mix span{transition:none}}
+.mix-legend{display:grid;gap:0;margin:.75rem 0 2.25rem}
+.mix-legend div{display:grid;grid-template-columns:1rem 1fr auto;gap:.6rem;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--line)}
+.mix-legend dt{font-weight:500}
+.mix-legend dd{font-weight:700;font-variant-numeric:tabular-nums}
+@media (min-width:760px){.mix-legend{grid-template-columns:repeat(3,1fr);column-gap:2.5rem}}
+.dash-actions{display:flex;flex-wrap:wrap;gap:.25rem 1.5rem;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.dash-actions h3{font-size:1.35rem}
+.dash-actions div{display:flex;flex-wrap:wrap;gap:0 1.5rem}
+.sgroup{display:flex;flex-wrap:wrap;gap:.25rem 1rem;align-items:baseline;justify-content:space-between;padding:1.6rem 0 .7rem;border-bottom:2px solid var(--c)}
+.sgroup h3{display:flex;align-items:baseline;gap:.55rem;font-size:1.15rem}
+.sgroup .dot{align-self:center}
+.sgroup-amt{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+@media (min-width:640px){.fields.three{grid-template-columns:1fr 1fr 1fr}}
+.chart{margin-bottom:2rem}
+.chart-row{display:grid;gap:.15rem .75rem;padding:.45rem 0;align-items:center}
+.chart-name{font-size:.92rem;font-weight:500}
+.chart-track{height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.chart-fill{display:block;height:100%;border-radius:7px;background:var(--c);min-width:4px;transition:width .25s}
+.chart-amt{font-size:.92rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.chart-fill{transition:none}}
+@media (min-width:700px){.chart-row{grid-template-columns:16rem 1fr 7rem}.chart-amt{text-align:right}}
+.chart-empty{color:var(--ink-2);padding:.5rem 0 1rem}
+.list-head{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:baseline;justify-content:space-between;margin-bottom:.75rem}
+.list-head h3{font-size:1.35rem}
+.keys{display:flex;flex-wrap:wrap;gap:.3rem 1rem;list-style:none;font-size:.85rem;color:var(--ink-2)}
+.keys li{display:inline-flex;align-items:center;gap:.4rem}
+.scards{list-style:none}
+.scard{border-bottom:1px solid var(--line);padding:1rem 0}
+.scard-top{display:grid;grid-template-columns:44px 1fr;gap:.25rem .5rem;align-items:start}
+.pick{display:grid;place-items:center;width:44px;height:44px;margin:0;cursor:pointer}
+.pick input{width:22px;height:22px;accent-color:var(--blue-btn);cursor:pointer}
+.scard-name{font-size:1.12rem;line-height:1.25}
+.scard-tags{display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin-top:.3rem;font-size:.85rem;color:var(--ink-2)}
+.scard-tags span{display:inline-flex;align-items:center;gap:.4rem}
+.tag-reg{color:var(--cost);font-weight:600}
+.scard-income{grid-column:2;margin-top:.45rem}
+.scard-income .amt{font-family:var(--display);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.scard-income .per{font-size:.85rem;color:var(--ink-2);margin-left:.35rem}
+.scard.off .scard-income .amt{color:var(--ink-2)}
+.scard-more{grid-column:2;justify-self:start;background:none;border:0;padding:0;min-height:44px;font:600 .95rem var(--body);color:var(--blue-text);cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.scard-more svg{width:18px;height:18px;transition:transform .2s}
+.scard-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){.scard-more svg{transition:none}}
+.scard-panel{margin:.25rem 0 .5rem 0;padding:1.1rem;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.band-alt .scard-panel{background:var(--ground)}
+.scard-panel .desc{margin-bottom:.9rem}
+.scard-panel input{background:var(--ground)}
+.assume{margin-top:.9rem;border:0}
+.assume summary{min-height:44px;font-size:.95rem;font-weight:600;color:var(--blue-text);justify-content:flex-start;padding:0}
+.assume .fields{margin-top:.25rem}
+.formula{margin-top:.9rem;font-size:.92rem;color:var(--ink-2)}
+.regnote{margin-top:.6rem;font-size:.92rem;color:var(--cost);font-weight:500}
+@media (min-width:760px){
+  .scard-top{grid-template-columns:44px 1fr auto;column-gap:1rem}
+  .scard-income{grid-column:3;grid-row:1;margin-top:0;text-align:right}
+  .scard-income .per{display:block;margin-left:0}
+  .scard-panel{margin-left:calc(44px + 1rem)}
+}
+.plan-cta{margin-top:2rem;padding:1.5rem;border-radius:18px;background:var(--bar);color:#fff;display:grid;gap:1rem;align-items:center}
+.plan-cta p{color:#E3E9FF}
+.plan-cta strong{color:#fff;font-family:var(--display);font-size:1.25rem;display:block;margin-bottom:.2rem}
+@media (min-width:760px){.plan-cta{grid-template-columns:1fr auto;padding:1.75rem 2rem}}
+.models{width:100%;border-collapse:collapse;font-size:.98rem}
+.models th{text-align:left;font-size:.85rem;font-weight:600;color:var(--ink-2);padding:.6rem .75rem .6rem 0;border-bottom:1px solid var(--line)}
+.models td{padding:.8rem .75rem .8rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+.models td:first-child{white-space:nowrap}
+@media (max-width:560px){.models td:first-child{white-space:normal}}
+.models .m-note{display:block;font-size:.88rem;color:var(--ink-2);font-weight:400}
+.scroll-x{overflow-x:auto}
+.contact{list-style:none;margin-top:1.5rem;border-top:1px solid var(--line)}
+.contact li{padding:.8rem 0;border-bottom:1px solid var(--line)}
+.contact span{display:block;font-size:.85rem;color:var(--ink-2)}
+.contact a{font-weight:600;font-size:1.1rem;text-decoration:none}
+.contact a:hover{text-decoration:underline}
+.plan-box{margin:0 0 1.25rem;padding:1rem 1.1rem;border-radius:14px;background:var(--hours-soft);font-size:.95rem}
+.plan-box strong{display:block;margin-bottom:.2rem}
+
+/* hosts and partners */
+.sides{display:grid;gap:3.5rem}
+.side h3{font-size:1.6rem;margin-bottom:.35rem}
+.side-sub{color:var(--ink-2);margin-bottom:1.25rem}
+.gains{list-style:none;border-top:1px solid var(--line);margin-bottom:1.75rem}
+.gains li{padding:1.05rem 0;border-bottom:1px solid var(--line)}
+.gains h4{font-family:var(--body);font-weight:700;font-size:1.0625rem;margin-bottom:.15rem}
+.gains p{color:var(--ink-2)}
+@media (min-width:860px){.sides{grid-template-columns:1fr 1fr;gap:4.5rem}}
+
+/* money */
+.money-top{display:grid;gap:2rem;margin-bottom:2.5rem}
+.fall{list-style:none;counter-reset:f;border-top:1px solid var(--line)}
+.fall li{counter-increment:f;display:grid;grid-template-columns:2rem 1fr;gap:.75rem;padding:.8rem 0;border-bottom:1px solid var(--line)}
+.fall li::before{content:counter(f);font-family:var(--display);font-weight:800;color:var(--blue-text)}
+.fall li:last-child{font-weight:600}
+@media (min-width:900px){.money-top{grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:4rem;align-items:end}}
+label,.lab{display:block;font-weight:600;font-size:.95rem;margin-bottom:.35rem}
+input[type="text"],input[type="email"],input[type="tel"],input[type="number"],select,textarea{
+  width:100%;min-height:48px;padding:.6rem .8rem;
+  border:1.5px solid var(--line);border-radius:10px;
+  background:var(--surface);color:var(--ink);font:inherit;
+}
+textarea{min-height:110px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--blue-text);outline-offset:1px;border-color:var(--blue-text)}
+.fields{display:grid;gap:1rem;align-items:end}
+.fine{font-size:.875rem;color:var(--ink-2);margin-top:1rem}
+@media (min-width:640px){.fields{grid-template-columns:1fr 1fr}.fields .full{grid-column:1 / -1}}
+
+/* trust */
+.checks{display:grid;border-top:1px solid var(--line)}
+.check{padding:1.35rem 0;border-bottom:1px solid var(--line)}
+.check h3{font-size:1.15rem;margin-bottom:.3rem}
+.check p{color:var(--ink-2);max-width:32rem}
+.care{margin-top:2rem;padding:1rem 1.25rem;border-radius:14px;background:var(--cost-soft);color:var(--ink);max-width:46rem}
+.care strong{color:var(--cost)}
+@media (min-width:760px){.checks{grid-template-columns:1fr 1fr;column-gap:3.5rem}}
+
+/* world */
+.world{background:var(--bar);color:#fff}
+.world h2{max-width:16ch}
+.world-in{display:grid;gap:2.5rem}
+.world p{color:#E3E9FF;max-width:36rem}
+.world p + p{margin-top:1rem}
+.world h3{font-size:1.35rem;margin-bottom:.5rem}
+.world .cta-row{margin-top:1.5rem}
+.starts{list-style:none;margin-top:1.25rem;border-top:1px solid rgba(255,255,255,.2)}
+.starts li{display:flex;gap:.7rem;align-items:baseline;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.2);color:#fff;font-weight:500}
+@media (min-width:900px){.world-in{grid-template-columns:1fr 1fr;gap:4.5rem}}
+
+/* about */
+.about{display:grid;gap:2.5rem}
+.about h3{font-size:1rem;font-family:var(--body);font-weight:600;color:var(--ink-2);margin-bottom:.5rem}
+.about p{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,2.6vw,1.7rem);line-height:1.25;letter-spacing:-.01em;max-width:26ch}
+@media (min-width:820px){.about{grid-template-columns:1fr 1fr;gap:4rem}}
+
+/* faq */
+.faq{max-width:50rem}
+details{border-bottom:1px solid var(--line)}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:60px;padding:.6rem 0;font-weight:600;font-size:1.1rem}
+summary::-webkit-details-marker{display:none}
+summary svg{width:22px;height:22px;flex:none;color:var(--blue-text);transition:transform .2s}
+details[open] summary svg{transform:rotate(45deg)}
+@media (prefers-reduced-motion:reduce){summary svg{transition:none}}
+details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
+
+/* start form */
+.start{display:grid;gap:2.5rem}
+.seg{border:0;padding:0;margin:0 0 1.5rem;display:flex;flex-wrap:wrap;gap:.5rem}
+.seg legend{font-weight:600;font-size:.95rem;margin-bottom:.5rem;padding:0}
+.seg label{margin:0;font-weight:500;cursor:pointer}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:inline-flex;align-items:center;min-height:44px;padding:.5rem 1.05rem;border-radius:999px;border:1.5px solid var(--line);background:var(--surface)}
+.seg input:checked + span{background:var(--blue-btn);border-color:var(--blue-btn);color:#fff}
+.seg input:focus-visible + span{outline:3px solid var(--blue-text);outline-offset:3px}
+.boxes{display:flex;flex-wrap:wrap;gap:.35rem 1.25rem}
+.boxes label{display:inline-flex;align-items:center;gap:.5rem;font-weight:500;margin:0;min-height:44px;cursor:pointer}
+.boxes input{width:20px;height:20px;accent-color:var(--blue-btn)}
+.hint{font-size:.875rem;color:var(--ink-2);font-weight:400}
+.err{color:var(--cost);font-weight:600;margin-top:1rem}
+.form-foot{margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+.ready{margin-top:2rem;padding:1.5rem;border:1.5px solid var(--space);border-radius:18px;background:var(--space-soft)}
+.ready h3{margin-bottom:.4rem}
+.ready p{margin-bottom:1rem}
+.ready textarea{background:var(--surface);min-height:190px;font-size:.95rem}
+.ready .cta-row{margin-top:1rem}
+@media (min-width:940px){.start{grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:4.5rem;align-items:start}}
+
+/* footer */
+.foot{background:var(--footer);color:#C9D5FF;padding-block:3.5rem 2.5rem;font-size:.95rem}
+.foot a{color:#fff}
+.foot-in{display:grid;gap:2.5rem}
+.foot .brand{font-size:1.25rem;margin-bottom:.6rem}
+.foot-links{list-style:none;display:grid;gap:.15rem}
+.foot-links a{display:inline-flex;min-height:40px;align-items:center;text-decoration:none}
+.foot-links a:hover{text-decoration:underline;text-underline-offset:4px}
+.foot h3{font-family:var(--body);font-size:.95rem;font-weight:600;color:#fff;margin-bottom:.4rem}
+.legal{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.16);font-size:.85rem;max-width:60rem}
+.legal p + p{margin-top:.6rem}
+@media (min-width:820px){.foot-in{grid-template-columns:2fr 1fr 1fr;gap:4rem}}
+[hidden]{display:none !important}
+/* ---- terms step + login link ---- */
+.top-login{color:#fff;text-decoration:none;font-weight:600;font-size:.95rem;padding:.5rem .25rem;white-space:nowrap}
+.top-login:hover{text-decoration:underline}
+.terms-step{margin-top:2rem;padding:1.5rem;border:1.5px solid var(--blue-text);border-radius:18px;background:var(--surface)}
+.terms-step h3{margin-bottom:.4rem}
+.terms-step .terms-points{margin:1rem 0;padding-left:1.2rem}
+.terms-step .terms-points li{margin-bottom:.45rem}
+.agree{display:flex;gap:.7rem;align-items:flex-start;padding:1rem;border-radius:14px;background:var(--hours-soft);font-weight:600;cursor:pointer}
+.agree input{width:1.25rem;height:1.25rem;margin-top:.2rem;flex:none;accent-color:var(--blue-btn)}
+.terms-step .cta-row{margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.75rem}
+.btn[disabled]{opacity:.5;cursor:not-allowed;filter:none}
+.dev-note{margin-top:1rem;padding:.8rem 1rem;border-radius:12px;background:var(--foot-soft);font-size:.92rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#top" aria-label="Partnermybusiness.ai, back to top">
+      <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke-width="3" stroke-linecap="round">
+        <path d="M3 6c8 0 8 10 15 10" stroke="#6CE5BF"/>
+        <path d="M3 16h15" stroke="#FFC857"/>
+        <path d="M3 26c8 0 8-10 15-10" stroke="#FF9D8C"/>
+        <circle cx="23.5" cy="16" r="6" fill="#fff" stroke="none"/>
+      </svg>
+      <span>Partnermybusiness<span class="tld">.ai</span></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#dashboard">Revenue dashboard</a>
+      <a href="#how">How it works</a>
+      <a href="#who">Hosts and partners</a>
+      <a href="#money">Revenue sharing</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <div class="top-actions">
+      <a class="top-login" href="/login.html#login">Log in</a>
+      <a class="btn btn-gold btn-sm" href="#start" data-role="host">Enquire now</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="drawer" id="drawer" hidden>
+    <nav class="wrap" aria-label="Mobile">
+      <a href="#dashboard">Revenue dashboard</a>
+      <a href="#how">How it works</a>
+      <a href="#who">Hosts and partners</a>
+      <a href="#money">Revenue sharing</a>
+      <a href="#trust">Trust and safety</a>
+      <a href="#faq">Questions</a>
+      <a href="#start">Get started</a>
+      <a href="/login.html#login">Log in to your dashboard</a>
+      <a href="tel:+918103990990">Call +91 81039 90990</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <h1>One business.<br>Multiple revenue streams.</h1>
+      <p class="lede">Your business or your profession already has customers, space and skills. Choose what you do and see what you could sell, who you could collaborate with, and what it could be worth each month.</p>
+    </div>
+
+    <div class="finder" id="finder">
+      <h2>See what you could earn</h2>
+      <fieldset class="seg" id="kindSeg">
+        <legend>I am</legend>
+        <label><input type="radio" name="kind" value="b" checked><span>A business</span></label>
+        <label><input type="radio" name="kind" value="p"><span>A professional</span></label>
+      </fieldset>
+      <div class="field">
+        <label for="bizSelect" id="bizLabel">Your kind of business</label>
+        <select id="bizSelect"></select>
+      </div>
+      <div class="field">
+        <label for="locInput">Where are you? <span class="hint">(optional)</span></label>
+        <input id="locInput" type="text" autocomplete="off" placeholder="Maps link, or area and city">
+        <div class="loc-tools">
+          <button class="link-btn" type="button" id="useGps">Use my current location</button>
+          <a class="link-btn" href="https://www.google.com/maps" target="_blank" rel="noopener">Find my pin on Google Maps</a>
+        </div>
+        <p class="status" id="locStatus" role="status"></p>
+      </div>
+      <p class="err" id="finderErr" role="alert" hidden style="margin:0 0 .75rem"></p>
+      <button class="btn btn-gold" type="button" id="showBtn">Show my opportunities</button>
+      <p class="fine">50 kinds of business and 50 professions. Your details open as soon as you choose.</p>
+    </div>
+
+    <div class="hero-extra">
+      <p class="credo">Business is collaboration, not competition.</p>
+      <p class="hero-links"><a href="#start" data-role="partner">I am a brand or supplier</a><a href="tel:+918103990990">Call +91 81039 90990</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="dashboard">
+  <div class="wrap">
+    <div id="dashEmpty">
+      <h2>Your opportunities open here</h2>
+      <p class="intro">Choose what you do at the top of the page. 50 kinds of business and 50 professions are covered.</p>
+      <div class="teaser">
+        <div><h3>What you could sell and offer</h3><p>Products your customers can buy on the spot, and services they can book or subscribe to.</p></div>
+        <div><h3>Who you could collaborate with</h3><p>The businesses and professionals most likely to partner with you, with ideas ready to pilot.</p></div>
+        <div><h3>What it could be worth</h3><p>Monthly projections for products, services, operational benefit and expense savings, which you can change.</p></div>
+      </div>
+    </div>
+
+    <div id="dashLive" hidden>
+      <div class="dash-head">
+        <div>
+          <p class="kind" id="dashKind"></p>
+          <h2 id="dashTitle" tabindex="-1"></h2>
+          <p class="intro" id="dashIntro"></p>
+        </div>
+        <div class="dash-tools">
+          <label for="bizSwitch">Change business or profession</label>
+          <select id="bizSwitch"></select>
+          <p class="loc-line" id="locLine"></p>
+          <div id="mapBox"></div>
+        </div>
+      </div>
+
+      <p class="statement eg" id="dashExample"></p>
+
+      <h3 class="dash-h">Financial projection, each month</h3>
+      <div class="kpis kpis5" aria-live="polite">
+        <div class="kpi"><span class="kpi-label"><span class="dot" style="--c:var(--space)"></span>Product revenue</span><span class="kpi-val" id="k0"></span></div>
+        <div class="kpi"><span class="kpi-label"><span class="dot" style="--c:var(--blue-btn)"></span>Service revenue</span><span class="kpi-val" id="k1"></span></div>
+        <div class="kpi"><span class="kpi-label"><span class="dot" style="--c:var(--hours)"></span>Operational benefit</span><span class="kpi-val" id="k2"></span></div>
+        <div class="kpi"><span class="kpi-label"><span class="dot" style="--c:var(--foot-fill)"></span>Expense savings</span><span class="kpi-val" id="k3"></span></div>
+        <div class="kpi main"><span class="kpi-label">Total monthly benefit at steady state</span><span class="kpi-val" id="kTotal"></span></div>
+      </div>
+      <div class="mix" id="mix" role="img"></div>
+      <dl class="ramp">
+        <div><dt>Month 3</dt><dd id="kM3"></dd></div>
+        <div><dt>Month 6</dt><dd id="kM6"></dd></div>
+        <div><dt>Year one, with the ramp-up</dt><dd id="kYear"></dd></div>
+      </dl>
+      <p class="fine" style="margin:0 0 1.5rem">Product and service figures are sales, not profit. Operational benefit and expense savings are value gained and costs reduced. Month 3 and month 6 assume a gradual start that reaches steady state by month 10.</p>
+
+      <details class="acc">
+        <summary><span>Change the numbers</span><span class="acc-sum">Put in your own monthly figures</span></summary>
+        <div class="acc-body">
+          <div class="fields">
+            <div><label for="in0">Product revenue a month (₹)</label><input id="in0" type="number" min="0" step="5000" inputmode="numeric"></div>
+            <div><label for="in1">Service revenue a month (₹)</label><input id="in1" type="number" min="0" step="5000" inputmode="numeric"></div>
+            <div><label for="in2">Operational benefit a month (₹)</label><input id="in2" type="number" min="0" step="5000" inputmode="numeric"></div>
+            <div><label for="in3">Expense savings a month (₹)</label><input id="in3" type="number" min="0" step="5000" inputmode="numeric"></div>
+          </div>
+          <button class="link-btn" type="button" id="resetNums">Reset to the example figures</button>
+        </div>
+      </details>
+
+      <h3 class="dash-h">Your details</h3>
+      <details class="acc" open>
+        <summary><span>Probable collaborations</span><span class="acc-sum" id="sumCollab"></span></summary>
+        <div class="acc-body" id="bodyCollab"></div>
+      </details>
+      <details class="acc" open>
+        <summary><span>Products you could sell</span><span class="acc-sum">What customers can buy on the spot</span></summary>
+        <div class="acc-body" id="bodyProducts"></div>
+      </details>
+      <details class="acc" open>
+        <summary><span>Services you could offer</span><span class="acc-sum">What customers can book or subscribe to</span></summary>
+        <div class="acc-body" id="bodyServices"></div>
+      </details>
+      <details class="acc">
+        <summary><span>Operational support you could get</span><span class="acc-sum">Help running the work</span></summary>
+        <div class="acc-body" id="bodyOps"></div>
+      </details>
+      <details class="acc">
+        <summary><span>Expenses you could reduce</span><span class="acc-sum">Group buying and shared costs</span></summary>
+        <div class="acc-body" id="bodySave"></div>
+      </details>
+      <details class="acc">
+        <summary><span>Assets you can put to work</span><span class="acc-sum">What you already have</span></summary>
+        <div class="acc-body" id="bodyAssets"></div>
+      </details>
+      <details class="acc">
+        <summary><span>How the money is shared</span><span class="acc-sum">Commercial models and rules</span></summary>
+        <div class="acc-body" id="bodyModels"></div>
+      </details>
+
+      <div class="plan-cta">
+        <p><strong id="ctaTotal"></strong>Send this plan to us. We check your location, licences and partner availability, then come back with a revenue opportunity report.</p>
+        <a class="btn btn-gold" href="#start" id="sendPlan">Send this plan to us</a>
+      </div>
+      <p class="fine">Illustrative planning figures, not a forecast or a guarantee. They will be replaced with pilot data for your city, size, footfall and pricing. Shares and fees are agreed for each opportunity.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="why">
+  <div class="wrap">
+    <h2>Most businesses earn from one thing and pay for everything.</h2>
+    <p class="intro">Rent, salaries, power and marketing rise every year, and much of what they buy sits idle for part of the day. Meanwhile brands spend heavily to reach the customers already sitting inside those businesses.</p>
+    <div class="pairs">
+      <div class="pair">
+        <h3>Space and hours that earn nothing</h3>
+        <p>Empty corners, quiet afternoons, closed mornings, treatment rooms free half the day, a terrace that fills twice a week.</p>
+      </div>
+      <div class="pair">
+        <h3>Fixed costs resting on one income</h3>
+        <p>Rent, staff, utilities, licences, insurance and customer acquisition, all carried by a single revenue stream.</p>
+      </div>
+      <div class="pair">
+        <h3>Brands paying heavily to find customers</h3>
+        <p>Digital ads, retail rent, exhibitions and sales teams, when the right customers are already in someone else's venue.</p>
+      </div>
+      <div class="pair">
+        <h3>Partnerships run on handshakes</h3>
+        <p>No standard agreement, payment sums done by hand, unclear responsibility, and no way to repeat a good deal in a second location.</p>
+      </div>
+    </div>
+    <p class="statement">The host brings the place. The partner brings the offer. We bring the system.</p>
+  </div>
+</section>
+
+<section class="band band-alt" id="cross">
+  <div class="wrap">
+    <h2>Businesses and professionals earn together</h2>
+    <p class="intro">A business has space, customers and idle hours. A professional has skill and a following. The platform matches them, writes the agreement and settles the money.</p>
+    <div class="teaser">
+      <div><h3>Business with business</h3><p>A café sells a gym's trial passes. A fuel station hosts a café counter. Each earns from the other's customers.</p></div>
+      <div><h3>Business with professional</h3><p>A gym gives a physiotherapist a room. A school gives tutors its classrooms after hours. Both share what comes in.</p></div>
+      <div><h3>Professional with professional</h3><p>A wedding planner, a makeup artist and a photographer sell one package and split it.</p></div>
+    </div>
+    <p class="statement" style="margin-top:2.5rem">Discover. Match. Agree. Activate. Transact. Settle. Measure.</p>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap how">
+    <div class="how-head">
+      <h2>Seven stages, from discovery to payout</h2>
+      <p class="intro">One agreement for each collaboration, and nothing launches without your approval.</p>
+      <a class="btn btn-blue" href="#top">Open my dashboard</a>
+    </div>
+    <ol class="steps">
+      <li><h3>Discover</h3><p>Choose your business or profession and see what you could sell, who you could work with and what it could be worth.</p></li>
+      <li><h3>Match</h3><p>We introduce vetted businesses and professionals that fit your customers, your space and your skills.</p></li>
+      <li><h3>Agree</h3><p>One short agreement sets out who brings what, who pays for what and how the money is shared.</p></li>
+      <li><h3>Activate</h3><p>The shelf, room, class or service goes live, usually with little or no fit-out.</p></li>
+      <li><h3>Transact</h3><p>Customers pay through digital checkout: QR codes, booking links or your billing system.</p></li>
+      <li><h3>Settle</h3><p>Everyone sees the same statement and each share is paid on schedule.</p></li>
+      <li><h3>Measure</h3><p>Results are reviewed against the plan. Weak ideas are fixed or replaced, and the next one is added.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band band-alt" id="who">
+  <div class="wrap">
+    <h2>Two sides of the same deal</h2>
+    <p class="intro">Businesses have places and customers. Professionals and brands have skills, products and followings. Each has what the other is paying to find.</p>
+    <div class="sides">
+      <div class="side">
+        <h3>If you run a business</h3>
+        <p class="side-sub">Restaurants, hotels, gyms, salons, clinics, schools, shops, offices, garages and forty more kinds of business.</p>
+        <ul class="gains">
+          <li><h4>New income without a new business</h4><p>No product to develop, no stock to buy, no sales team to hire, no suppliers to chase.</p></li>
+          <li><h4>Low-capital or partner-funded</h4><p>Partners usually supply the stock, equipment or expertise. Any cost to you, such as power or a permit, is shown before you decide.</p></li>
+          <li><h4>Several streams, one agreement</h4><p>Start with two or three. Add more as they prove themselves.</p></li>
+          <li><h4>More from costs you already pay</h4><p>The same rent, staff and electricity now support more than one income.</p></li>
+          <li><h4>You stay in control</h4><p>You approve every opportunity, design, schedule, price and brand that enters your business.</p></li>
+        </ul>
+        <a class="btn btn-blue" href="#top">Open my dashboard</a>
+      </div>
+      <div class="side">
+        <h3>If you are a professional</h3>
+        <p class="side-sub">Teachers, chefs, trainers, therapists, stylists, photographers, designers, trades, consultants and more. Brands and suppliers join the same way.</p>
+        <ul class="gains">
+          <li><h4>A place to work without the rent</h4><p>Use a room, chair, kitchen or classroom for the hours you need, and share what you earn.</p></li>
+          <li><h4>Clients without advertising</h4><p>Partner businesses introduce you to customers who already trust them.</p></li>
+          <li><h4>Sell products as well as time</h4><p>Kits, courses and curated products earn when you are not in the room.</p></li>
+          <li><h4>Many venues, one agreement</h4><p>Join once and work across every suitable business in the network.</p></li>
+          <li><h4>Bookings and payments handled</h4><p>Scheduling, billing, collection and settlement run on the platform.</p></li>
+        </ul>
+        <a class="btn btn-line" href="#top">See my opportunities</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="money">
+  <div class="wrap">
+    <div class="money-top">
+      <div>
+        <h2>We never split gross sales.</h2>
+        <p class="intro" style="margin-bottom:0">Every payment follows the same order, and every party sees the same statement. Nobody's share is worked out from a number that still has tax, refunds or costs inside it.</p>
+      </div>
+      <ol class="fall">
+        <li>Taxes come off first.</li>
+        <li>Then refunds and cancellations.</li>
+        <li>Then payment and booking charges.</li>
+        <li>Then the direct costs agreed in advance, such as product cost, delivery, maintenance or insurance.</li>
+        <li>What remains is shared between host, partner and platform at the agreed percentages.</li>
+      </ol>
+    </div>
+    <h3 style="font-size:1.4rem;margin-bottom:.75rem">The commercial models we use</h3>
+    <div class="scroll-x">
+      <table class="models">
+        <thead><tr><th scope="col">Model</th><th scope="col">What it means</th></tr></thead>
+        <tbody id="modelRows"></tbody>
+      </table>
+    </div>
+    <p class="fine">Each collaboration uses one or two of these. The percentages and fees are agreed in writing before anything starts, and they change with who funds the stock, equipment, marketing and staff.</p>
+  </div>
+</section>
+
+<section class="band band-alt" id="trust">
+  <div class="wrap">
+    <h2>Built so everyone can trust the numbers</h2>
+    <p class="intro">Informal partnerships fail on leakage, blame and late payment. The platform removes the room for all three.</p>
+    <div class="checks">
+      <div class="check"><h3>Vetted partners</h3><p>Business, identity, tax, bank, product certification and insurance checks before anyone enters your venue.</p></div>
+      <div class="check"><h3>Standard agreements</h3><p>One master agreement for each host and each partner, plus a one-page sheet for every opportunity.</p></div>
+      <div class="check"><h3>Digital payments only</h3><p>QR codes, booking links and point-of-sale integrations, so there is no cash to reconcile and nothing to argue about.</p></div>
+      <div class="check"><h3>One statement for everyone</h3><p>Sales, taxes, refunds, costs, shares and settlement status on the same dashboard for host and partner.</p></div>
+      <div class="check"><h3>Responsibility in writing</h3><p>Ownership, installation, maintenance, damage, insurance and exit are settled before launch, not after a dispute.</p></div>
+      <div class="check"><h3>Ratings that matter</h3><p>Hosts and partners are rated on service, settlement conduct and reliability. Repeated underperformance means removal.</p></div>
+    </div>
+    <p class="care"><strong>Health and wellness services are treated differently.</strong> They launch only with licensed professionals, the required approvals, customer screening and added insurance, never as an ordinary retail activation.</p>
+  </div>
+</section>
+
+<section class="band world" id="world">
+  <div class="wrap world-in">
+    <div>
+      <h2>Starting in Bengaluru. Built for every city.</h2>
+      <p>Our founding cohort is cafés, restaurants and bakeries in Bengaluru, because a narrow start is how a model becomes repeatable. Every other business, profession and city can open a dashboard and join the waitlist now.</p>
+      <ul class="starts" aria-label="What the founding cohort launches with">
+        <li><span class="dot" style="--c:var(--space-b)"></span>Curated retail displays</li>
+        <li><span class="dot" style="--c:var(--foot-b)"></span>Memberships and prepaid packages</li>
+        <li><span class="dot" style="--c:var(--hours-b)"></span>Workshops and private hire</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Country partners</h3>
+      <p>Outside India we grow through country partners: local operators who sign hosts and partners, coordinate installation, support and compliance, and run on our platform, agreements and standards.</p>
+      <p>The brand, technology, partner approval, revenue reporting and quality assurance stay central, so a host in any country gets the same system.</p>
+      <div class="cta-row">
+        <a class="btn btn-gold" href="#start" data-role="country">Apply as a country partner</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="about">
+  <div class="wrap about">
+    <div>
+      <h3>Our vision</h3>
+      <p>The world's largest collaboration network for physical businesses, where every location can earn from more than one thing.</p>
+    </div>
+    <div>
+      <h3>Our mission</h3>
+      <p>Find underused business assets and turn them into lasting revenue through trusted partnerships, technology and transparent transactions.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band band-alt" id="faq">
+  <div class="wrap">
+    <h2>Questions owners ask first</h2>
+    <div class="faq" style="margin-top:2rem">
+      <details>
+        <summary>Do I have to invest anything?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>Most opportunities are partner-funded or low-capital: the partner supplies the stock, equipment or expertise. Some need small costs on your side, such as electricity, a permit or minor fit-out. Your report lists these before you decide.</p>
+      </details>
+      <details>
+        <summary>How does Partnermybusiness earn?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>We take an agreed share of the new revenue, so we earn when you earn. Any set-up cost for a specific opportunity is shown in your report before you commit.</p>
+      </details>
+      <details>
+        <summary>Is the income guaranteed?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>No. The dashboard shows projections from example figures that you can change. You earn a share of actual sales, and each stream has a target and a review date.</p>
+      </details>
+      <details>
+        <summary>Will it disturb my regular customers?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>You approve every opportunity, its design, its schedule and its brand. Activity is planned for slow days and quiet hours, and your peak times stay protected.</p>
+      </details>
+      <details>
+        <summary>Why do doctors, lawyers and accountants work differently?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>Their professional rules bar referral commissions and fee sharing. Hospitals, clinics and pharmacies may not pay or take commission per patient or prescription, and lawyers and accountants may not pay for referrals. Those collaborations use room hire, facility fees, workshops and flat listing fees instead. We confirm the rules for your city before anything launches.</p>
+      </details>
+      <details>
+        <summary>Who handles the money?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>Customers pay through platform-approved digital checkout. Taxes, refunds, fees and agreed costs come off first, and each party's share is calculated from the same statement. Payment set-up is approved separately for each country.</p>
+      </details>
+      <details>
+        <summary>What if a stream does not work?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>We change the offer, pricing or display, replace the partner, or remove the stream. You can end a single stream with notice without ending your whole agreement.</p>
+      </details>
+      <details>
+        <summary>Who is responsible if a product or machine causes a problem?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>The partner is responsible for its products, equipment and staff, and carries the insurance for them. You remain responsible for your premises and your core business. This is written into every opportunity sheet.</p>
+      </details>
+      <details>
+        <summary>I am a professional or a brand, not a venue. How do I join?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <p>Choose your profession at the top of the page to see where you could work and with whom, then send your details. After verification you sign one agreement and become available to every suitable business in the network.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="start">
+  <div class="wrap start">
+    <div>
+      <h2>Send us your enquiry</h2>
+      <p class="intro" style="margin-bottom:0">Every enquiry goes to our team inbox, and you get an email with a link to your own dashboard, where you can track opportunities and accept bookings.</p>
+      <ul class="contact">
+        <li><span>Call us</span><a href="tel:+918103990990">+91 81039 90990</a></li>
+        <li><span>Email us</span><a id="startMail" href="#"></a></li>
+      </ul>
+    </div>
+    <div>
+      <form id="startForm" name="enquiry" novalidate>
+        <p hidden><label>Leave this field empty <input name="bot-field" id="botField" tabindex="-1" autocomplete="off"></label></p>
+        <fieldset class="seg">
+          <legend>I am</legend>
+          <label><input type="radio" name="role" value="host" checked><span>A business</span></label>
+          <label><input type="radio" name="role" value="pro"><span>A professional</span></label>
+          <label><input type="radio" name="role" value="partner"><span>A brand or supplier</span></label>
+          <label><input type="radio" name="role" value="country"><span>A future country partner</span></label>
+        </fieldset>
+
+        <div class="plan-box" id="planBox" hidden>
+          <strong id="planHead"></strong>
+          <span id="planLines"></span>
+        </div>
+        <textarea name="plan" id="fPlan" hidden></textarea>
+
+        <div class="fields">
+          <div><label for="fName">Your name</label><input id="fName" name="name" type="text" autocomplete="name" required></div>
+          <div><label for="fBiz">Business or brand name</label><input id="fBiz" name="business" type="text" autocomplete="organization"></div>
+          <div><label for="fPhone">Phone or WhatsApp <span class="hint">(optional)</span></label><input id="fPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel"></div>
+          <div><label for="fEmail">Email <span class="hint">(your dashboard link is sent here)</span></label><input id="fEmail" name="email" type="email" autocomplete="email" required></div>
+
+          <div class="full" data-for="host pro">
+            <label for="fType">Business or profession</label>
+            <select id="fType" name="business_type"></select>
+          </div>
+          <div class="full">
+            <label for="fCity">Location <span class="hint">(Google Maps link, or area and city)</span></label>
+            <input id="fCity" name="location" type="text" autocomplete="off">
+          </div>
+
+          <div class="full" data-for="partner" hidden>
+            <label for="fOffer">What do you offer?</label>
+            <select id="fOffer" name="offer">
+              <option>Products</option><option>Equipment</option><option>Workshops and classes</option>
+              <option>Professional services</option><option>Advertising or sampling campaigns</option>
+            </select>
+          </div>
+
+          <div class="full" data-for="country" hidden>
+            <label for="fTerr">Country or territory you would run</label>
+            <input id="fTerr" name="territory" type="text">
+          </div>
+
+          <div class="full">
+            <label for="fMsg">Anything else we should know <span class="hint">(optional)</span></label>
+            <textarea id="fMsg" name="message"></textarea>
+          </div>
+        </div>
+
+        <p class="err" id="formErr" role="alert" hidden></p>
+        <div class="form-foot">
+          <button class="btn btn-blue" type="button" id="sendBtn">Continue</button>
+          <span class="hint">Next, you’ll review our terms before anything is sent.</span>
+        </div>
+      </form>
+
+      <div class="terms-step" id="termsStep" hidden tabindex="-1">
+        <h3>Before we send your enquiry</h3>
+        <p style="margin:0">Please read and agree to our terms. Once you do, we send your enquiry to our team and email your dashboard link to <strong id="termsEmail"></strong>.</p>
+        <ul class="terms-points">
+          <li>Every collaboration runs on a written agreement. Percentages and fees are agreed before anything starts.</li>
+          <li>We never split gross sales: taxes, refunds, payment charges and agreed costs come off first.</li>
+          <li>Payments are digital only, and every party sees the same statement.</li>
+          <li>Revenue figures on this site are illustrative, not a promise of income. Each opportunity depends on feasibility, licensing and partner availability.</li>
+          <li>We use your details to handle your enquiry and run your dashboard, and we never sell them.</li>
+        </ul>
+        <p style="margin:0 0 1rem"><a href="/terms.html" target="_blank" rel="noopener">Read the full Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+        <label class="agree"><input type="checkbox" id="agreeBox">
+          <span>I have read and agree to the Terms and Conditions and Privacy Policy, and I’m happy for Partnermybusiness to contact me about this enquiry.</span></label>
+        <p class="err" id="termsErr" role="alert" hidden></p>
+        <div class="cta-row">
+          <button class="btn btn-blue" type="button" id="agreeBtn" disabled>Agree and continue</button>
+          <button class="btn btn-line" type="button" id="backBtn">Edit my details</button>
+        </div>
+      </div>
+
+      <div class="ready" id="sent" hidden tabindex="-1">
+        <h3 id="sentHead">Check your inbox</h3>
+        <p id="sentText" style="margin:0"></p>
+        <div class="cta-row" style="margin-top:1rem">
+          <a class="btn btn-blue" href="/login.html#login">Go to login</a>
+          <button class="btn btn-line" type="button" id="resendBtn">Resend the email</button>
+        </div>
+        <p class="hint" id="resendMsg" role="status" style="margin:.75rem 0 0"></p>
+        <div class="dev-note" id="devNote" hidden></div>
+      </div>
+
+      <div class="ready" id="ready" hidden tabindex="-1">
+        <h3>We couldn’t send your enquiry</h3>
+        <p>Our server didn’t respond. Please try again in a minute, or Send the details below to <a id="mailTxt" href="#"></a>, or call <a href="tel:+918103990990">+91 81039 90990</a>.</p>
+        <label for="summary">Details to send</label>
+        <textarea id="summary" readonly></textarea>
+        <div class="cta-row">
+          <a class="btn btn-blue" id="mailBtn" href="#">Open email app</a>
+          <button class="btn btn-line" type="button" id="copyBtn">Copy details</button>
+        </div>
+        <p class="hint" id="copyMsg" role="status" style="margin:.75rem 0 0"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-in">
+      <div>
+        <a class="brand" href="#top">
+          <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke-width="3" stroke-linecap="round">
+            <path d="M3 6c8 0 8 10 15 10" stroke="#6CE5BF"/><path d="M3 16h15" stroke="#FFC857"/><path d="M3 26c8 0 8-10 15-10" stroke="#FF9D8C"/>
+            <circle cx="23.5" cy="16" r="6" fill="#fff" stroke="none"/>
+          </svg>
+          <span>Partnermybusiness<span class="tld">.ai</span></span>
+        </a>
+        <p>One business. Multiple revenue streams.</p>
+        <p style="margin-top:.35rem">Business is collaboration, not competition.</p>
+      </div>
+      <div>
+        <h3>Explore</h3>
+        <ul class="foot-links">
+          <li><a href="#dashboard">Revenue dashboard</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#money">Revenue sharing</a></li>
+          <li><a href="#trust">Trust and safety</a></li>
+          <li><a href="#faq">Questions</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Contact</h3>
+        <ul class="foot-links">
+          <li><a href="tel:+918103990990">+91 81039 90990</a></li>
+          <li><a id="footMail" href="#"></a></li>
+          <li><a href="#start">Send an enquiry</a></li>
+        </ul>
+        <p style="margin-top:.6rem">A Govianu venture, Bengaluru, India</p>
+      </div>
+    </div>
+    <div class="legal">
+      <p>Revenue projections on this site are illustrative and are not a forecast or guarantee of income. Every opportunity is subject to feasibility, local regulation, licensing and partner availability.</p>
+      <p>© 2026 Partnermybusiness. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+<script>
+(function(){
+  "use strict";
+
+  /* ================= settings you may want to change ================= */
+  var MAIL  = "info@partnermybusiness.ai";          /* every enquiry is routed here */
+  var PHONE = "+918103990990";
+  /* Enquiries are sent to this site's own server, which emails the team inbox and the person. */
+  var ENQUIRY_API = "/api/enquiry";
+  /* Optional Google Maps Embed API key (free). Leave "" to use the keyless preview. */
+  var GMAPS_KEY = "";
+  /* The map preview only loads on the live site, not inside previews. */
+  var LIVE = /(^|\.)partnermybusiness\.ai$|\.netlify\.app$/i.test(location.hostname);
+
+  var $ = function(id){ return document.getElementById(id); };
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+  var inr = new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", maximumFractionDigits:0});
+  function money(n){ return inr.format(Math.round(n)); }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* ================= 100 sectors from the Pmb workbook: 50 businesses and 50 professionals =================
+     t = business (b) or professional (p), cat = category, p = products to sell, s = services to offer, c = probable partners,
+     a = assets to use, e = collaboration example, g = support group, r = rule note, m = commercial models,
+     f = [product revenue, service revenue, operational benefit, expense savings] a month in rupees (illustrative, from the workbook) */
+  var SECTORS = [{"id":1,"t":"b","n":"Restaurants & QSRs","cat":"Food & Hospitality","p":["Sauces, spice mixes and meal kits","The tableware guests eat from","Partner bakery desserts","Gift hampers"],"s":["Dining memberships","Weekly meal subscriptions","Celebration packages","Idle-hour kitchen for a delivery brand"],"c":["Chefs","Bakers & Pastry Professionals","Musicians & DJs","Content Creators & Influencers","Photographers"],"a":"Dining room on slow days, kitchen in idle hours, daily footfall","e":"A chef runs a delivery brand from your kitchen in idle hours and you share the revenue.","g":"food","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":2,"t":"b","n":"Hotels & Resorts","cat":"Hospitality","p":["Robes, linen and signature scents","Local artisan crafts","Spa products used in rooms","Minibar from local food brands"],"s":["Daycation and pool passes","Memberships for local residents","Chef's table dinners","Guest experiences and tours"],"c":["Yoga Instructors","Photographers","Massage Therapists","Tour Guides","Event Planners"],"a":"Rooms at low occupancy, pool, banquet halls, lawns","e":"A yoga instructor runs sunrise sessions for guests and locals on revenue share.","g":"venue","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":3,"t":"b","n":"Cafés & Coffee Shops","cat":"Food & Hospitality","p":["House beans and drip bags","Brewing gear and mugs","Partner bakery counter","Local art and books"],"s":["Monthly coffee pass","Office coffee subscription","Work-from-café passes","Private evening hire"],"c":["Bakers & Pastry Professionals","Content Creators & Influencers","Artists & Illustrators","Co-Working Spaces","Musicians & DJs"],"a":"Seating in quiet hours, display shelves, kitchen, walls","e":"A baker runs a weekend dessert counter and classes in your café.","g":"food","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":4,"t":"b","n":"Gyms & Fitness Centers","cat":"Fitness","p":["Protein shakes and supplements","Healthy meal boxes","Activewear","Recovery gear"],"s":["Physiotherapy and recovery room","Nutrition coaching plans","Sauna and recovery sessions","Personal training packs"],"c":["Physiotherapists","Nutritionists & Dietitians","Personal Fitness Trainers","Yoga Instructors","Massage Therapists"],"a":"Spare room, floor in off-peak hours, member base","e":"A physiotherapist runs a recovery room for your members on revenue share.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":5,"t":"b","n":"Spas & Wellness Centers","cat":"Wellness","p":["Oils and skincare used in treatments","Candles and diffusers","Herbal teas and wellness foods","Sleep aids"],"s":["Monthly wellness memberships","Infrared sauna sessions","Couples' packages and gift cards","Meditation and sound-bath sessions"],"c":["Massage Therapists","Yoga Instructors","Nutritionists & Dietitians","Beauticians & Estheticians","Hotels & Resorts"],"a":"Treatment rooms in quiet hours, reception retail space","e":"A yoga instructor runs weekend sound-bath sessions in a free treatment room.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":6,"t":"b","n":"Beauty Salons","cat":"Beauty","p":["Hair and skin care used in the service","Styling tools","Cosmetics and fragrance","Hair accessories"],"s":["Grooming memberships","Bridal and party packages","At-home visits","Specialist treatment room"],"c":["Beauticians & Estheticians","Makeup Artists","Hair Stylists","Wedding Planners","Photographers"],"a":"Spare chairs and rooms, counter space, client base","e":"A beautician runs a specialist treatment room inside the salon on revenue share.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":7,"t":"b","n":"Barber Shops","cat":"Beauty","p":["Beard and grooming kits","Hair styling products","Fragrances","Razors and trimmers"],"s":["Grooming memberships","Groom's wedding packages","Home and office visits","Scalp and skin care"],"c":["Hair Stylists","Wedding Planners","Photographers","Gyms & Fitness Centers","Retail Boutiques & Clothing Stores"],"a":"Chairs in quiet hours, waiting area, loyal regulars","e":"A menswear boutique places a grooming-and-style shelf in your waiting area on consignment.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":8,"t":"b","n":"Shopping Malls","cat":"Retail Real Estate","p":["Pop-up kiosks for D2C brands","Seasonal markets","Mall gift cards","Vending"],"s":["Event space hire","Creator meet-and-shop events","Kids' activity zones","Advertising screens"],"c":["Content Creators & Influencers","Event Planners","Musicians & DJs","Artists & Illustrators","Sports Coaches"],"a":"Atriums, corridors, terraces, parking, screens","e":"A content creator hosts a meet-and-shop pop-up and brings their audience and brands to the atrium.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":9,"t":"b","n":"Supermarkets & Grocery Stores","cat":"Retail","p":["Featured shelf for local food brands","Ready-to-cook kits from restaurants","Fresh bakery counter","Pet food aisle"],"s":["Weekly essentials subscription","Delivery membership","Tastings and demos paid by brands","Parcel lockers"],"c":["Chefs","Bakers & Pastry Professionals","Nutritionists & Dietitians","Cloud Kitchens","Pharmacies"],"a":"Shelf ends, entrance space, parking, daily footfall","e":"A nutritionist runs a healthy-basket desk, earns from consultations, and you sell the basket.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":10,"t":"b","n":"Petrol Stations","cat":"Mobility Retail","p":["Convenience store","Car care and accessories","Food counter by a restaurant partner","Travel essentials"],"s":["Express car wash subscription","EV charging","Tyre and quick-check service","Parcel lockers"],"c":["Auto Repair & Service Garages","Cafés & Coffee Shops","Restaurants & QSRs","Logistics & Courier Services","Insurance Advisers"],"a":"Forecourt space, vehicle traffic, long opening hours","e":"A café brand runs a counter on your forecourt and shares revenue.","g":"retail","r":"fuel","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":11,"t":"b","n":"Co-Working Spaces","cat":"Workspace","p":["Coffee and snack micro-market","Ergonomic chairs and accessories","Stationery and printing","Healthy meal boxes"],"s":["Day passes and meeting rooms","Virtual office","Podcast and content studio","Finance, legal and HR clinics"],"c":["Accountants","Lawyers","HR Consultants","IT Consultants","Photographers"],"a":"Meeting rooms, event area, member companies","e":"An accountant runs a weekly SME finance clinic in a meeting room and pays a room fee.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":12,"t":"b","n":"Office Buildings","cat":"Commercial Real Estate","p":["Vending and coffee kiosks","Healthy meal boxes","Convenience store","Parcel lockers"],"s":["Employee wellness classes","Car wash in the parking","Dry-cleaning pick-up","EV charging"],"c":["Yoga Instructors","Personal Fitness Trainers","Laundry & Dry-Cleaning Businesses","Cafés & Coffee Shops","Physiotherapists"],"a":"Lobby, terrace, parking, common rooms, tenant employees","e":"A yoga instructor runs employee wellness classes on a B2B subscription.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":13,"t":"b","n":"Residential Communities","cat":"Residential","p":["Weekend brand markets","Grocery and milk subscription point","Vending and coffee kiosks","Parcel lockers"],"s":["Clubhouse classes","Doorstep car wash","Salon and spa at home","Kids' camps"],"c":["Personal Fitness Trainers","Yoga Instructors","Dance Instructors","Teachers & Tutors","Sports Coaches"],"a":"Clubhouse, courts, lawns, notice boards, resident app","e":"A fitness trainer runs a resident membership in the clubhouse on subscription share.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":14,"t":"b","n":"Movie Theaters & Multiplexes","cat":"Entertainment","p":["Co-branded snacks and merchandise","Gift cards","Local food brand counters","Collectibles"],"s":["Private screenings","Corporate events in auditoriums by day","Gaming and esports nights","On-screen advertising"],"c":["Event Planners","Content Creators & Influencers","Restaurants & QSRs","Schools","Musicians & DJs"],"a":"Auditoriums in morning hours, lobby, screens","e":"An event planner sells private morning screenings to companies and schools.","g":"venue","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":15,"t":"b","n":"Banquet Halls","cat":"Events","p":["Decor and gifting add-ons","Cakes and dessert tables","Return gifts","Floral packages"],"s":["Weekday corporate events","Classes and exhibitions on idle days","Photo and video packages","Makeup and styling rooms"],"c":["Wedding Planners","Photographers","Makeup Artists","Bakers & Pastry Professionals","Musicians & DJs"],"a":"Halls on weekdays, kitchen, lawns, parking","e":"A wedding planner bundles your hall with a photographer and makeup artist, and everyone shares the package.","g":"venue","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":16,"t":"b","n":"Convention & Exhibition Centers","cat":"Events","p":["Exhibitor kits and printing","Food courts by local brands","Merchandise","Business lounge passes"],"s":["Weekday training and exams","Pop-up markets","Content studios for exhibitors","Exhibitor logistics"],"c":["Event Planners","Graphic Designers","Videographers","Logistics & Courier Services","Translators & Language Trainers"],"a":"Halls between shows, meeting rooms, loading bays, parking","e":"A videographer runs an on-site content studio for exhibitors on revenue share.","g":"venue","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":17,"t":"b","n":"Schools","cat":"Education","p":["Books, uniforms and stationery","Learning kits","Healthy tuck shop","Sports gear"],"s":["After-school academy","Holiday camps","Sports coaching","Weekend hall and ground hire"],"c":["Teachers & Tutors","Sports Coaches","Dance Instructors","Musicians & DJs","Nutritionists & Dietitians"],"a":"Classrooms after 3 pm, grounds, auditorium, buses","e":"Tutors run an after-school academy in your classrooms on revenue share.","g":"education","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":18,"t":"b","n":"Colleges & Universities","cat":"Education","p":["Campus store and merchandise","Devices and software on student plans","Food courts","Print and stationery"],"s":["Certificate courses","Placement training","Hostel and hall hire in vacations","Sports and fitness memberships"],"c":["IT Consultants","Software Developers","Recruiters","Translators & Language Trainers","Personal Fitness Trainers"],"a":"Classrooms in evenings, labs, auditoriums, hostels in vacations","e":"A software developer runs a weekend coding certificate in your labs on revenue share.","g":"education","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":19,"t":"b","n":"Daycare & Early Learning Centers","cat":"Education","p":["Educational toys and kits","Children's books","Healthy snack boxes","Kids' clothing"],"s":["After-school and holiday camps","Parents' night out","Birthday party hosting","Hobby classes"],"c":["Teachers & Tutors","Dance Instructors","Photographers","Bakers & Pastry Professionals","Nutritionists & Dietitians"],"a":"Rooms in evenings and weekends, play areas, parent community","e":"A dance instructor runs weekend classes in your activity room on revenue share.","g":"education","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":20,"t":"b","n":"Hospitals","cat":"Healthcare","p":["Non-prescription health devices","Mobility aids","Nutrition products","Mother-and-baby kits"],"s":["Health check packages","Home care and physiotherapy at home","Wellness programmes","Cafeteria and retail spaces on rent"],"c":["Physiotherapists","Nutritionists & Dietitians","Pharmacies","Diagnostic Centers","Insurance Advisers"],"a":"Lobby retail space, waiting areas, parking, cafeterias","e":"A licensed pharmacy rents your lobby counter. Rent only, never a commission on prescriptions.","g":"health","r":"health","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[300000,250000,150000,180000]},
+  {"id":21,"t":"b","n":"Independent Medical Clinics","cat":"Healthcare","p":["Home health devices","Mobility and support aids","Nutrition and wellness foods","First-aid kits"],"s":["Health check packages","Chronic-care subscriptions","Teleconsult plans","Vaccination and home sample collection"],"c":["Nutritionists & Dietitians","Physiotherapists","Pharmacies","Diagnostic Centers","Yoga Instructors"],"a":"Spare consulting room, waiting area, patient base","e":"A nutritionist rents your spare room for clinic days. Room rent, not a referral fee.","g":"health","r":"health","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[300000,250000,150000,180000]},
+  {"id":22,"t":"b","n":"Dental Clinics","cat":"Healthcare","p":["Electric toothbrushes and water flossers","Whitening kits","Aligner care kits","Kids' oral care packs"],"s":["Preventive care membership","Whitening sessions","Aligner plans","Kids' dental club"],"c":["Schools","Gyms & Fitness Centers","Sports Coaches","Photographers","Daycare & Early Learning Centers"],"a":"Second chair on quiet days, waiting area","e":"A visiting orthodontist uses your second chair on set days and pays a facility fee.","g":"health","r":"health","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[300000,250000,150000,180000]},
+  {"id":23,"t":"b","n":"Diagnostic Centers","cat":"Healthcare","p":["Home test kits","Health devices","Wellness foods","Health wearables"],"s":["Corporate health check camps","Home sample collection","Subscription check-ups","Collection desks inside clinics and pharmacies"],"c":["Independent Medical Clinics","Pharmacies","Gyms & Fitness Centers","Office Buildings","Residential Communities"],"a":"Collection rooms, vans, lab capacity at night","e":"You rent a collection desk inside a pharmacy for a flat monthly rent.","g":"health","r":"health","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[300000,250000,150000,180000]},
+  {"id":24,"t":"b","n":"Pharmacies","cat":"Healthcare Retail","p":["Wellness and nutrition","Derma-cosmetic skincare","Baby care","Health devices"],"s":["Medicine refill subscription","Delivery membership","Health check kiosk","Senior care plan"],"c":["Diagnostic Centers","Nutritionists & Dietitians","Residential Communities","Gyms & Fitness Centers","Pet Care & Veterinary Clinics"],"a":"Counter space, delivery riders, neighbourhood footfall","e":"A diagnostics chain rents a sample pick-up desk in your store for a flat rent.","g":"health","r":"health","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[120000,130000,70000,80000]},
+  {"id":25,"t":"b","n":"Physiotherapy & Rehabilitation Centers","cat":"Healthcare","p":["Braces and supports","Recovery tools","Mobility aids","Ergonomic products"],"s":["Sports rehab programmes","Corporate ergonomics","Home visits","Pilates and mobility classes"],"c":["Gyms & Fitness Centers","Sports Clubs & Academies","Personal Fitness Trainers","Yoga Instructors","Office Buildings"],"a":"Treatment rooms in quiet hours, exercise studio","e":"A gym hosts your satellite physio room and its members book you on revenue share.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":26,"t":"b","n":"Pet Care & Veterinary Clinics","cat":"Pet Care","p":["Food and treat subscriptions","Toys, leashes and beds","Grooming products","Trackers and feeders"],"s":["Grooming membership","Boarding and daycare","Training classes","Annual wellness plan"],"c":["Pet Trainers","Photographers","Residential Communities","Cafés & Coffee Shops","Hotels & Resorts"],"a":"Boarding space, grooming room, pet-owner base","e":"A pet trainer runs weekend classes in your yard on revenue share.","g":"health","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":27,"t":"b","n":"Auto Repair & Service Garages","cat":"Automotive","p":["Car care kits","Mats, covers and accessories","Tyres and batteries","Dashcams and trackers"],"s":["Wash and detailing membership","Annual maintenance plan","Pick-up and drop","Ceramic coating and paint protection"],"c":["Petrol Stations","Car Dealerships","Insurance Advisers","Residential Communities","Taxi & Ride-Hailing Fleets"],"a":"Spare bay, waiting lounge, tools and lifts","e":"A licensed insurance adviser runs a renewal desk in your lounge, within insurance rules.","g":"mobility","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":28,"t":"b","n":"Car Dealerships","cat":"Automotive","p":["Accessories and merchandise","Care kits","Child seats","Dashcams"],"s":["Insurance desk","Detailing and coating","Subscription and leasing","Driver training"],"c":["Insurance Advisers","Auto Repair & Service Garages","Photographers","Content Creators & Influencers","Car Rental & Fleet Operators"],"a":"Showroom floor, test-drive fleet, buyer traffic","e":"A licensed insurance adviser runs an insurance desk for your buyers, with commission subject to the rules.","g":"mobility","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":29,"t":"b","n":"Car Rental & Fleet Operators","cat":"Mobility","p":["Travel accessories","Child seats","Camping gear bundles","In-car retail"],"s":["Chauffeur and airport transfers","Off-peak courier runs","Vehicle advertising wraps","Monthly subscriptions"],"c":["Hotels & Resorts","Travel Consultants","Tour Guides","Event Planners","Logistics & Courier Services"],"a":"Idle vehicles, drivers, parking yard","e":"A travel consultant bundles your cars into holiday packages and shares revenue.","g":"mobility","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":30,"t":"b","n":"Taxi & Ride-Hailing Fleets","cat":"Mobility","p":["In-car snacks and essentials","Phone accessories","Brand sampling kits","Travel cards and passes"],"s":["In-car advertising","Corporate commute contracts","Airport transfer packages","Off-peak parcel runs"],"c":["Hotels & Resorts","Office Buildings","Travel Consultants","Logistics & Courier Services","Content Creators & Influencers"],"a":"Vehicles in off-peak hours, in-car screens, drivers","e":"An office building buys a monthly employee commute plan from your fleet.","g":"mobility","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":31,"t":"b","n":"Logistics & Courier Services","cat":"Logistics","p":["Packaging material","Parcel lockers","Shipping supplies","Labels and printing"],"s":["Same-day B2B runs","Warehousing and fulfilment","Returns management","Cold chain delivery"],"c":["Warehouses","Cloud Kitchens","Retail Boutiques & Clothing Stores","Pharmacies","Supermarkets & Grocery Stores"],"a":"Vans in off-peak hours, hubs, riders","e":"A boutique's online orders ship through your same-day runs for a fee per parcel.","g":"mobility","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":32,"t":"b","n":"Warehouses","cat":"Logistics Real Estate","p":["Packaging supplies","Pallets and racking","Material handling equipment hire","Rooftop solar power"],"s":["Shared fulfilment","Short-term storage","Co-packing","Yard and dock hire"],"c":["Logistics & Courier Services","Manufacturing Plants","Cold Storage Facilities","Furniture Showrooms","Electronics Stores"],"a":"Unused bays, docks, yards, rooftops","e":"A furniture showroom rents unused bays by the pallet and a courier partner adds delivery.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":33,"t":"b","n":"Cold Storage Facilities","cat":"Cold Chain","p":["Ice and dry ice","Insulated packaging","Frozen food cash-and-carry","Temperature loggers"],"s":["Shared cold rooms by the pallet","Last-mile cold delivery","Ripening and sorting","Pharma storage"],"c":["Supermarkets & Grocery Stores","Restaurants & QSRs","Cloud Kitchens","Pharmacies","Logistics & Courier Services"],"a":"Spare chamber capacity, docks, reefer vans","e":"Cloud kitchens share a chilled room by the pallet and a courier partner adds delivery.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":34,"t":"b","n":"Manufacturing Plants","cat":"Manufacturing","p":["Factory outlet sales","Seconds and surplus","Private-label production for brands","Scrap and by-products"],"s":["Contract manufacturing on idle lines","Testing lab services","Training and apprenticeships","Rooftop solar"],"c":["Warehouses","Logistics & Courier Services","Civil Engineers","HVAC Technicians","Business Consultants"],"a":"Idle line capacity, labs, land, rooftops","e":"A D2C brand books your idle line for private-label production on a fee per unit.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":35,"t":"b","n":"Construction & Real Estate Development Firms","cat":"Construction","p":["Interior fit-out packages","Smart home packages","Furniture packages","Rooftop solar"],"s":["Property management","Show-flat hire for shoots","Equipment rental","Resale and rental desk"],"c":["Interior Designers","Architects","Real Estate Agents","Property Managers","Furniture Showrooms"],"a":"Show flats, equipment, unsold inventory, site offices","e":"An interior designer sells move-in packages to your buyers on a referral commission.","g":"property","r":"realestate","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":36,"t":"b","n":"Real Estate Brokerages","cat":"Real Estate","p":["Move-in packages","Furniture and appliance bundles","Home essentials","Home insurance through a licensed partner"],"s":["Move-in interiors","Packers and movers","Rental management","Home loan desk through a licensed partner"],"c":["Interior Designers","Property Managers","Lawyers","Furniture Showrooms","Insurance Advisers"],"a":"Buyer and tenant leads, site visits, office space","e":"An interior designer fulfils a move-in package for your buyers and pays a referral commission.","g":"property","r":"realestate","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":37,"t":"b","n":"Property Management Companies","cat":"Real Estate","p":["Home essentials and appliances","Smart locks and security devices","Consumables subscription","Water purifiers"],"s":["Maintenance subscriptions","Cleaning and pest control","Tenant onboarding","Short-stay management"],"c":["Electricians","Plumbers","Carpenters","Painters","HVAC Technicians"],"a":"Managed units, resident base, maintenance teams","e":"Electricians and plumbers serve your residents through one maintenance subscription and you share each job.","g":"property","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":38,"t":"b","n":"Architecture & Interior Design Studios","cat":"Design","p":["Custom furniture","Decor and lighting","Material sample kits","Style guides"],"s":["Online design consultations","3D renders and walkthroughs","Turnkey project management","Landscape design"],"c":["Carpenters","Painters","Furniture Showrooms","Real Estate Brokerages","Civil Engineers"],"a":"Studio space, material library, client projects","e":"A furniture showroom hosts your design desk and you specify projects for its buyers.","g":"studio","r":"architect","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":39,"t":"b","n":"Furniture Showrooms","cat":"Retail","p":["Decor and lighting","Mattresses and linen","Modular add-ons","Care products"],"s":["Design desk","Assembly and installation","Rental and buy-back","Corporate fit-outs"],"c":["Interior Designers","Architects","Carpenters","Real Estate Brokerages","Property Management Companies"],"a":"Display floor, delivery fleet, walk-in buyers","e":"An interior designer runs a design desk in your showroom, earning on projects while you earn on products.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":40,"t":"b","n":"Electronics Stores","cat":"Retail","p":["Accessories","Smart-home devices","Extended care plans","Refurbished corner"],"s":["Installation and set-up","Device repair desk","Trade-in","Smart home design"],"c":["IT Consultants","Electricians","HVAC Technicians","Interior Designers","Content Creators & Influencers"],"a":"Demo zones, service counter, delivery vans","e":"An electrician installs what you sell and you share the installation fee.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":41,"t":"b","n":"Retail Boutiques & Clothing Stores","cat":"Retail","p":["Designer pop-up collections","Jewellery and accessories","Fragrance and beauty","Private-label basics"],"s":["Personal styling sessions","Tailoring and alterations","Style subscription box","Occasion-wear rental"],"c":["Makeup Artists","Photographers","Hair Stylists","Content Creators & Influencers","Wedding Planners"],"a":"Display space, trial rooms, customer base","e":"A content creator hosts a styling evening in your store and earns an affiliate share of sales.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":42,"t":"b","n":"Jewelry Stores","cat":"Retail","p":["Gift packaging and keepsakes","Watches and accessories","Silver and fashion lines","Care kits"],"s":["Custom design consultations","Bridal styling appointments","Cleaning and repair","Savings schemes"],"c":["Wedding Planners","Makeup Artists","Photographers","Retail Boutiques & Clothing Stores","Banquet Halls"],"a":"Private lounges, display windows, bridal clients","e":"A wedding planner brings brides for private viewings and earns a referral fee on sales.","g":"retail","r":"jewel","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[180000,160000,90000,100000]},
+  {"id":43,"t":"b","n":"Bakeries & Patisseries","cat":"Food","p":["Baking mixes and decorating kits","Festive hampers","Party supplies","Gluten-free and vegan range"],"s":["Celebration cake club","Custom cakes","Baking classes","Kids' baking parties"],"c":["Cafés & Coffee Shops","Restaurants & QSRs","Event Planners","Photographers","Daycare & Early Learning Centers"],"a":"Kitchen in idle hours, counter, delivery","e":"A café sells your desserts from a counter and you run weekend classes there.","g":"food","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":44,"t":"b","n":"Cloud Kitchens","cat":"Food","p":["Ready-to-cook kits","Sauces and dips","Meal subscription boxes","Brand merchandise"],"s":["Shared kitchen slots for chefs","Catering","Corporate meal plans","Brand licensing to restaurants"],"c":["Chefs","Restaurants & QSRs","Office Buildings","Gyms & Fitness Centers","Logistics & Courier Services"],"a":"Kitchen stations in idle slots, delivery riders, ordering data","e":"A chef rents an idle station to launch a new delivery brand and shares revenue.","g":"food","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":45,"t":"b","n":"Event Planning & Wedding Firms","cat":"Events","p":["Decor and inventory rental","Gifting and favours","Invitations","Merchandise"],"s":["Day-of coordination","Vendor packages","Corporate events","Destination scouting"],"c":["Makeup Artists","Photographers","Musicians & DJs","Bakers & Pastry Professionals","Banquet Halls"],"a":"Decor inventory, vendor network, client weddings","e":"You cross-sell a makeup artist to your wedding clients and share the package.","g":"studio","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[300000,250000,150000,180000]},
+  {"id":46,"t":"b","n":"Photography & Videography Studios","cat":"Creative","p":["Prints, frames and albums","Passport photo packs","Props for hire","Presets"],"s":["Family milestone membership","Headshot days","Product shoots","Studio hire by the hour"],"c":["Makeup Artists","Hair Stylists","Retail Boutiques & Clothing Stores","Hotels & Resorts","Content Creators & Influencers"],"a":"Studio in idle hours, equipment, editing suite","e":"A makeup artist and your studio sell a portfolio package together.","g":"studio","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":47,"t":"b","n":"Sports Clubs & Academies","cat":"Sports","p":["Sports gear and apparel","Nutrition and hydration","Merchandise","Equipment rental"],"s":["Specialist academies","Holiday camps","Corporate leagues","Physio and recovery room"],"c":["Sports Coaches","Physiotherapists","Nutritionists & Dietitians","Schools","Office Buildings"],"a":"Courts and fields in off-peak hours, clubhouse, members","e":"A sports coach runs a specialist academy on your courts on revenue share.","g":"wellness","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":48,"t":"b","n":"Golf Clubs","cat":"Sports","p":["Pro-shop gear and apparel","Merchandise","Food and beverage brands","Gifting"],"s":["Coaching academy","Corporate golf days","Weddings and events","Wellness and spa"],"c":["Sports Coaches","Event Planners","Hotels & Resorts","Physiotherapists","Photographers"],"a":"Course in weekday slots, clubhouse, lawns, members","e":"An event planner sells corporate golf days on weekdays and shares revenue.","g":"venue","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":49,"t":"b","n":"Laundry & Dry-Cleaning Businesses","cat":"Services","p":["Garment care products","Hangers and covers","Fabric fresheners","Shoe care"],"s":["Subscription laundry","Pick-up points in offices and apartments","Shoe and bag cleaning","Alterations"],"c":["Residential Communities","Office Buildings","Hotels & Resorts","Retail Boutiques & Clothing Stores","Gyms & Fitness Centers"],"a":"Plant capacity in off-peak hours, delivery riders, counters","e":"An office building hosts your pick-up point and employees subscribe monthly.","g":"retail","r":"","m":["Revenue share","Consignment","Referral","Partner-funded setup","Subscription","Savings share"],"f":[120000,130000,70000,80000]},
+  {"id":50,"t":"b","n":"Law Firms & Legal Consultancies","cat":"Professional Services","p":["Document templates","Compliance packs","Publications","Training material"],"s":["Retainers","Compliance audits","Mediation","Training seminars"],"c":["Accountants","Company Secretaries","Co-Working Spaces","Business Consultants","Tax Consultants"],"a":"Meeting rooms, knowledge base, client base","e":"You run a compliance workshop at a co-working space and pay a room fee, not a referral fee.","g":"studio","r":"legal","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[120000,130000,70000,80000]},
+  {"id":51,"t":"p","n":"Teachers & Tutors","cat":"Education","p":["Books and worksheets","Learning kits","Stationery","Online course packs"],"s":["Tutoring","Exam preparation","Workshops","Online classes"],"c":["Schools","Residential Communities","Co-Working Spaces","Daycare & Early Learning Centers","Colleges & Universities"],"a":"School classrooms after hours, co-working training rooms, apartment clubhouses","e":"School and teacher: after-school classes on revenue share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":52,"t":"p","n":"Chefs","cat":"Food","p":["Sauces and spice mixes","Meal kits","Cookware","Recipe books"],"s":["Delivery brand from a partner kitchen","Private chef","Catering","Cooking classes"],"c":["Restaurants & QSRs","Hotels & Resorts","Cloud Kitchens","Event Planners","Supermarkets & Grocery Stores"],"a":"Restaurant kitchens in idle hours, hotel kitchens, cloud kitchens","e":"Restaurant and chef: an idle kitchen becomes a new delivery brand.","g":"pro_food","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":53,"t":"p","n":"Bakers & Pastry Professionals","cat":"Food","p":["Cakes and desserts","Baking kits and mixes","Gift boxes","Festive hampers"],"s":["Baking classes","Custom cakes","Corporate gifting","Dessert counters in cafés"],"c":["Cafés & Coffee Shops","Hotels & Resorts","Event Planners","Banquet Halls","Supermarkets & Grocery Stores"],"a":"Café and bakery kitchens, shared kitchens","e":"Café and baker: a weekend dessert counter plus classes.","g":"pro_food","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":54,"t":"p","n":"Nutritionists & Dietitians","cat":"Wellness","p":["Meal plans and recipe books","Healthy snack boxes","Kitchen scales and trackers","Wellness foods"],"s":["Consultations","Corporate wellness talks","Gym member programmes","Healthy-basket desk in supermarkets"],"c":["Gyms & Fitness Centers","Independent Medical Clinics","Cloud Kitchens","Office Buildings","Supermarkets & Grocery Stores"],"a":"Gym and clinic rooms, office wellness rooms, online","e":"Gym and nutritionist: member nutrition plans on revenue share.","g":"pro_food","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":55,"t":"p","n":"Personal Fitness Trainers","cat":"Fitness","p":["Fitness accessories","Apparel","Supplements","Online programme packs"],"s":["Personal training","Group classes","Corporate fitness","Online coaching"],"c":["Gyms & Fitness Centers","Residential Communities","Office Buildings","Hotels & Resorts","Nutritionists & Dietitians"],"a":"Gyms, apartment clubhouses, parks, hotel gyms","e":"Apartment community and trainer: a resident fitness membership on subscription share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":56,"t":"p","n":"Yoga Instructors","cat":"Fitness","p":["Mats and props","Wellness teas","Online course packs","Apparel"],"s":["Studio classes","Corporate sessions","Hotel sunrise sessions","Retreats"],"c":["Hotels & Resorts","Office Buildings","Spas & Wellness Centers","Residential Communities","Gyms & Fitness Centers"],"a":"Hotel lawns, office rooms, clubhouses, spa studios","e":"Hotel and yoga instructor: sunrise wellness sessions on revenue share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":57,"t":"p","n":"Physiotherapists","cat":"Healthcare","p":["Braces and supports","Recovery tools","Mobility aids","Exercise bands"],"s":["Physio sessions","Sports rehab","Ergonomics for offices","Home visits"],"c":["Gyms & Fitness Centers","Sports Clubs & Academies","Independent Medical Clinics","Office Buildings","Residential Communities"],"a":"Gyms, clinics, sports clubs, offices","e":"Gym and physiotherapist: a recovery room on revenue share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":58,"t":"p","n":"Massage Therapists","cat":"Wellness","p":["Oils and balms","Heat packs","Aromatherapy products","Gift vouchers"],"s":["Spa sessions","Corporate chair massage","Hotel in-room therapy","Sports massage"],"c":["Spas & Wellness Centers","Hotels & Resorts","Gyms & Fitness Centers","Office Buildings","Beauty Salons"],"a":"Spa rooms, hotel rooms, gym recovery rooms","e":"Office building and massage therapist: weekly chair-massage days on a B2B plan.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":59,"t":"p","n":"Beauticians & Estheticians","cat":"Beauty","p":["Skincare","Cosmetics","Beauty tools","Gift vouchers"],"s":["Facials and skin services","Bridal packages","Home visits","Specialist treatments"],"c":["Beauty Salons","Spas & Wellness Centers","Wedding Planners","Hotels & Resorts","Residential Communities"],"a":"Salon rooms and chairs, spa rooms, hotels","e":"Salon and beautician: a specialist treatment room on revenue share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":60,"t":"p","n":"Hair Stylists","cat":"Beauty","p":["Hair care products","Styling tools","Extensions","Accessories"],"s":["Chair rental styling","Bridal hair","Shoots and fashion shows","At-home service"],"c":["Beauty Salons","Barber Shops","Makeup Artists","Photographers","Wedding Planners"],"a":"Salon chairs in quiet hours, studios, venues","e":"Salon and stylist: a rented chair with shared product sales.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":61,"t":"p","n":"Makeup Artists","cat":"Beauty","p":["Cosmetics and kits","Brushes and tools","Skincare prep","Gift vouchers"],"s":["Bridal packages","Shoots","Masterclasses","Party makeup"],"c":["Wedding Planners","Photographers","Beauty Salons","Retail Boutiques & Clothing Stores","Banquet Halls"],"a":"Salon rooms, studios, venues, boutiques","e":"Event planner and makeup artist: a wedding beauty package, shared.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":62,"t":"p","n":"Photographers","cat":"Creative","p":["Prints and albums","Presets","Photo merchandise","Frames"],"s":["Shoots","Corporate headshots","Product photography","Workshops"],"c":["Hotels & Resorts","Event Planners","Retail Boutiques & Clothing Stores","Schools","Co-Working Spaces"],"a":"Studios, hotels, malls, event venues","e":"Hotel and photographer: guest photo experiences on revenue share.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":63,"t":"p","n":"Videographers","cat":"Creative","p":["Stock footage","Templates and colour presets","Highlight reels","Drone footage packs"],"s":["Event films","Brand reels","Training videos","Live streaming"],"c":["Event Planners","Convention & Exhibition Centers","Content Creators & Influencers","Real Estate Agents","Hotels & Resorts"],"a":"Studios, venues, co-working podcast rooms","e":"Convention centre and videographer: an on-site content studio for exhibitors.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":64,"t":"p","n":"Graphic Designers","cat":"Creative","p":["Templates and brand kits","Illustrations","Merchandise designs","Print packs"],"s":["Brand identity","Menus, signage and packaging","Social media design retainers","Workshops"],"c":["Restaurants & QSRs","Retail Boutiques & Clothing Stores","Digital Marketers","Co-Working Spaces","Event Planners"],"a":"Co-working desks, client sites, online","e":"Co-working space and designer: a member design desk with fixed-price brand kits.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":65,"t":"p","n":"Interior Designers","cat":"Design","p":["Furniture and decor packages","Lighting","Material kits","Style guides"],"s":["Move-in packages","Design desk in showrooms","Online consultations","Turnkey execution"],"c":["Furniture Showrooms","Real Estate Brokerages","Construction & Real Estate Development Firms","Carpenters","Painters"],"a":"Showrooms, show flats, client homes","e":"Furniture showroom and designer: a design desk inside the showroom.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":66,"t":"p","n":"Architects","cat":"Design","p":["Plan sets and design guides","Material specifications","Renovation checklists","Publications"],"s":["Design and approvals","Feasibility studies","Green building advice","Renovation clinics"],"c":["Construction & Real Estate Development Firms","Civil Engineers","Interior Designers","Real Estate Brokerages","Property Management Companies"],"a":"Studio, client sites, online","e":"Developer and architect: fixed-fee renovation clinics for home buyers.","g":"pro_office","r":"architect","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":67,"t":"p","n":"Civil Engineers","cat":"Engineering","p":["Inspection report templates","Testing kits","Repair guides","Waterproofing products through partners"],"s":["Structural audits","Site supervision","Home inspection for buyers","Repair and waterproofing advice"],"c":["Construction & Real Estate Development Firms","Architects","Real Estate Brokerages","Property Management Companies","Residential Communities"],"a":"Client sites, partner labs","e":"Brokerage and civil engineer: pre-purchase home inspections for buyers.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":68,"t":"p","n":"Electricians","cat":"Trades","p":["Switches, lighting and smart devices","Surge protection","Inverters and batteries","Safety kits"],"s":["Annual maintenance contracts","Installation for electronics stores","Safety audits","EV charger installation"],"c":["Property Management Companies","Electronics Stores","Residential Communities","Interior Designers","Office Buildings"],"a":"Customer locations, partner store counters","e":"Electronics store and electrician: paid installation with every appliance sold.","g":"pro_trades","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":69,"t":"p","n":"Plumbers","cat":"Trades","p":["Fittings and fixtures","Water purifiers and filters","Leak sensors","Water-saving devices"],"s":["Annual maintenance contracts","Bathroom upgrades","Tank cleaning","Emergency call-outs"],"c":["Property Management Companies","Residential Communities","Interior Designers","Construction & Real Estate Development Firms","Hotels & Resorts"],"a":"Customer locations, community notice boards","e":"Apartment community and plumber: a resident maintenance subscription.","g":"pro_trades","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":70,"t":"p","n":"Carpenters","cat":"Trades","p":["Custom furniture","Modular units","Repair kits","Hardware"],"s":["Assembly and installation","Repairs and polishing","Modular kitchens and wardrobes","Shop fit-outs"],"c":["Furniture Showrooms","Interior Designers","Architecture & Interior Design Studios","Property Management Companies","Retail Boutiques & Clothing Stores"],"a":"Workshop, showroom floor, client sites","e":"Furniture showroom and carpenter: assembly and custom add-ons for buyers.","g":"pro_trades","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":71,"t":"p","n":"Painters","cat":"Trades","p":["Paints and finishes through partner brands","Wallpapers","Stencils and decor","Waterproofing products"],"s":["Home repainting","Texture and decor walls","Move-in touch-ups","Commercial repaint contracts"],"c":["Interior Designers","Real Estate Brokerages","Property Management Companies","Residential Communities","Construction & Real Estate Development Firms"],"a":"Client sites, community notice boards","e":"Brokerage and painter: a move-in repaint package for new tenants.","g":"pro_trades","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":72,"t":"p","n":"HVAC Technicians","cat":"Trades","p":["Filters and consumables","Air purifiers","Smart thermostats","Spare parts"],"s":["Annual maintenance contracts","Installation for electronics stores","Energy audits","Duct cleaning"],"c":["Electronics Stores","Office Buildings","Property Management Companies","Hotels & Resorts","Restaurants & QSRs"],"a":"Client sites, store service counters","e":"Office building and HVAC technician: annual maintenance with a share of the energy savings.","g":"pro_trades","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":73,"t":"p","n":"IT Consultants","cat":"Technology","p":["Software licences through partners","Hardware bundles","Security kits","Templates"],"s":["Managed IT retainers","Cloud migration","Cybersecurity audits","Helpdesk"],"c":["Co-Working Spaces","Accountants","Electronics Stores","Schools","Independent Medical Clinics"],"a":"Co-working rooms, client offices, online","e":"Co-working space and IT consultant: a shared helpdesk for member companies.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":74,"t":"p","n":"Software Developers","cat":"Technology","p":["Apps and plugins","Templates","SaaS tools","Coding courses"],"s":["Custom development","Maintenance retainers","Automation for small businesses","Coding bootcamps"],"c":["Colleges & Universities","Co-Working Spaces","Digital Marketers","Business Consultants","Retail Boutiques & Clothing Stores"],"a":"Co-working desks, college labs, online","e":"College and developer: a weekend coding certificate on revenue share.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":75,"t":"p","n":"Digital Marketers","cat":"Marketing","p":["Templates and playbooks","Courses","Ad creative packs","Audit reports"],"s":["Performance marketing retainers","Local search optimisation","Marketplace listing management","Workshops"],"c":["Retail Boutiques & Clothing Stores","Restaurants & QSRs","Content Creators & Influencers","Graphic Designers","Co-Working Spaces"],"a":"Online, co-working rooms","e":"Boutique and digital marketer: pay-per-sale online campaigns.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":76,"t":"p","n":"Social Media Managers","cat":"Marketing","p":["Content calendars","Template packs","Courses","Analytics reports"],"s":["Page management retainers","Reels packages with creators","Review and reputation management","Workshops"],"c":["Restaurants & QSRs","Beauty Salons","Gyms & Fitness Centers","Photographers","Content Creators & Influencers"],"a":"Online, partner venues for shoots","e":"Salon and social media manager: a monthly reels package paid from new bookings.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":77,"t":"p","n":"Accountants","cat":"Finance","p":["Templates","Finance toolkits","Digital guides","Software subscriptions through partners"],"s":["Bookkeeping","Part-time CFO","Tax support","Workshops"],"c":["Co-Working Spaces","Lawyers","IT Consultants","Business Consultants","Company Secretaries"],"a":"Co-working meeting rooms, client offices, online","e":"Co-working space and accountant: an SME finance clinic, paying a room fee.","g":"pro_office","r":"finance","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[50000,180000,60000,40000]},
+  {"id":78,"t":"p","n":"Bookkeepers","cat":"Finance","p":["Templates","Software subscriptions through partners","Training guides","Checklists"],"s":["Monthly bookkeeping","Payroll","Invoicing and collections support","Software set-up"],"c":["Accountants","Co-Working Spaces","Retail Boutiques & Clothing Stores","Restaurants & QSRs","Tax Consultants"],"a":"Online, client offices","e":"Restaurant and bookkeeper: fixed monthly books and payroll.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":79,"t":"p","n":"Tax Consultants","cat":"Finance","p":["Tax planners and guides","Filing kits","Templates","Calculators"],"s":["Return filing","GST compliance","Tax planning","Notices and representation"],"c":["Accountants","Co-Working Spaces","Real Estate Agents","Business Consultants","Company Secretaries"],"a":"Co-working rooms, clubhouses in tax season, online","e":"Apartment community and tax consultant: a tax-season help desk in the clubhouse for a room fee.","g":"pro_office","r":"finance","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[50000,180000,60000,40000]},
+  {"id":80,"t":"p","n":"Lawyers","cat":"Legal","p":["Legal templates","Compliance packs","Publications","Training material"],"s":["Retainers","Consultations","Mediation","Workshops"],"c":["Accountants","Co-Working Spaces","Company Secretaries","Real Estate Brokerages","Business Consultants"],"a":"Co-working rooms, business centres, online","e":"Co-working space and lawyer: compliance workshops, paying a room fee.","g":"pro_office","r":"legal","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[50000,180000,60000,40000]},
+  {"id":81,"t":"p","n":"Company Secretaries","cat":"Legal/Compliance","p":["Compliance calendars","Templates","Board packs","Checklists"],"s":["Incorporation","Annual filings","Board and secretarial support","Due diligence"],"c":["Lawyers","Accountants","Co-Working Spaces","Business Consultants","Tax Consultants"],"a":"Co-working rooms, online","e":"Co-working space and company secretary: start-up incorporation days.","g":"pro_office","r":"finance","m":["Room hire","Facility fee","Flat listing fee","Workshop fee","Subscription"],"f":[40000,120000,45000,30000]},
+  {"id":82,"t":"p","n":"HR Consultants","cat":"HR","p":["Policy templates","Handbooks","Assessment tools","Training decks"],"s":["HR retainers","Payroll and compliance set-up","Training","Engagement programmes"],"c":["Co-Working Spaces","Recruiters","Accountants","Lawyers","Office Buildings"],"a":"Co-working rooms, client offices","e":"Co-working space and HR consultant: a shared HR desk for member companies.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":83,"t":"p","n":"Recruiters","cat":"HR","p":["Job description and interview kits","Assessment tools","Salary guides","Training courses"],"s":["Hiring mandates","Campus hiring drives","Temporary staffing","Interview training"],"c":["Colleges & Universities","Co-Working Spaces","HR Consultants","Hotels & Resorts","Restaurants & QSRs"],"a":"College campuses, co-working rooms, online","e":"College and recruiter: placement drives with a success fee from employers.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":84,"t":"p","n":"Business Consultants","cat":"Consulting","p":["Toolkits and templates","Courses","Benchmark reports","Playbooks"],"s":["Strategy projects","Process improvement","Franchise and expansion advice","Mentoring retainers"],"c":["Accountants","Lawyers","Digital Marketers","Manufacturing Plants","Co-Working Spaces"],"a":"Co-working rooms, client sites","e":"Manufacturing plant and consultant: an idle-capacity plan paid from a share of the new revenue.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[50000,180000,60000,40000]},
+  {"id":85,"t":"p","n":"Sales Consultants","cat":"Sales","p":["Scripts and playbooks","CRM templates","Training courses","Lead lists"],"s":["Outsourced sales","Channel partner development","Sales training","Lead generation"],"c":["Manufacturing Plants","Software Developers","Furniture Showrooms","Car Dealerships","Co-Working Spaces"],"a":"Online, client offices","e":"Furniture showroom and sales consultant: corporate fit-out sales on commission.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":86,"t":"p","n":"Insurance Advisers","cat":"Financial Services","p":["Policy comparison guides","Cover checklists","Claim kits","Renewal reminders"],"s":["Insurance desks in dealerships and garages","Employee benefits advice","Claims help","Renewals"],"c":["Car Dealerships","Auto Repair & Service Garages","Real Estate Brokerages","Hospitals","Office Buildings"],"a":"Partner showrooms and lounges, online","e":"Car dealership and licensed adviser: an insurance desk, with commission subject to the rules.","g":"pro_office","r":"insurance","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":87,"t":"p","n":"Real Estate Agents","cat":"Real Estate","p":["Move-in packages","Home essentials bundles","Locality guides","Staging kits"],"s":["Buying and renting","Rental management","Home staging","Services for owners living abroad"],"c":["Interior Designers","Lawyers","Painters","Property Managers","Construction & Real Estate Development Firms"],"a":"Client leads, site visits, builder site offices","e":"Agent and interior designer: a move-in interior package on referral commission.","g":"pro_office","r":"realestate","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":88,"t":"p","n":"Property Managers","cat":"Real Estate","p":["Smart locks and devices","Home essentials","Consumables","Welcome kits"],"s":["Tenant management","Maintenance coordination","Short-stay hosting","Inspections"],"c":["Electricians","Plumbers","Painters","Real Estate Agents","Laundry & Dry-Cleaning Businesses"],"a":"Managed homes, owner base","e":"Property manager and trades: one maintenance plan for every managed home.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":89,"t":"p","n":"Event Planners","cat":"Events","p":["Decor rental","Gifting","Invitations","Party kits"],"s":["Corporate events","Private parties","Venue sourcing","Vendor packages"],"c":["Banquet Halls","Hotels & Resorts","Musicians & DJs","Photographers","Bakers & Pastry Professionals"],"a":"Partner venues, decor inventory","e":"Banquet hall and event planner: weekday corporate events on revenue share.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":90,"t":"p","n":"Wedding Planners","cat":"Events","p":["Favours and hampers","Invitations","Decor packages","Bridal kits"],"s":["Full planning","Destination weddings","Vendor bundles","Day-of coordination"],"c":["Banquet Halls","Makeup Artists","Photographers","Jewelry Stores","Hotels & Resorts"],"a":"Partner venues, vendor network","e":"Wedding planner, makeup artist and photographer: one bridal package, shared.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":91,"t":"p","n":"Musicians & DJs","cat":"Entertainment","p":["Merchandise","Recordings","Playlists for venues","Lesson kits"],"s":["Live nights","Private events","Music lessons","Venue sound curation"],"c":["Restaurants & QSRs","Hotels & Resorts","Banquet Halls","Shopping Malls","Event Planners"],"a":"Restaurant and hotel venues, studios","e":"Restaurant and musician: a weekly live night for a fee plus revenue share.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":92,"t":"p","n":"Artists & Illustrators","cat":"Creative","p":["Original art and prints","Merchandise","Commissioned pieces","Art kits"],"s":["Workshops","Murals for venues","Live event sketching","Brand illustration"],"c":["Cafés & Coffee Shops","Hotels & Resorts","Shopping Malls","Schools","Retail Boutiques & Clothing Stores"],"a":"Café walls, mall atriums, studios","e":"Café and artist: a gallery wall with sales on commission.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":93,"t":"p","n":"Dance Instructors","cat":"Fitness/Arts","p":["Dancewear","Online course packs","Merchandise","Music and routine packs"],"s":["Studio classes","Wedding choreography","School programmes","Corporate team events"],"c":["Schools","Residential Communities","Gyms & Fitness Centers","Wedding Planners","Daycare & Early Learning Centers"],"a":"Clubhouses, school halls, gym studios","e":"Apartment community and dance instructor: weekend classes on subscription share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":94,"t":"p","n":"Sports Coaches","cat":"Sports","p":["Gear and apparel","Training plans","Nutrition products","Video analysis packs"],"s":["Academies","School programmes","Holiday camps","Corporate leagues"],"c":["Sports Clubs & Academies","Schools","Residential Communities","Golf Clubs","Physiotherapists"],"a":"Club courts, school grounds, community courts","e":"Sports club and coach: a specialist academy on revenue share.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":95,"t":"p","n":"Pet Trainers","cat":"Pet Care","p":["Training tools and treats","Leashes and harnesses","Online courses","Puppy starter kits"],"s":["Obedience classes","Home visits","Puppy socialisation","Board-and-train"],"c":["Pet Care & Veterinary Clinics","Residential Communities","Cafés & Coffee Shops","Hotels & Resorts","Photographers"],"a":"Clinic yards, community lawns, client homes","e":"Vet clinic and pet trainer: weekend classes in the clinic yard.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":96,"t":"p","n":"Travel Consultants","cat":"Travel","p":["Travel accessories","Forex and SIM cards through partners","Travel insurance through a licensed partner","Guidebooks"],"s":["Holiday packages","Corporate travel","Visa assistance","Group tours"],"c":["Hotels & Resorts","Car Rental & Fleet Operators","Tour Guides","Photographers","Insurance Advisers"],"a":"Online, hotel desks, co-working rooms","e":"Car rental and travel consultant: self-drive holiday packages.","g":"pro_office","r":"insurance","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":97,"t":"p","n":"Tour Guides","cat":"Travel","p":["Local crafts and souvenirs","Maps and guidebooks","Photo packages","Food trail boxes"],"s":["Walking tours","Food trails","Hotel guest experiences","School trips"],"c":["Hotels & Resorts","Travel Consultants","Restaurants & QSRs","Car Rental & Fleet Operators","Photographers"],"a":"Hotel lobbies, heritage sites, partner vehicles","e":"Hotel and tour guide: guest city walks sold at the front desk.","g":"pro_people","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":98,"t":"p","n":"Translators & Language Trainers","cat":"Language","p":["Phrasebooks and course packs","Glossaries","Online courses","Exam guides"],"s":["Corporate language training","Document translation","Interpretation at events","Exam preparation"],"c":["Colleges & Universities","Convention & Exhibition Centers","Hotels & Resorts","Law Firms & Legal Consultancies","Travel Consultants"],"a":"College rooms, co-working rooms, online","e":"Convention centre and interpreter: on-call interpretation for exhibitors.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]},
+  {"id":99,"t":"p","n":"Content Creators & Influencers","cat":"Media","p":["Merchandise","Digital products","Curated brand products","Presets and templates"],"s":["Content production","Appearances","Workshops","Brand campaigns"],"c":["Restaurants & QSRs","Shopping Malls","Retail Boutiques & Clothing Stores","Hotels & Resorts","Digital Marketers"],"a":"Cafés, hotels, studios, malls, event venues","e":"Mall and creator: a meet-and-shop pop-up.","g":"pro_creative","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[70000,150000,50000,35000]},
+  {"id":100,"t":"p","n":"Virtual Assistants & Freelance Admin","cat":"Admin","p":["Templates and process packs","Automation set-ups","Checklists","Training guides"],"s":["Inbox and calendar management","Bookkeeping support","Customer support","Research and data entry"],"c":["Business Consultants","Real Estate Agents","Accountants","Co-Working Spaces","Independent Medical Clinics"],"a":"Online","e":"Co-working space and virtual assistant: a shared admin desk for member companies.","g":"pro_office","r":"","m":["Revenue share","Space/time share","Referral","Project fee","Subscription","Savings share"],"f":[40000,120000,45000,30000]}];
+
+  var GROUPS = {
+   "food": {
+    "o": "Shared kitchen staff, delivery riders, food-safety audits, equipment maintenance and idle-hour kitchen use.",
+    "x": "Group buying of ingredients and packaging, cooking gas and power, delivery commissions, payment fees and insurance."
+   },
+   "venue": {
+    "o": "Housekeeping and event staffing, facility maintenance, booking technology and filling idle halls and rooms.",
+    "x": "Group buying of linen, consumables and amenities, energy contracts, laundry, software and insurance."
+   },
+   "wellness": {
+    "o": "Trainers and therapists on call, equipment servicing, booking and membership software, and quiet-hour room use.",
+    "x": "Group buying of consumables and equipment, software, laundry, insurance and marketing."
+   },
+   "retail": {
+    "o": "Merchandising and store staffing, delivery, billing technology, security and use of idle floor space.",
+    "x": "Group buying of packaging and supplies, payment fees, utilities, insurance and store maintenance."
+   },
+   "property": {
+    "o": "Facility management, security, housekeeping, maintenance crews and use of idle space.",
+    "x": "Energy and solar contracts, maintenance contracts, insurance, security and software."
+   },
+   "education": {
+    "o": "Visiting faculty, transport, canteen, IT support and after-hours use of classrooms and grounds.",
+    "x": "Group buying of books, uniforms, software and transport, plus energy and maintenance contracts."
+   },
+   "health": {
+    "o": "Front-desk and billing support, equipment servicing, sample logistics, tele-health technology and idle-room use.",
+    "x": "Group buying of consumables and devices, equipment maintenance, software, insurance and waste disposal."
+   },
+   "mobility": {
+    "o": "Drivers and technicians on call, fleet maintenance, routing technology, parking and use of idle vehicles and bays.",
+    "x": "Fuel and charging contracts, tyres and spares, insurance, tolls, telematics and maintenance."
+   },
+   "studio": {
+    "o": "Freelance crew, booking and billing, lead generation, shared equipment and studio time.",
+    "x": "Shared equipment and software, co-working space, marketing, travel and insurance."
+   },
+   "pro_people": {
+    "o": "Booking, billing, lead generation and admin, plus access to partner rooms, studios and equipment.",
+    "x": "Shared space instead of rent, group buying of kits and consumables, software, marketing and insurance."
+   },
+   "pro_trades": {
+    "o": "Job leads, scheduling, billing and collections, tools and materials on account, and helpers on call.",
+    "x": "Group buying of materials and tools, fuel and travel, insurance and warranty support."
+   },
+   "pro_office": {
+    "o": "Lead generation, proposals, billing and collections, shared meeting rooms and admin support.",
+    "x": "Shared workspace, software and research tools, marketing, travel and professional insurance."
+   },
+   "pro_creative": {
+    "o": "Bookings, contracts, billing, crew on call and access to studios, venues and equipment.",
+    "x": "Equipment rental and editing, software, studio time, travel and marketing."
+   },
+   "pro_food": {
+    "o": "Shared kitchens, delivery, packaging, food-safety compliance, booking and billing.",
+    "x": "Ingredients and packaging, kitchen rental, delivery and software."
+   }
+  };
+
+  var RULES = {
+   "health": "No commission per patient or per prescription. Collaborations here use rent, facility fees, flat listing fees and non-prescription retail.",
+   "legal": "Bar rules restrict advertising and bar referral fees and fee sharing with non-lawyers. Collaborations here use room hire, workshops and flat fees.",
+   "finance": "Professional rules bar paying commission for work and sharing fees with non-members. Collaborations here use room hire, workshops and flat fees.",
+   "insurance": "Insurance can be sold only by licensed intermediaries, and any commission follows the regulator's rules.",
+   "realestate": "Agents and developers need real estate regulator registration where it applies.",
+   "architect": "Conduct rules bar undisclosed commissions and trade discounts. Disclose every margin to the client.",
+   "fuel": "Non-fuel retail at a fuel station needs the oil company's approval.",
+   "jewel": "Gold savings schemes are regulated. Check the deposit rules before offering one."
+  };
+
+  /* collaboration ideas from the workbook: h = host, p = partner, t = idea, w = how it works, m = commercial model, r = illustrative monthly opportunity */
+  var MATCHES = [{"h":"Restaurants & QSRs","p":"Chefs","t":"Idle kitchen becomes a cloud-kitchen brand","w":"Restaurant provides kitchen + customer discovery; chef creates menu/operates","m":"Revenue share","r":"₹1.5L–₹5L"},
+  {"h":"Restaurants & QSRs","p":"Musicians & DJs","t":"Weekly live entertainment","w":"Restaurant provides venue/footfall; artist drives experience/ticket/F&B uplift","m":"Fee + revenue share","r":"₹0.5L–₹2L"},
+  {"h":"Restaurants & QSRs","p":"Content Creators & Influencers","t":"Sponsored food/product activation","w":"Creator produces campaign; restaurant provides venue/audience","m":"Campaign fee + affiliate","r":"₹0.5L–₹3L"},
+  {"h":"Schools","p":"Teachers & Tutors","t":"After-school academy","w":"School provides classroom; teacher provides course","m":"Revenue share","r":"₹1L–₹4L"},
+  {"h":"Co-Working Spaces","p":"Accountants","t":"SME finance clinic","w":"Co-working space provides member companies and a room; the accountant provides advisory and pays for the room, not for referrals.","m":"Room fee plus workshop and service fees","r":"₹0.5L–₹2L"},
+  {"h":"Co-Working Spaces","p":"Lawyers","t":"Legal clinic / compliance workshop","w":"Co-working space provides member companies and a room; the lawyer offers workshops and consultations and pays for the room, not for referrals.","m":"Room fee plus workshop fees","r":"₹0.5L–₹2L"},
+  {"h":"Gyms & Fitness Centers","p":"Physiotherapists","t":"Recovery / physio room","w":"Gym provides room/members; physio provides treatment","m":"Revenue share","r":"₹1L–₹3L"},
+  {"h":"Residential Communities","p":"Personal Fitness Trainers","t":"Resident fitness membership","w":"Community provides clubhouse/residents; trainer operates classes","m":"Subscription share","r":"₹0.5L–₹2L"},
+  {"h":"Beauty Salons","p":"Beauticians & Estheticians","t":"Specialist treatment room","w":"Salon provides room/customers; beautician provides specialist service","m":"Revenue share","r":"₹0.8L–₹3L"},
+  {"h":"Hotels & Resorts","p":"Photographers","t":"Guest photo experiences","w":"Hotel provides guests/location; photographer sells sessions/packages","m":"Revenue share","r":"₹0.5L–₹2.5L"},
+  {"h":"Hotels & Resorts","p":"Yoga Instructors","t":"Sunrise wellness sessions","w":"Hotel provides venue/guests; instructor runs sessions","m":"Revenue share","r":"₹0.5L–₹2L"},
+  {"h":"Cafés & Coffee Shops","p":"Bakers & Pastry Professionals","t":"Dessert counter + weekend workshops","w":"Café provides display/kitchen/footfall; baker supplies product and classes","m":"Consignment + revenue share","r":"₹0.8L–₹3L"},
+  {"h":"Shopping Malls","p":"Content Creators & Influencers","t":"Creator pop-up / meet-and-shop","w":"Mall provides space/footfall; creator brings audience/brands","m":"Space + sponsorship share","r":"₹1L–₹5L"},
+  {"h":"Sports Clubs & Academies","p":"Sports Coaches","t":"Specialist academy","w":"Club provides facility; coach provides program","m":"Revenue share","r":"₹1L–₹4L"},
+  {"h":"Real Estate Brokerages","p":"Interior Designers","t":"Move-in interior package","w":"Broker introduces buyers; designer fulfills package","m":"Referral commission","r":"₹1L–₹5L"},
+  {"h":"Car Dealerships","p":"Insurance Advisers","t":"Insurance desk","w":"Dealer provides buyers; licensed adviser arranges eligible policies","m":"Referral/commission subject to rules","r":"₹1L–₹5L"},
+  {"h":"Event Planning & Wedding Firms","p":"Makeup Artists","t":"Wedding beauty package","w":"Planner cross-sells artist to wedding clients","m":"Referral + package share","r":"₹0.5L–₹3L"},
+  {"h":"Independent Medical Clinics","p":"Nutritionists & Dietitians","t":"Nutrition program","w":"The clinic provides a room on set days; the nutritionist runs consultations and pays rent, not a referral fee.","m":"Room rent or flat fee","r":"₹0.5L–₹2L"},
+  {"h":"Furniture Showrooms","p":"Interior Designers","t":"Design desk inside showroom","w":"Showroom provides leads/products; designer specifies projects","m":"Referral + sales share","r":"₹1L–₹5L"},
+  {"h":"Office Buildings","p":"Yoga Instructors","t":"Employee wellness classes","w":"Building provides space/tenants; instructor provides recurring classes","m":"B2B subscription","r":"₹0.5L–₹2L"}];
+
+  var byName = {}; SECTORS.forEach(function(s){ byName[s.n] = s; });
+  function byId(id){ return SECTORS.filter(function(s){ return String(s.id) === String(id); })[0]; }
+  var RAMP = [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1,1,1];
+  var YEAR_ONE = RAMP.reduce(function(a, v){ return a + v; }, 0);
+  var PARTS = [
+    {k:"Product revenue", c:"--space", note:"sales"},
+    {k:"Service revenue", c:"--blue-btn", note:"sales"},
+    {k:"Operational benefit", c:"--hours", note:"capacity put to work"},
+    {k:"Expense savings", c:"--foot-fill", note:"costs reduced"}
+  ];
+  var MODEL_NOTES = {
+    "Revenue share":"Each sale is split between host, partner and platform at agreed percentages.",
+    "Consignment":"A supplier stocks products in your business and is paid only when they sell.",
+    "Referral":"You introduce a customer to a partner and earn a disclosed fee when they buy.",
+    "Partner-funded setup":"The partner pays for the display, equipment or fit-out, so you start without capital.",
+    "Subscription":"Customers pay monthly for a membership or plan, and the income is shared.",
+    "Savings share":"When group buying cuts one of your costs, part of the saving goes to the platform.",
+    "Space/time share":"A professional uses a room, chair or kitchen for set hours and shares what they earn.",
+    "Project fee":"A fixed fee for a defined piece of work.",
+    "Room hire":"A flat fee for using a room, with no share of professional fees.",
+    "Facility fee":"A flat fee a visiting professional pays for using your facility.",
+    "Flat listing fee":"A fixed fee to display an offer, with no commission per customer.",
+    "Workshop fee":"Tickets or a fee for a workshop or clinic session."
+  };
+
+  /* ================= mobile menu ================= */
+  var menuBtn = document.querySelector(".menu-btn"), drawer = $("drawer");
+  menuBtn.addEventListener("click", function(){
+    var open = menuBtn.getAttribute("aria-expanded") === "true";
+    menuBtn.setAttribute("aria-expanded", String(!open));
+    drawer.hidden = open;
+  });
+  drawer.addEventListener("click", function(e){
+    if (e.target.tagName === "A"){ drawer.hidden = true; menuBtn.setAttribute("aria-expanded","false"); }
+  });
+
+  /* ================= location (optional) ================= */
+  var loc = {text:"", lat:null, lng:null};
+  function parseLoc(text){
+    var m = text.match(/@(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)/) ||
+            text.match(/[?&](?:q|query|ll)=(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)/) ||
+            text.match(/!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/) ||
+            text.match(/^\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
+    return m ? {lat:parseFloat(m[1]), lng:parseFloat(m[2])} : null;
+  }
+  function setLoc(text){ var p = parseLoc(text); loc = {text:text.trim(), lat:p ? p.lat : null, lng:p ? p.lng : null}; }
+  function isUrl(t){ return /^https?:\/\//i.test(t); }
+  function mapsLink(){
+    if (loc.lat !== null) return "https://www.google.com/maps?q=" + loc.lat + "," + loc.lng;
+    if (isUrl(loc.text)) return loc.text;
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(loc.text);
+  }
+  function locLabel(){
+    if (loc.lat !== null) return loc.lat.toFixed(5) + ", " + loc.lng.toFixed(5);
+    return isUrl(loc.text) ? "Google Maps link" : loc.text;
+  }
+  function setStatus(msg, kind){ var s = $("locStatus"); s.textContent = msg; s.className = "status" + (kind ? " " + kind : ""); }
+  $("useGps").addEventListener("click", function(){
+    if (!navigator.geolocation){ setStatus("This browser cannot share a location. Paste a Google Maps link or type your area instead.", "bad"); return; }
+    setStatus("Finding your location");
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var t = pos.coords.latitude.toFixed(5) + ", " + pos.coords.longitude.toFixed(5);
+      $("locInput").value = t; setLoc(t);
+      setStatus("Pin set from your device location.", "ok");
+      if (current) drawLocation();
+    }, function(){
+      setStatus("Location is blocked or unavailable here. Paste a Google Maps link or type your area and city instead.", "bad");
+    }, {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
+  });
+  $("locInput").addEventListener("input", function(){
+    setLoc(this.value);
+    setStatus(loc.lat !== null ? "Pin read: " + locLabel() + "." : "", loc.lat !== null ? "ok" : "");
+    if (current) drawLocation();
+  });
+
+  /* ================= the two dropdowns ================= */
+  var bizSelect = $("bizSelect"), bizSwitch = $("bizSwitch"), fType = $("fType");
+  function fillGrouped(sel, placeholder){
+    sel.textContent = "";
+    if (placeholder){ var o0 = el("option", null, placeholder); o0.value = ""; sel.appendChild(o0); }
+    [["b","Businesses"],["p","Professionals"]].forEach(function(g){
+      var og = document.createElement("optgroup"); og.label = g[1];
+      SECTORS.filter(function(s){ return s.t === g[0]; }).forEach(function(s){
+        var o = el("option", null, s.n); o.value = s.id; og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+  }
+  function fillKind(kind){
+    bizSelect.textContent = "";
+    var o0 = el("option", null, kind === "b" ? "Choose your kind of business" : "Choose your profession"); o0.value = ""; bizSelect.appendChild(o0);
+    SECTORS.filter(function(s){ return s.t === kind; }).forEach(function(s){
+      var o = el("option", null, s.n); o.value = s.id; bizSelect.appendChild(o);
+    });
+    $("bizLabel").textContent = kind === "b" ? "Your kind of business" : "Your profession";
+  }
+  fillKind("b"); fillGrouped(bizSwitch); fillGrouped(fType, "Choose a business or profession");
+  var otherOpt = el("option", null, "Something else"); otherOpt.value = "other"; fType.appendChild(otherOpt);
+  document.querySelectorAll('input[name="kind"]').forEach(function(r){
+    r.addEventListener("change", function(){ if (r.checked) fillKind(r.value); });
+  });
+
+  /* ================= dashboard ================= */
+  var edits = {};      /* per sector: the four editable monthly figures */
+  var current = null;
+
+  function figs(s){ if (!edits[s.id]) edits[s.id] = s.f.slice(); return edits[s.id]; }
+  function total(s){ return figs(s).reduce(function(a, v){ return a + v; }, 0); }
+
+  function listBlock(items){
+    var ul = el("ul", "ticks");
+    items.forEach(function(t){ ul.appendChild(el("li", null, t)); });
+    return ul;
+  }
+  function partnerChips(names){
+    var wrap = el("div", "chips");
+    names.forEach(function(n){
+      var s = byName[n]; if (!s) return;
+      var b = el("button", "chip", n); b.type = "button";
+      b.addEventListener("click", function(){ openDash(s.id, true); });
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+  function setBody(id, nodes){
+    var box = $(id); box.textContent = "";
+    nodes.forEach(function(n){ if (n) box.appendChild(n); });
+  }
+
+  function refreshNumbers(){
+    var s = current, f = figs(s), t = total(s);
+    PARTS.forEach(function(p, i){ $("k" + i).textContent = money(f[i]); });
+    $("kTotal").textContent = money(t);
+    $("kM3").textContent = money(t * RAMP[2]);
+    $("kM6").textContent = money(t * RAMP[5]);
+    $("kYear").textContent = money(t * YEAR_ONE);
+    $("ctaTotal").textContent = money(t) + " a month at steady state";
+    var mix = $("mix"); mix.textContent = "";
+    PARTS.forEach(function(p, i){
+      var seg = el("span"); seg.style.background = "var(" + p.c + ")";
+      seg.style.flex = "0 0 " + (t ? f[i] / t * 100 : 0).toFixed(2) + "%";
+      mix.appendChild(seg);
+    });
+    mix.setAttribute("aria-label", PARTS.map(function(p, i){ return p.k + " " + money(f[i]); }).join(", "));
+  }
+
+  function drawLocation(){
+    var line = $("locLine"), box = $("mapBox");
+    line.textContent = ""; box.textContent = "";
+    if (!loc.text) return;
+    line.appendChild(document.createTextNode("Location: " + locLabel() + ". "));
+    var a = el("a", null, "Open in Google Maps"); a.href = mapsLink(); a.target = "_blank"; a.rel = "noopener";
+    line.appendChild(a);
+    var q = loc.lat !== null ? loc.lat + "," + loc.lng : (isUrl(loc.text) ? "" : loc.text);
+    if (LIVE && q){
+      var fr = el("iframe", "map");
+      fr.title = "Map of your location"; fr.loading = "lazy";
+      fr.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+      fr.src = GMAPS_KEY
+        ? "https://www.google.com/maps/embed/v1/place?key=" + encodeURIComponent(GMAPS_KEY) + "&q=" + encodeURIComponent(q)
+        : "https://www.google.com/maps?q=" + encodeURIComponent(q) + "&z=15&output=embed";
+      box.appendChild(fr);
+    }
+  }
+
+  function openDash(id, move){
+    var s = byId(id); if (!s) return;
+    current = s;
+    $("dashEmpty").hidden = true; $("dashLive").hidden = false;
+    bizSwitch.value = String(s.id);
+    var kindRadio = document.querySelector('input[name="kind"][value="' + s.t + '"]');
+    if (kindRadio && !kindRadio.checked){ kindRadio.checked = true; fillKind(s.t); }
+    bizSelect.value = String(s.id);
+
+    $("dashKind").textContent = (s.t === "b" ? "Business" : "Professional") + ", " + s.cat;
+    $("dashTitle").textContent = s.n;
+    $("dashExample").textContent = s.e;
+    $("dashIntro").textContent = "What you could sell, offer and save, who you could collaborate with, and what it could be worth each month. Figures are illustrative planning numbers for one typical " + (s.t === "b" ? "business" : "professional") + ", and you can change them.";
+
+    /* calculator inputs */
+    PARTS.forEach(function(p, i){ $("in" + i).value = figs(s)[i]; });
+
+    /* probable collaborations: the sector's own list plus everyone who lists it */
+    var partners = s.c.slice();
+    SECTORS.forEach(function(o){ if (o.c.indexOf(s.n) > -1 && partners.indexOf(o.n) < 0) partners.push(o.n); });
+    var ideas = MATCHES.filter(function(m){ return m.h === s.n || m.p === s.n; });
+    var ideaNodes = ideas.map(function(m){
+      var card = el("div", "idea");
+      card.appendChild(el("h4", null, m.t));
+      card.appendChild(el("p", "idea-who", m.h + " with " + m.p));
+      card.appendChild(el("p", null, m.w));
+      var meta = el("dl", "idea-meta");
+      var d1 = el("div"); d1.appendChild(el("dt", null, "Commercial model")); d1.appendChild(el("dd", null, m.m)); meta.appendChild(d1);
+      var d2 = el("div"); d2.appendChild(el("dt", null, "Illustrative opportunity a month")); d2.appendChild(el("dd", null, m.r)); meta.appendChild(d2);
+      card.appendChild(meta);
+      return card;
+    });
+    setBody("bodyCollab", [el("p", "hint-line", "Tap a partner to see their side of the collaboration."), partnerChips(partners)].concat(
+      ideaNodes.length ? [el("h4", "sub-h", "Collaboration ideas ready to pilot")].concat(ideaNodes) : []));
+    $("sumCollab").textContent = partners.length + " probable partners" + (ideas.length ? ", " + ideas.length + (ideas.length === 1 ? " ready idea" : " ready ideas") : "");
+
+    setBody("bodyProducts", [listBlock(s.p)]);
+    setBody("bodyServices", [listBlock(s.s)]);
+    setBody("bodyOps", [el("p", null, GROUPS[s.g].o)]);
+    setBody("bodySave", [el("p", null, GROUPS[s.g].x)]);
+    setBody("bodyAssets", [el("p", null, s.a + ".")]);
+    var modelList = el("dl", "models-dl");
+    s.m.forEach(function(name){
+      var d = el("div"); d.appendChild(el("dt", null, name)); d.appendChild(el("dd", null, MODEL_NOTES[name] || "")); modelList.appendChild(d);
+    });
+    setBody("bodyModels", [modelList, s.r ? el("p", "regnote", "Rule to check: " + RULES[s.r]) : null]);
+
+    drawLocation();
+    refreshNumbers();
+    if (move){
+      var t = $("dashTitle");
+      t.scrollIntoView({block:"start"});
+      try { t.focus({preventScroll:true}); } catch (err) {}
+    }
+  }
+
+  /* no form submissions anywhere: published previews run in a sandbox that blocks them */
+  bizSelect.addEventListener("change", function(){ if (bizSelect.value) { $("finderErr").hidden = true; openDash(bizSelect.value, true); } });
+  bizSwitch.addEventListener("change", function(){ openDash(bizSwitch.value, false); });
+  $("showBtn").addEventListener("click", function(){
+    if (!bizSelect.value){
+      $("finderErr").textContent = "Choose your kind of business or your profession first."; $("finderErr").hidden = false; bizSelect.focus(); return;
+    }
+    $("finderErr").hidden = true; openDash(bizSelect.value, true);
+  });
+  PARTS.forEach(function(p, i){
+    $("in" + i).addEventListener("input", function(){
+      if (!current) return;
+      var v = parseFloat(this.value); figs(current)[i] = isFinite(v) && v > 0 ? v : 0;
+      refreshNumbers();
+    });
+  });
+  $("resetNums").addEventListener("click", function(){
+    if (!current) return;
+    edits[current.id] = current.f.slice();
+    PARTS.forEach(function(p, i){ $("in" + i).value = current.f[i]; });
+    refreshNumbers();
+  });
+
+  /* ================= commercial models explained ================= */
+  Object.keys(MODEL_NOTES).forEach(function(k){
+    var tr = el("tr"); var td = el("td"); td.appendChild(el("strong", null, k)); tr.appendChild(td);
+    tr.appendChild(el("td", null, MODEL_NOTES[k]));
+    $("modelRows").appendChild(tr);
+  });
+
+  /* ================= enquiry ================= */
+  var form = $("startForm"), ready = $("ready"), errBox = $("formErr");
+  var ROLE_NAMES = {host:"Business", pro:"Professional", partner:"Brand or supplier", country:"Country partner"};
+  function setRole(role){
+    var r = form.querySelector('input[name="role"][value="' + role + '"]');
+    if (r) r.checked = true;
+    form.querySelectorAll("[data-for]").forEach(function(b){ b.hidden = b.getAttribute("data-for").split(" ").indexOf(role) < 0; });
+    $("planBox").hidden = !((role === "host" || role === "pro") && $("fPlan").value);
+  }
+  form.querySelectorAll('input[name="role"]').forEach(function(r){ r.addEventListener("change", function(){ setRole(r.value); }); });
+  document.querySelectorAll("a[data-role]").forEach(function(a){ a.addEventListener("click", function(){ setRole(a.getAttribute("data-role")); }); });
+  [$("footMail"), $("mailTxt"), $("startMail")].forEach(function(a){ a.textContent = MAIL; a.href = "mailto:" + MAIL; });
+  form.addEventListener("submit", function(e){ e.preventDefault(); });   /* Enter key on a live site must not reload the page */
+
+  $("sendPlan").addEventListener("click", function(){
+    if (!current) return;
+    var s = current, f = figs(s), t = total(s);
+    var lines = ["Sector: " + s.n + " (" + (s.t === "b" ? "business" : "professional") + ", " + s.cat + ")"];
+    PARTS.forEach(function(p, i){ lines.push(p.k + " a month: " + money(f[i])); });
+    lines.push("Total monthly benefit at steady state: " + money(t));
+    lines.push("Month 3: " + money(t * RAMP[2]) + " | Month 6: " + money(t * RAMP[5]) + " | Year one: " + money(t * YEAR_ONE));
+    lines.push("Products: " + s.p.join("; "));
+    lines.push("Services: " + s.s.join("; "));
+    lines.push("Probable partners: " + s.c.join("; "));
+    $("fPlan").value = lines.join("\n");
+    $("planHead").textContent = "Your plan: " + s.n + ", " + money(t) + " a month at steady state";
+    $("planLines").textContent = "Partners in view: " + s.c.join("; ");
+    fType.value = String(s.id);
+    if (loc.text) $("fCity").value = loc.lat !== null ? mapsLink() : loc.text;
+    setRole(s.t === "b" ? "host" : "pro");
+  });
+
+  function postJSON(url, data){
+    return fetch(url, {method:"POST", headers:{"Content-Type":"application/json", "Accept":"application/json"}, body:JSON.stringify(data)})
+      .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(j){ j.httpOk = res.ok; return j; }); });
+  }
+
+  var pending = null;            /* enquiry waiting for the terms step */
+  var termsStep = $("termsStep"), agreeBox = $("agreeBox"), agreeBtn = $("agreeBtn"), termsErr = $("termsErr");
+
+  function showPanel(panel){
+    [$("sent"), ready, termsStep].forEach(function(p){ p.hidden = true; });
+    panel.hidden = false;
+    try { panel.focus(); } catch (err) {}
+    panel.scrollIntoView({block:"nearest"});
+  }
+
+  /* Step 1: check the details, then show the terms */
+  $("sendBtn").addEventListener("click", function(){
+    var role = form.querySelector('input[name="role"]:checked').value;
+    var v = function(id){ return $(id).value.trim(); };
+    var name = v("fName"), phone = v("fPhone"), email = v("fEmail");
+    var problem = "";
+    if (!name) problem = "Add your name so we know who to reply to.";
+    else if (!email) problem = "Add your email address. We send your dashboard link there.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) problem = "That email address looks incomplete. Check it and try again.";
+    if (problem){
+      errBox.textContent = problem; errBox.hidden = false; ready.hidden = true; $("sent").hidden = true; termsStep.hidden = true;
+      $(!name ? "fName" : "fEmail").focus();
+      return;
+    }
+    errBox.hidden = true;
+    var usesType = role === "host" || role === "pro";
+    var typeName = usesType && fType.value ? fType.options[fType.selectedIndex].textContent : "";
+    var plan = usesType ? $("fPlan").value : "";
+    var lines = ["Enquiry type: " + ROLE_NAMES[role], "Name: " + name];
+    if (v("fBiz")) lines.push("Business or brand: " + v("fBiz"));
+    if (phone) lines.push("Phone or WhatsApp: " + phone);
+    lines.push("Email: " + email);
+    if (typeName) lines.push("Business or profession: " + typeName);
+    if (v("fCity")) lines.push("Location: " + v("fCity"));
+    if (role === "partner") lines.push("Offer: " + $("fOffer").value);
+    if (role === "country" && v("fTerr")) lines.push("Territory: " + v("fTerr"));
+    if (v("fMsg")) lines.push("", "Notes: " + v("fMsg"));
+    if (plan) lines.push("", "Dashboard plan", plan);
+    var subject = "Partnermybusiness enquiry: " + ROLE_NAMES[role] + (v("fBiz") ? ", " + v("fBiz") : "");
+    var body = lines.join("\n");
+    $("summary").value = body;
+    $("mailBtn").href = "mailto:" + MAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    $("copyMsg").textContent = "";
+
+    var data = {"bot-field":$("botField").value, role:role, name:name, business:v("fBiz"), phone:phone, email:email,
+                location:v("fCity"), message:v("fMsg"), plan:plan};
+    if (typeName) data.business_type = typeName;
+    if (role === "partner") data.offer = $("fOffer").value;
+    if (role === "country") data.territory = v("fTerr");
+    pending = data;
+
+    $("termsEmail").textContent = email;
+    agreeBox.checked = false; agreeBtn.disabled = true; termsErr.hidden = true;
+    showPanel(termsStep);
+  });
+
+  agreeBox.addEventListener("change", function(){ agreeBtn.disabled = !agreeBox.checked; termsErr.hidden = true; });
+  $("backBtn").addEventListener("click", function(){ termsStep.hidden = true; $("fName").focus(); });
+
+  /* Step 2: only after "Agree and continue" is anything sent */
+  agreeBtn.addEventListener("click", function(){
+    if (!pending) return;
+    if (!agreeBox.checked){ termsErr.textContent = "Tick the box to agree to the terms first."; termsErr.hidden = false; return; }
+    var payload = Object.assign({}, pending, {termsAccepted:true});
+    agreeBtn.disabled = true; agreeBtn.textContent = "Sending";
+    postJSON(ENQUIRY_API, payload).then(function(r){
+      agreeBtn.textContent = "Agree and continue";
+      if (!r.httpOk){
+        agreeBtn.disabled = false;
+        termsErr.textContent = r.error || "Something went wrong. Please try again.";
+        termsErr.hidden = false;
+        return;
+      }
+      $("sentHead").textContent = "Check your inbox";
+      $("sentText").textContent = r.hasDashboard
+        ? (r.existingAccount
+            ? "Your enquiry reached our team. You already have a dashboard with " + r.email + ", so we emailed you a link to log in."
+            : "Your enquiry reached our team. We emailed " + r.email + " a link to open your dashboard. It may take a minute, so check your spam folder too.")
+        : "Your enquiry reached our team, and a confirmation is on its way to " + r.email + ". We will be in touch within two working days.";
+      $("resendBtn").hidden = !r.hasDashboard;
+      $("resendMsg").textContent = "";
+      var dev = $("devNote");
+      if (r.devLink){
+        dev.innerHTML = "<strong>Test mode:</strong> email isn\u2019t set up on this server yet, so here is the link that would be emailed: <a></a>";
+        dev.querySelector("a").href = r.devLink; dev.querySelector("a").textContent = "open the dashboard link";
+        dev.hidden = false;
+      } else dev.hidden = true;
+      $("resendBtn").dataset.email = r.email;
+      ["fName","fBiz","fPhone","fEmail","fCity","fTerr","fMsg","fPlan"].forEach(function(id){ $(id).value = ""; });
+      fType.value = ""; setRole("host"); pending = null;
+      showPanel($("sent"));
+    }).catch(function(){
+      agreeBtn.disabled = false; agreeBtn.textContent = "Agree and continue";
+      showPanel(ready);   /* server unreachable: offer the email/copy fallback */
+    });
+  });
+
+  $("resendBtn").addEventListener("click", function(){
+    var btn = this, msg = $("resendMsg");
+    btn.disabled = true;
+    postJSON("/api/auth/request-link", {email: btn.dataset.email}).then(function(r){
+      btn.disabled = false;
+      msg.textContent = r.httpOk ? "Sent again. Check your inbox and spam folder." : (r.error || "Couldn\u2019t resend right now. Try again shortly.");
+    }).catch(function(){ btn.disabled = false; msg.textContent = "Couldn\u2019t resend right now. Try again shortly."; });
+  });
+
+  $("copyBtn").addEventListener("click", function(){
+    var ta = $("summary"), msg = $("copyMsg");
+    function done(ok){ msg.textContent = ok ? "Copied. Paste it into an email to " + MAIL + "." : "Copying is blocked here. Select the text above and copy it."; }
+    function legacy(){ ta.select(); var ok = false; try { ok = document.execCommand("copy"); } catch (err) {} done(ok); }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){ done(true); }, legacy);
+    } else legacy();
+  });
+})();
+</script>
+</body>
+</html>

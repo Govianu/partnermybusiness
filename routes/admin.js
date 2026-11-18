@@ -1,0 +1,231 @@
+const router = require('express').Router();
+const User = require('../models/User');
+const Media = require('../models/Media');
+const Lead = require('../models/Lead');
+const Gig = require('../models/Gig');
+const Booking = require('../models/Booking');
+const Opportunity = require('../models/Opportunity');
+const Enquiry = require('../models/Enquiry');
+const { requireAuth } = require('../middleware/auth');
+const { uniqueHandle } = require('../utils/handle');
+const { resolveMapsUrl } = require('../utils/maps');
+const { generateOpportunities, sopsFor } = require('../utils/ai');
+const { fail, str } = require('../utils/http');
+
+router.use(requireAuth('admin'));
+
+router.get('/overview', async (req, res) => {
+  const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+  const [byRole, pendingProfiles, pendingMedia, leadStages, requestedBookings, importedToday, proposedWorkshops] = await Promise.all([
+    User.aggregate([{ $group: { _id: '$role', n: { $sum: 1 } } }]),
+    User.countDocuments({ status: 'pending' }),
+    Media.countDocuments({ status: 'pending' }),
+    Lead.aggregate([{ $group: { _id: '$stage', n: { $sum: 1 } } }]),
+    Booking.countDocuments({ status: 'requested' }),
+    User.countDocuments({ status: 'imported', createdAt: { $gte: startOfDay } }),
+    Gig.countDocuments({ status: 'proposed' })
+  ]);
+  res.json({
+    users: Object.fromEntries(byRole.map(r => [r._id, r.n])),
+    pendingProfiles, pendingMedia, requestedBookings, importedToday, proposedWorkshops,
+    importTarget: 100,
+    leads: Object.fromEntries(leadStages.map(r => [r._id, r.n]))
+  });
+});
+
+// ---------- Google Maps importer ----------
+async function importOne({ mapsUrl, category, location, adminId }) {
+  const info = await resolveMapsUrl(mapsUrl);
+  if (!info.name) throw fail('Could not read a business name from that link. Open the place in Maps and copy the full URL.');
+  const existing = await User.findOne({ 'business.mapsUrl': info.mapsUrl });
+  if (existing) return { user: existing, duplicate: true };
+
+  const cat = str(category).toLowerCase() || 'restaurant';
+  const loc = str(location).toLowerCase() || 'bengaluru';
+  const user = await User.create({
+    role: 'business',
+    name: info.name,
+    category: cat,
+    location: loc,
+    slug: info.name,
+    handle: await uniqueHandle(cat, loc, info.name),
+    status: 'imported',
+    importedBy: adminId,
+    business: { businessName: info.name, mapsUrl: info.mapsUrl, lat: info.lat, lng: info.lng, sops: sopsFor(cat) }
+  });
+  const ops = await generateOpportunities({ name: info.name, category: cat, location: loc });
+  await Opportunity.insertMany(ops.map(o => ({ ...o, business: user._id })));
+  await Lead.create({
+    name: info.name, company: info.name, source: 'import', relatedUser: user._id, owner: adminId,
+    history: [{ stage: 'new', note: 'Imported from Google Maps', proofUrl: info.mapsUrl, by: adminId }]
+  });
+  return { user, opportunities: ops.length, duplicate: false };
+}
+
+router.post('/import', async (req, res) => {
+  const result = await importOne({ ...req.body, adminId: req.user._id });
+  res.status(result.duplicate ? 200 : 201).json(result);
+});
+
+router.post('/import/bulk', async (req, res) => {
+  const links = String(req.body?.links || '').split(/\s+/).filter(Boolean).slice(0, 100);
+  if (!links.length) throw fail('Paste at least one Google Maps link, one per line');
+  const results = [];
+  for (const mapsUrl of links) {
+    try {
+      const r = await importOne({ mapsUrl, category: req.body.category, location: req.body.location, adminId: req.user._id });
+      results.push({ mapsUrl, ok: true, handle: r.user.handle, duplicate: r.duplicate });
+    } catch (err) {
+      results.push({ mapsUrl, ok: false, error: err.message });
+    }
+  }
+  res.json({ results });
+});
+
+// ---------- Website enquiries (with terms acceptance record) ----------
+router.get('/enquiries', async (req, res) => {
+  const enquiries = await Enquiry.find({}).populate('user', 'handle status').sort({ createdAt: -1 }).limit(300);
+  res.json({ enquiries });
+});
+
+// ---------- Profiles ----------
+router.get('/users', async (req, res) => {
+  const q = {};
+  if (req.query.role) q.role = req.query.role;
+  if (req.query.status) q.status = req.query.status;
+  if (req.query.q) q.$or = [{ handle: new RegExp(escapeRx(req.query.q), 'i') }, { name: new RegExp(escapeRx(req.query.q), 'i') }];
+  const users = await User.find(q).populate('assignedManager', 'name').sort({ createdAt: -1 }).limit(200);
+  const admins = await User.find({ role: 'admin' }, 'name email');
+  res.json({ users, admins });
+});
+
+router.patch('/users/:id', async (req, res) => {
+  const update = {};
+  if (['pending', 'approved', 'rejected', 'imported'].includes(req.body?.status)) update.status = req.body.status;
+  if (req.body?.assignedManager !== undefined) update.assignedManager = req.body.assignedManager || null;
+  const user = await User.findByIdAndUpdate(req.params.id, update, { new: true }).populate('assignedManager', 'name');
+  if (!user) throw fail('Profile not found', 404);
+  res.json({ user });
+});
+
+// ---------- Validation queue ----------
+router.get('/media', async (req, res) => {
+  const media = await Media.find({ status: req.query.status || 'pending' })
+    .populate('owner', 'name handle role')
+    .sort({ createdAt: 1 });
+  res.json({ media });
+});
+
+router.post('/media/:id/review', async (req, res) => {
+  const decision = req.body?.decision;
+  if (!['approved', 'rejected'].includes(decision)) throw fail('Choose approve or reject');
+  if (decision === 'rejected' && !str(req.body.note)) throw fail('Add a note so the associate knows what to fix');
+  const media = await Media.findByIdAndUpdate(
+    req.params.id,
+    { status: decision, reviewNote: str(req.body.note), reviewedBy: req.user._id, reviewedAt: new Date() },
+    { new: true }
+  );
+  if (!media) throw fail('Upload not found', 404);
+  res.json({ media });
+});
+
+// ---------- Leads CRM ----------
+router.get('/leads', async (req, res) => {
+  const q = req.query.stage ? { stage: req.query.stage } : {};
+  const leads = await Lead.find(q).populate('owner', 'name').populate('relatedUser', 'handle').sort({ updatedAt: -1 }).limit(300);
+  res.json({ leads, stages: Lead.STAGES });
+});
+
+router.post('/leads', async (req, res) => {
+  const b = req.body || {};
+  if (!str(b.name)) throw fail('Enter the lead’s name');
+  const lead = await Lead.create({
+    name: str(b.name), company: str(b.company), phone: str(b.phone), email: str(b.email),
+    source: ['manual', 'referral'].includes(b.source) ? b.source : 'manual',
+    notes: str(b.notes), owner: req.user._id,
+    history: [{ stage: 'new', note: str(b.notes) || 'Lead added', by: req.user._id }]
+  });
+  res.status(201).json({ lead });
+});
+
+// Every stage change after "new" must carry a link to proof of communication
+router.patch('/leads/:id', async (req, res) => {
+  const { stage, note } = req.body || {};
+  const proofUrl = str(req.body?.proofUrl);
+  if (!Lead.STAGES.includes(stage)) throw fail('Unknown stage');
+  if (!['new', 'lost'].includes(stage) && !/^https?:\/\/|^booking:/i.test(proofUrl)) {
+    throw fail('Add a link to proof of communication (WhatsApp screenshot, call log, email or signed agreement)');
+  }
+  const lead = await Lead.findById(req.params.id);
+  if (!lead) throw fail('Lead not found', 404);
+  lead.stage = stage;
+  lead.history.push({ stage, note: str(note), proofUrl, by: req.user._id });
+  if (!lead.owner) lead.owner = req.user._id;
+  await lead.save();
+  res.json({ lead });
+});
+
+// ---------- Gigs ----------
+router.get('/gigs', async (req, res) => {
+  const gigs = await Gig.find()
+    .populate('venue', 'business.businessName handle')
+    .populate('host', 'name handle')
+    .populate('applicants', 'name handle phone')
+    .sort({ createdAt: -1 }).limit(200);
+  res.json({ gigs });
+});
+
+router.post('/gigs', async (req, res) => {
+  const b = req.body || {};
+  if (!str(b.title)) throw fail('Give the shift a title');
+  let venue;
+  if (str(b.venueHandle)) {
+    venue = await User.findOne({ handle: str(b.venueHandle).toLowerCase() });
+    if (!venue) throw fail('No profile with that venue handle');
+  }
+  const gig = await Gig.create({
+    type: 'shift',
+    title: str(b.title),
+    description: str(b.description),
+    category: str(b.category) || 'cleaning_staff',
+    location: str(b.location).toLowerCase() || venue?.location,
+    venue: venue?._id,
+    date: b.date ? new Date(b.date) : undefined,
+    durationHours: Number(b.durationHours) || undefined,
+    pay: Number(b.pay) || 0,
+    slots: Number(b.slots) || 1,
+    status: 'open',
+    createdBy: req.user._id
+  });
+  res.status(201).json({ gig });
+});
+
+router.patch('/gigs/:id', async (req, res) => {
+  if (!['proposed', 'open', 'filled', 'closed', 'cancelled'].includes(req.body?.status)) throw fail('Unknown status');
+  const gig = await Gig.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
+  if (!gig) throw fail('Gig not found', 404);
+  res.json({ gig });
+});
+
+// ---------- Bookings ----------
+router.get('/bookings', async (req, res) => {
+  const bookings = await Booking.find().populate('business', 'business.businessName handle').sort({ createdAt: -1 }).limit(200);
+  res.json({ bookings });
+});
+
+router.patch('/bookings/:id', async (req, res) => {
+  const b = req.body || {};
+  const update = {};
+  if (['four_way', 'infra_first'].includes(b.splitModel)) update.splitModel = b.splitModel;
+  if (b.partnerShare !== undefined) update.partnerShare = Math.min(100, Math.max(0, Number(b.partnerShare)));
+  if (b.amount !== undefined) update.amount = Math.max(0, Number(b.amount));
+  if (typeof b.leadGenName === 'string') update.leadGenName = b.leadGenName.trim();
+  if (typeof b.leadGenAccountId === 'string') update.leadGenAccountId = b.leadGenAccountId.trim();
+  const booking = await Booking.findByIdAndUpdate(req.params.id, update, { new: true });
+  if (!booking) throw fail('Booking not found', 404);
+  res.json({ booking });
+});
+
+function escapeRx(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+module.exports = router;

@@ -1,0 +1,110 @@
+// Shared helpers for every page
+async function api(path, { method = 'GET', body } = {}) {
+  const res = await fetch('/api' + path, {
+    method,
+    credentials: 'same-origin',
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const inr = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+const fmtDate = d => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const pretty = s => String(s || '').replace(/_/g, ' ');
+const pill = s => `<span class="pill ${esc(s)}">${esc(pretty(s))}</span>`;
+const formData = form => Object.fromEntries(new FormData(form).entries());
+
+function toast(msg, isError = false) {
+  let el = document.querySelector('.toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'toast';
+    el.setAttribute('role', 'status');
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.toggle('err', isError);
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// Redirects to login (or the right dashboard) unless the user has the expected role
+async function guard(role) {
+  try {
+    const { user } = await api('/auth/me');
+    if (user.role !== role) { location.href = `/${user.role}.html`; return null; }
+    return user;
+  } catch {
+    location.href = '/login.html#login';
+    return null;
+  }
+}
+
+async function logout() {
+  await api('/auth/logout', { method: 'POST' }).catch(() => {});
+  location.href = '/login.html#login';
+}
+
+function handleHtml(handle) {
+  const parts = String(handle || '').split('.');
+  if (parts.length !== 3) return esc(handle || '');
+  return `${esc(parts[0])}.${esc(parts[1])}.<em>${esc(parts[2])}</em>`;
+}
+
+function fillWho(user, displayName) {
+  document.getElementById('whoName').textContent = displayName;
+  document.getElementById('whoHandle').innerHTML = handleHtml(user.handle);
+  document.getElementById('whoStatus').outerHTML = pill(user.status);
+}
+
+// Hash-based view switching: <a href="#x" data-view="x"> + <section id="view-x">
+function initViews(onChange) {
+  const show = () => {
+    const links = [...document.querySelectorAll('.nav a[data-view]')];
+    const name = location.hash.slice(1) || links[0].dataset.view;
+    document.querySelectorAll('section[id^="view-"]').forEach(s => (s.hidden = s.id !== 'view-' + name));
+    links.forEach(a => (a.dataset.view === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+    onChange && onChange(name);
+  };
+  window.addEventListener('hashchange', show);
+  show();
+}
+
+function setCount(view, n) {
+  const a = document.querySelector(`.nav a[data-view="${view}"]`);
+  if (!a) return;
+  let c = a.querySelector('.count');
+  if (!n) { c && c.remove(); return; }
+  if (!c) { c = document.createElement('span'); c.className = 'count'; a.appendChild(c); }
+  c.textContent = n;
+}
+
+function splitHtml(split, highlight) {
+  return `<div class="split">${split.lines
+    .map(l => `<div class="${l.party === highlight ? 'mine' : ''}"><b>${inr(l.amountInr)}</b>${esc(l.label)} (${l.pct}%)</div>`)
+    .join('')}</div>`;
+}
+
+// Wraps a form submit: disables button, shows errors inline, runs fn(data)
+function onSubmit(form, fn) {
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const errBox = form.querySelector('.error-box');
+    if (errBox) errBox.textContent = '';
+    if (btn) btn.disabled = true;
+    try {
+      await fn(formData(form), form);
+    } catch (err) {
+      if (errBox) errBox.textContent = err.message;
+      else toast(err.message, true);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+}

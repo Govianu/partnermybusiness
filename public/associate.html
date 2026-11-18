@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Associate dashboard: partnermybusiness.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <a class="brandmark" href="/">Partnermybusiness<span>.ai</span></a>
+    <div class="who">
+      <div class="who-name" id="whoName"></div>
+      <code class="handle" id="whoHandle"></code>
+      <span id="whoStatus"></span>
+    </div>
+    <nav class="nav" aria-label="Dashboard">
+      <a href="#overview" data-view="overview">Overview</a>
+      <a href="#gigs" data-view="gigs">Shifts near you</a>
+      <a href="#workshops" data-view="workshops">Run a workshop</a>
+      <a href="#media" data-view="media">Videos & courses</a>
+    </nav>
+    <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
+  </aside>
+
+  <main class="main">
+    <section id="view-overview">
+      <div class="view-head"><div><h1 id="hello">Hello</h1><p>Four steps to start earning on your days off.</p></div></div>
+      <ol class="steps" id="steps"></ol>
+      <div class="two-col" style="margin-top:2rem">
+        <div class="panel"><h3>Your PMB manager</h3><div id="managerBox" class="meta"></div></div>
+        <div class="panel"><h3>Your work</h3><div id="myGigs"></div></div>
+      </div>
+    </section>
+
+    <section id="view-gigs" hidden>
+      <div class="view-head"><div><h1>Shifts near you</h1><p>Part-time work at partner venues in your area. Apply and your manager confirms.</p></div></div>
+      <div id="openGigs"></div>
+    </section>
+
+    <section id="view-workshops" hidden>
+      <div class="view-head"><div><h1>Run a paid workshop</h1><p>Teach a dish or skill in a partner’s kitchen. Keep your secret recipes secret; teach what you are happy to share.</p></div></div>
+      <div class="two-col">
+        <form class="panel" id="workshopForm">
+          <div class="error-box" role="alert"></div>
+          <div class="field"><label for="wt">Workshop title</label><input id="wt" name="title" placeholder="Bisi bele bath, the Mahesh way" required></div>
+          <div class="field"><label for="wd">What students will learn</label><textarea id="wd" name="description"></textarea></div>
+          <div class="row">
+            <div class="field"><label for="wp">Price per seat (₹)</label><input id="wp" name="pricePerSeat" type="number" min="0" value="2000"></div>
+            <div class="field"><label for="ws">Seats</label><input id="ws" name="seats" type="number" min="1" value="100"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="wdate">Preferred date</label><input id="wdate" name="date" type="date"></div>
+            <div class="field"><label for="wh">Hours</label><input id="wh" name="durationHours" type="number" min="1" value="3"></div>
+          </div>
+          <div class="field"><label for="wv">Partner venue handle <span class="hint">optional, your manager can pick one</span></label><input id="wv" name="venueHandle" placeholder="restaurant.sadashivnagar.magicmasala"></div>
+          <button class="btn" type="submit">Send workshop for approval</button>
+        </form>
+        <div class="panel">
+          <h3>How the money is shared</h3>
+          <div class="calc-out" id="wTotal">₹0<small>ticket revenue</small></div>
+          <div id="wSplit"></div>
+          <p class="meta">Standard split: infrastructure, venue, lead generator and platform each take 25%. Your fee as the instructor is agreed with your manager in the workshop agreement.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-media" hidden>
+      <div class="view-head"><div><h1>Videos & courses</h1><p>Share a Google Drive or YouTube link. The PMB team checks each upload before it goes live.</p></div></div>
+      <div class="two-col">
+        <form class="panel" id="mediaForm">
+          <div class="error-box" role="alert"></div>
+          <div class="field"><label for="mk">What are you uploading?</label>
+            <select id="mk" name="kind">
+              <option value="intro_video">30-second intro video</option>
+              <option value="training_video">Training video</option>
+              <option value="course_pdf">Course details (PDF)</option>
+            </select>
+          </div>
+          <div class="field"><label for="mt">Title</label><input id="mt" name="title" required></div>
+          <div class="field"><label for="mu">Link</label><input id="mu" name="url" type="url" placeholder="https://drive.google.com/..." required></div>
+          <div class="field"><label for="md">Short description</label><textarea id="md" name="description"></textarea></div>
+          <button class="btn" type="submit">Upload for review</button>
+        </form>
+        <div><h3>Your uploads</h3><div id="mediaList"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/associate.js"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in or sign up | Partnermybusiness.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="auth">
+  <aside class="auth-story">
+    <a class="brandmark" href="/">Partnermybusiness<span>.ai</span></a>
+
+    <div class="composer">
+      <h1 id="storyTitle">Turn idle space into income.</h1>
+      <p id="storyText">Restaurants, hotels and salons earn from slow hours. Chefs and staff earn from their days off. Every partner gets an address on the network.</p>
+
+      <div class="handle-live" aria-live="polite" aria-label="Your partner address">
+        <span class="seg empty" id="segCat"><b>restaurant</b><small id="segCatLabel">what you do</small></span>
+        <span class="dot">.</span>
+        <span class="seg empty" id="segLoc"><b>sadashivnagar</b><small>where</small></span>
+        <span class="dot">.</span>
+        <span class="seg empty" id="segName"><b>magicmasala</b><small>you</small></span>
+      </div>
+    </div>
+
+    <p class="story-foot">Your profile goes live after a PMB manager reviews it, usually within a day.</p>
+  </aside>
+
+  <main class="auth-form">
+    <div class="auth-card">
+      <!-- SIGN UP -->
+      <div id="signupPane">
+        <h2>Create your partner profile</h2>
+        <div class="tabs" role="tablist" aria-label="Account type">
+          <button type="button" role="tab" aria-selected="true" data-role="business">I own a business</button>
+          <button type="button" role="tab" aria-selected="false" data-role="associate">I’m a skilled worker</button>
+        </div>
+
+        <form id="signupForm" novalidate>
+          <div class="error-box" role="alert"></div>
+          <input type="hidden" name="role" value="business">
+
+          <div class="field">
+            <label for="name">Your full name</label>
+            <input id="name" name="name" autocomplete="name" required>
+          </div>
+
+          <div data-for="business">
+            <div class="field">
+              <label for="businessName">Business name</label>
+              <input id="businessName" name="businessName" placeholder="Magic Masala">
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="category">Type of business</label>
+                <select id="category" name="category"></select>
+              </div>
+              <div class="field">
+                <label for="locationB">Area</label>
+                <input id="locationB" name="location" placeholder="Sadashivnagar">
+              </div>
+            </div>
+            <div class="field">
+              <label for="mapsUrl">Google Maps link <span class="hint">optional, helps us verify you</span></label>
+              <input id="mapsUrl" name="mapsUrl" type="url" placeholder="https://maps.app.goo.gl/...">
+            </div>
+            <div class="field">
+              <label for="idleSlots">When is your space usually quiet? <span class="hint">optional</span></label>
+              <input id="idleSlots" name="idleSlots" placeholder="Mon–Thu mornings, kitchen after 3pm">
+            </div>
+          </div>
+
+          <div data-for="associate" hidden>
+            <div class="row">
+              <div class="field">
+                <label for="skill">Your skill</label>
+                <select id="skill" name="skill"></select>
+              </div>
+              <div class="field">
+                <label for="locationA">Area</label>
+                <input id="locationA" name="location" placeholder="Sadashivnagar" disabled>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="experienceYears">Years of experience</label>
+                <input id="experienceYears" name="experienceYears" type="number" min="0" max="60" disabled>
+              </div>
+              <div class="field">
+                <label for="availability">When are you free?</label>
+                <input id="availability" name="availability" placeholder="Tuesdays, after 4pm" disabled>
+              </div>
+            </div>
+          </div>
+
+          <div data-for="admin" hidden>
+            <div class="field">
+              <label for="inviteCode">Team invite code</label>
+              <input id="inviteCode" name="inviteCode" disabled>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+91">
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Password <span class="hint">at least 8 characters</span></label>
+            <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+
+          <label class="check field"><input type="checkbox" name="termsAccepted" value="true" required>
+            <span>I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+          <button class="btn wide" type="submit">Create profile</button>
+        </form>
+        <p class="switch">Already a partner? <button class="link-btn" type="button" data-go="login">Log in</button></p>
+        <p class="switch">PMB team member? <button class="link-btn" type="button" id="adminToggle">Sign up with an invite code</button></p>
+      </div>
+
+      <!-- LOG IN -->
+      <div id="loginPane" hidden>
+        <h2>Welcome back</h2>
+        <form id="loginForm" novalidate>
+          <div class="error-box" role="alert"></div>
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="btn wide" type="submit">Log in</button>
+        </form>
+        <p class="switch">Sent an enquiry, or forgot your password? <button class="link-btn" type="button" id="linkToggle">Email me a login link</button></p>
+        <form id="linkForm" class="panel" style="margin-top:1rem" hidden novalidate>
+          <div class="error-box" role="alert"></div>
+          <div class="field">
+            <label for="linkEmail">Email</label>
+            <input id="linkEmail" name="email" type="email" autocomplete="email" required>
+          </div>
+          <button class="btn wide" type="submit">Send me a link</button>
+          <p class="meta" id="linkMsg" role="status" style="margin:.8rem 0 0"></p>
+        </form>
+        <p class="switch">New here? <button class="link-btn" type="button" data-go="signup">Create a profile</button></p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>

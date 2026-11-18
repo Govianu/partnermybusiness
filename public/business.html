@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business dashboard: partnermybusiness.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <a class="brandmark" href="/">Partnermybusiness<span>.ai</span></a>
+    <div class="who">
+      <div class="who-name" id="whoName"></div>
+      <code class="handle" id="whoHandle"></code>
+      <span id="whoStatus"></span>
+    </div>
+    <nav class="nav" aria-label="Dashboard">
+      <a href="#overview" data-view="overview">Overview</a>
+      <a href="#opportunities" data-view="opportunities">Ways to earn</a>
+      <a href="#bookings" data-view="bookings">Booking requests</a>
+      <a href="#savings" data-view="savings">Supply savings</a>
+      <a href="#profile" data-view="profile">Profile</a>
+    </nav>
+    <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
+  </aside>
+
+  <main class="main">
+    <section id="view-overview">
+      <div class="view-head">
+        <div><h1 id="hello">Hello</h1><p id="statusLine"></p></div>
+        <a class="btn ghost" id="bookingLink" target="_blank" rel="noopener">Open your booking page</a>
+      </div>
+      <div class="stats" id="stats"></div>
+      <h2>Waiting for your answer</h2>
+      <div id="pendingList"></div>
+    </section>
+
+    <section id="view-opportunities" hidden>
+      <div class="view-head">
+        <div><h1>Ways to earn from idle time</h1><p>Ideas picked for your business. Tap “I’m interested” and your PMB manager sets it up.</p></div>
+        <button class="btn ghost" id="refreshOpps">Suggest new ideas</button>
+      </div>
+      <div class="opps" id="opps"></div>
+    </section>
+
+    <section id="view-bookings" hidden>
+      <div class="view-head">
+        <div><h1>Booking requests</h1><p>Event managers and customers who want your space. Accepting books an onboarding call.</p></div>
+      </div>
+      <div id="bookingList"></div>
+    </section>
+
+    <section id="view-savings" hidden>
+      <div class="view-head">
+        <div><h1>Supply savings</h1><p>See what you keep by buying direct from producers instead of through distributors.</p></div>
+      </div>
+      <div class="panel">
+        <div class="calc-rows" id="calcRows"></div>
+        <button class="btn ghost small" id="addRow" type="button">Add another item</button>
+      </div>
+      <div class="panel">
+        <div class="calc-out" id="calcTotal">₹0<small>saved per month</small></div>
+        <p class="meta" id="calcYear"></p>
+      </div>
+    </section>
+
+    <section id="view-profile" hidden>
+      <div class="view-head"><div><h1>Profile</h1><p>Details your PMB manager and bookers see.</p></div></div>
+      <div class="two-col">
+        <form class="panel" id="profileForm">
+          <div class="error-box" role="alert"></div>
+          <div class="field"><label for="pPhone">Phone</label><input id="pPhone" name="phone"></div>
+          <div class="field"><label for="pAddress">Address</label><input id="pAddress" name="address"></div>
+          <div class="field"><label for="pIdle">Quiet hours</label><input id="pIdle" name="idleSlots"></div>
+          <div class="field"><label for="pRzp">Razorpay linked account ID <span class="hint">for receiving your share, acc_...</span></label><input id="pRzp" name="razorpayAccountId"></div>
+          <button class="btn" type="submit">Save profile</button>
+        </form>
+        <div class="panel">
+          <h3>Your manager</h3>
+          <div id="managerBox" class="meta"></div>
+          <h3 style="margin-top:1.5rem">Standard procedures for your venue</h3>
+          <ul id="sopList" class="meta"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/business.js"></script>
+</body>
+</html>
