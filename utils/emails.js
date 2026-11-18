@@ -40,26 +40,24 @@ const table = rows => `<table role="presentation" cellpadding="0" cellspacing="0
 ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:7px 10px 7px 0;color:#47537C;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:7px 0;color:#0F1B3D;vertical-align:top">${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}
 </table>`;
 
-function emailOtp({ name, email, code, role, category, sectorId, multipleProfiles = false }) {
+function emailOtp({ name, email, code, role, category, sectorId }) {
   const industry = industryFor({ category, sectorId });
   const audience = role === 'business'
     ? `${industry.display} partner`
     : role === 'associate' ? 'professional' : 'team';
-  const body = p(multipleProfiles
-    ? `Hi ${esc(firstName(name))}, use this code to verify your email, then choose which dashboard to open.`
-    : `Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard.`)
+  const body = p(`Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard.`)
     + `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`
     + p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes and can be used once. If you did not request it, you can ignore this email.</span>');
   return {
     to: email,
-    subject: multipleProfiles ? 'Your Partnermybusiness sign-in code' : `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code`,
+    subject: `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code`,
     html: layout('Verify your email', body),
     text: `Your Partnermybusiness verification code is ${code}. It expires in 10 minutes.`
   };
 }
 
 // 1. To the person who enquired: confirmation in their own business type's words + dashboard code
-function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, dashboardRole, dashboardProfileId }) {
+function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName }) {
   const first = firstName(name);
   const industry = industryFor({ category, sectorId });
   const kw = industry.keywords;
@@ -87,8 +85,7 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
       ? `Use the code below to sign in to your ${esc(noun)} dashboard. ${what}`
       : `Your ${esc(noun)} dashboard is ready. ${what} Verify your email with this code to open it:`);
     body += `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`;
-    const loginUrl = `${APP_URL()}/login.html?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`${dashboardRole}.html`)}&profileId=${encodeURIComponent(dashboardProfileId)}&verify=1#login`;
-    body += button(loginUrl, `Open my ${noun} dashboard`);
+    body += button(`${APP_URL()}/login.html#login`, `Open my ${noun} dashboard`);
     body += p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes. You can request another code from the login page.</span>');
   } else {
     body += p('A member of our partnerships team will contact you within two working days to talk about your territory.');
@@ -187,3 +184,79 @@ function ctaRequest({ user, industry, label, topic, note, preferred }) {
 }
 
 module.exports.ctaRequest = ctaRequest;
+
+// ---------- Marketplace: PMB is the third party between buyer and seller ----------
+const PRICE_UNIT = { hour: 'per hour', slot: 'per slot', day: 'per day', session: 'per session', event: 'per event', project: 'per project', month: 'per month' };
+const priceText = l => (l && Number(l.price) > 0 ? `${inr(l.price)} ${PRICE_UNIT[l.priceUnit] || ''}`.trim() : 'Price on request');
+const requestRows = (b, l) => [
+  ['Request', l?.title || b.eventType], ['What for', b.eventType], ['Date', b.eventDate ? fmtDate(b.eventDate) : ''],
+  ['People', b.guests], ['Budget', b.amount ? inr(b.amount) : ''], ['Message', b.message]
+];
+
+// To the buyer, straight after they send a request
+function marketRequestReceived({ booking, listing }) {
+  const body = p(`Hi ${esc(firstName(booking.requesterName))}, we’ve received your request for <strong>${esc(listing?.title || booking.eventType)}</strong>.`)
+    + table(requestRows(booking, listing))
+    + p('Our team checks every request first, then passes it to the seller. You’ll hear from us within one working day. We stay in the middle the whole way, so you don’t need to share your contact details with anyone.')
+    + button(`${APP_URL()}/login.html#login`, 'Track my request');
+  return { to: booking.requesterEmail, subject: `Request received: ${listing?.title || booking.eventType}`, html: layout('Request received', body), text: `We received your request for ${listing?.title || booking.eventType}.` };
+}
+
+// To the PMB team: a new request to check and forward
+function marketRequestTeam({ booking, listing, seller }) {
+  const body = p('A new marketplace request is waiting for review.') + table([
+    ...requestRows(booking, listing),
+    ['Buyer', `${booking.requesterName}${booking.buyerType ? ` (${booking.buyerType})` : ''}`], ['Buyer email', booking.requesterEmail], ['Buyer phone', booking.requesterPhone],
+    ['Seller', seller ? `${seller.business?.businessName || seller.name} (${seller.handle || seller.email})` : ''], ['Listed price', priceText(listing)]
+  ]) + button(`${APP_URL()}/admin.html#market`, 'Review in the admin dashboard');
+  return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `Review request: ${listing?.title || booking.eventType}`, html: layout('New request to review', body), text: `New request for ${listing?.title || booking.eventType}.` };
+}
+
+// To the buyer, when PMB forwards, the seller accepts, or the request is declined
+function marketDecision({ booking, listing, outcome, note }) {
+  const what = esc(listing?.title || booking.eventType);
+  const lines = {
+    forwarded: [`Your request for ${what} has been checked and sent to the seller.`, 'We’ll let you know as soon as they reply.'],
+    accepted: [`Good news: your request for ${what} has been accepted.`, 'Your PMB manager will contact you to confirm the details and payment.'],
+    declined: [`Your request for ${what} couldn’t go ahead this time.`, 'Reply to this email or use “Find it for me” in your dashboard, and we’ll suggest alternatives.']
+  }[outcome];
+  const body = p(`Hi ${esc(firstName(booking.requesterName))}, ${lines[0]}`) + (note ? p(`Note from our team: ${esc(note)}`) : '') + p(lines[1])
+    + button(`${APP_URL()}/login.html#login`, 'View my requests');
+  const subject = { forwarded: 'Sent to the seller', accepted: 'Request accepted', declined: 'Request update' }[outcome];
+  return { to: booking.requesterEmail, subject: `${subject}: ${listing?.title || booking.eventType}`, html: layout(subject, body), text: lines.join(' ') };
+}
+
+// To the seller, when PMB forwards a request (no buyer contact details: PMB connects both sides)
+function marketRequestForSeller({ seller, booking, listing }) {
+  const body = p(`You have a new request for <strong>${esc(listing?.title || booking.eventType)}</strong>, checked by our team.`)
+    + table([...requestRows(booking, listing), ['From', firstName(booking.requesterName) + (booking.buyerType ? `, ${booking.buyerType}` : '')]])
+    + p('Review it and accept or decline in your dashboard. Once you accept, your PMB manager connects you with the buyer.')
+    + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23bookings'}`, 'Review and accept');
+  return { to: seller.email, subject: `New request: ${listing?.title || booking.eventType}`, html: layout('New booking request', body), text: `New request for ${listing?.title || booking.eventType}.` };
+}
+
+// To the team when a seller adds a listing, and to the seller when it's reviewed
+function listingSubmitted({ listing, seller }) {
+  const body = p(`${esc(seller.business?.businessName || seller.name)} added a new listing.`) + table([
+    ['Listing', listing.title], ['Type', listing.kind === 'space' ? 'Space or free slot' : 'Professional service'], ['Price', priceText(listing)],
+    ['Available', listing.availability], ['Area', listing.area], ['Details', listing.description]
+  ]) + button(`${APP_URL()}/admin.html#market`, 'Review the listing');
+  return { to: TEAM_INBOX(), subject: `Review listing: ${listing.title}`, html: layout('New listing to review', body), text: `New listing: ${listing.title}` };
+}
+function listingReviewed({ listing, seller, approved, note }) {
+  const body = p(`Hi ${esc(firstName(seller.name))}, your listing <strong>${esc(listing.title)}</strong> ${approved ? 'is now live. Buyers can find it and send requests.' : 'needs a change before it can go live.'}`)
+    + (note ? p(`Note from our team: ${esc(note)}`) : '')
+    + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23spaces'}`, 'Open my listings');
+  return { to: seller.email, subject: approved ? `Live: ${listing.title}` : `Change needed: ${listing.title}`, html: layout(approved ? 'Your listing is live' : 'Your listing needs a change', body), text: listing.title };
+}
+
+// To the team: "Can't find it? Find it for me"
+function marketConcierge({ who, need }) {
+  const body = p('Someone asked us to find something for them.') + table([
+    ['Name', who.name], ['Email', who.email], ['Phone', who.phone], ['Account', who.role || 'No account'],
+    ['Looking for', need.what], ['Area', need.area], ['Date', need.date], ['People', need.people], ['Budget', need.budget ? inr(need.budget) : ''], ['Details', need.details]
+  ]);
+  return { to: TEAM_INBOX(), replyTo: who.email || undefined, subject: `Find it for me: ${need.what}`, html: layout('Find it for me', body), text: `${who.name} is looking for ${need.what}.` };
+}
+
+Object.assign(module.exports, { priceText, marketRequestReceived, marketRequestTeam, marketDecision, marketRequestForSeller, listingSubmitted, listingReviewed, marketConcierge });

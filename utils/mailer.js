@@ -1,15 +1,18 @@
-// Uses Brevo's HTTPS API when configured, otherwise sends through SMTP.
-// Without a provider, emails are saved to data/outbox/ for local testing.
+// Sends email in one of two ways:
+//  1. Brevo email API over HTTPS (BREVO_API_KEY). Works on hosts that block email ports, such as Render's free plan.
+//  2. Any SMTP provider (SMTP_HOST/SMTP_USER/SMTP_PASS): Zoho, Google Workspace, Brevo SMTP, SendGrid...
+// With neither set, emails are saved to data/outbox/ and printed to the console, so the flow can be tested locally.
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
 const OUTBOX = path.join(__dirname, '..', 'data', 'outbox');
-const BREVO_API = 'https://api.brevo.com/v3';
+const BREVO_BASE = () => String(process.env.BREVO_API_BASE || 'https://api.brevo.com/v3').replace(/\/+$/, ''); // override only for testing
 let transporter = null;
 
 const brevoConfigured = () => Boolean(process.env.BREVO_API_KEY);
-const mailConfigured = () => brevoConfigured() || Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const smtpConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const mailConfigured = () => brevoConfigured() || smtpConfigured();
 
 function getTransporter() {
   if (!transporter) {
@@ -26,29 +29,29 @@ function getTransporter() {
 
 const fromAddress = () => process.env.MAIL_FROM || `Partnermybusiness.ai <${process.env.SMTP_USER || 'info@partnermybusiness.ai'}>`;
 
-function brevoSender() {
-  const raw = fromAddress().trim();
-  const match = raw.match(/^(.*?)\s*<([^<>]+)>$/);
-  if (!match) return { email: raw };
-  const name = match[1].trim().replace(/^["']|["']$/g, '');
-  return name ? { name, email: match[2].trim() } : { email: match[2].trim() };
+// "Partnermybusiness.ai <info@partnermybusiness.ai>" -> { name, email }
+function parseAddress(value) {
+  const m = String(value || '').match(/^\s*"?([^"<]*)"?\s*<([^>]+)>\s*$/);
+  return m ? { name: m[1].trim() || undefined, email: m[2].trim() } : { email: String(value || '').trim() };
 }
 
-async function brevoRequest(endpoint, { method = 'GET', body } = {}) {
-  const response = await fetch(`${BREVO_API}${endpoint}`, {
-    method,
-    headers: {
-      'api-key': process.env.BREVO_API_KEY,
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) })
+async function sendViaBrevo({ to, subject, html, text, replyTo }) {
+  const body = {
+    sender: parseAddress(fromAddress()),
+    to: String(to).split(',').map(x => ({ email: x.trim() })).filter(x => x.email),
+    subject,
+    htmlContent: html,
+    ...(text ? { textContent: text } : {}),
+    ...(replyTo ? { replyTo: parseAddress(replyTo) } : {})
+  };
+  const res = await fetch(`${BREVO_BASE()}/smtp/email`, {
+    method: 'POST',
+    headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify(body)
   });
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(typeof result?.message === 'string' ? result.message : `Brevo API request failed (${response.status})`);
-  }
-  return result;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Brevo ${res.status}: ${data.message || data.code || 'request failed'}`);
+  return data.messageId;
 }
 
 async function sendMail({ to, subject, html, text, replyTo }) {
@@ -61,18 +64,7 @@ async function sendMail({ to, subject, html, text, replyTo }) {
     return { sent: false, outbox: file };
   }
   try {
-    if (brevoConfigured()) {
-      const body = {
-        sender: brevoSender(),
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-        ...(text ? { textContent: text } : {}),
-        ...(replyTo ? { replyTo: { email: replyTo } } : {})
-      };
-      const result = await brevoRequest('/smtp/email', { method: 'POST', body });
-      return { sent: true, id: result?.messageId };
-    }
+    if (brevoConfigured()) return { sent: true, id: await sendViaBrevo({ to, subject, html, text, replyTo }) };
     const info = await getTransporter().sendMail({ from: fromAddress(), to, subject, html, text, replyTo });
     return { sent: true, id: info.messageId };
   } catch (err) {
@@ -83,14 +75,18 @@ async function sendMail({ to, subject, html, text, replyTo }) {
 }
 
 async function verifyMail() {
-  if (!mailConfigured()) return console.log('[mail] No email provider set: emails go to data/outbox/ (see .env.example)');
   if (brevoConfigured()) {
-    try { await brevoRequest('/account'); console.log('[mail] Brevo API connection OK'); }
-    catch (err) { console.error('[mail] Brevo API connection failed:', err.message); }
+    try {
+      const res = await fetch(`${BREVO_BASE()}/account`, { headers: { 'api-key': process.env.BREVO_API_KEY, accept: 'application/json' } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(`${res.status} ${data.message || ''}`.trim());
+      console.log(`[mail] Brevo email API OK (account: ${data.email || 'connected'}); sending as ${fromAddress()}`);
+    } catch (err) { console.error('[mail] Brevo API key check failed:', err.message); }
     return;
   }
+  if (!smtpConfigured()) return console.log('[mail] Email not set: emails go to data/outbox/ (see .env.example)');
   try { await getTransporter().verify(); console.log('[mail] SMTP connection OK'); }
-  catch (err) { console.error('[mail] SMTP connection failed:', err.message); }
+  catch (err) { console.error('[mail] SMTP connection failed:', err.message, '(on Render\'s free plan email ports are blocked: use BREVO_API_KEY instead)'); }
 }
 
 module.exports = { sendMail, mailConfigured, verifyMail };

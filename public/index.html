@@ -505,6 +505,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <a href="#faq">Questions</a>
     </nav>
     <div class="top-actions">
+      <a class="top-login" href="/find.html">Find a space</a>
       <a class="top-login" href="/login.html#login">Log in</a>
       <a class="btn btn-gold btn-sm" href="#start" data-role="host">Enquire now</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Menu">
@@ -521,6 +522,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <a href="#trust">Trust and safety</a>
       <a href="#faq">Questions</a>
       <a href="#start">Get started</a>
+      <a href="/find.html">Find a space or professional</a>
       <a href="/login.html#login">Log in to your dashboard</a>
       <a href="tel:+918103990990">Call +91 81039 90990</a>
     </nav>
@@ -1583,8 +1585,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
     var data = {"bot-field":$("botField").value, role:role, name:name, business:v("fBiz"), phone:phone, email:email,
                 location:v("fCity"), message:v("fMsg"), plan:plan};
-    data.business_type = typeName;
-    data.business_type_id = fType.value;
+    if (typeName) { data.business_type = typeName; data.business_type_id = fType.value; }
+    if (role === "partner") data.offer = $("fOffer").value;
+    if (role === "country") data.territory = v("fTerr");
     pending = data;
 
     $("termsEmail").textContent = email;

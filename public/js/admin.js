@@ -242,7 +242,69 @@
     } catch (err) { toast(err.message, true); }
   });
 
-  const loaders = { overview: loadOverview, enquiries: loadEnquiries, validation: loadMedia, leads: loadLeads, profiles: loadUsers, gigs: loadGigs, bookings: loadBookings };
+  // ---------- Marketplace: PMB checks every request and listing ----------
+  let marketData = { requests: [], listings: [] };
+  const mpill = (status, label) => `<span class="pill ${status === 'pending_review' ? 'pending' : ['accepted', 'live', 'completed'].includes(status) ? 'approved' : ['declined', 'rejected', 'cancelled'].includes(status) ? 'declined' : 'requested'}">${esc(label)}</span>`;
+  async function loadMarket() {
+    marketData = await api('/admin/market');
+    const waitingReq = marketData.requests.filter(r => r.status === 'pending_review');
+    const waitingList = marketData.listings.filter(l => l.status === 'pending_review');
+    setCount('market', waitingReq.length + waitingList.length);
+    const reqEl = document.getElementById('marketRequests');
+    const order = r => (r.status === 'pending_review' ? 0 : 1);
+    const reqs = marketData.requests.slice().sort((a, b) => order(a) - order(b));
+    reqEl.innerHTML = reqs.length ? `<p class="meta">${waitingReq.length} waiting for review</p><div class="list">${reqs.map(r => `<div class="item">
+        <div class="item-top"><span class="item-title">${esc(r.what)}</span>${mpill(r.status, r.statusLabel)}</div>
+        <div class="meta"><strong>${esc(r.listingTitle)}</strong>${r.price ? `, ${esc(r.price)}` : ''}${r.date ? `, ${fmtDate(r.date)}` : ''}${r.people ? `, ${r.people} people` : ''}${r.budget ? `, budget ${inr(r.budget)}` : ''}</div>
+        <div class="two-col" style="margin-top:.6rem;gap:.8rem">
+          <div class="meta"><strong>Buyer</strong><br>${esc(r.buyer.name)}${r.buyer.type ? ` (${esc(r.buyer.type)})` : ''}<br>${esc(r.buyer.email || '')}${r.buyer.phone ? `<br>${esc(r.buyer.phone)}` : ''}</div>
+          <div class="meta"><strong>Seller</strong><br>${esc(r.seller.name)}<br>${esc(r.seller.email || '')}${r.seller.handle ? `<br><code class="handle">${handleHtml(r.seller.handle)}</code>` : ''}</div>
+        </div>
+        ${r.message ? `<p class="item-body">${esc(r.message)}</p>` : ''}
+        ${r.status === 'pending_review' ? `<div class="accept-row">
+          <input placeholder="Note for the buyer (needed to decline)" data-mnote="${esc(r.id)}" style="max-width:380px">
+          <button class="btn small" type="button" data-mreq="${esc(r.id)}" data-decision="forward">Check and forward to seller</button>
+          <button class="btn warn small" type="button" data-mreq="${esc(r.id)}" data-decision="decline">Decline</button></div>` : ''}
+      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No requests yet</strong>Requests from the Find page and booking links appear here first.</div></div>';
+
+    const listEl = document.getElementById('marketListings');
+    const lists = marketData.listings.slice().sort((a, b) => order(a) - order(b));
+    const LST = { pending_review: 'Waiting for review', live: 'Live', paused: 'Paused', rejected: 'Needs a change' };
+    listEl.innerHTML = lists.length ? `<p class="meta">${waitingList.length} waiting for review</p><div class="list">${lists.map(l => `<div class="item">
+        <div class="item-top"><span class="item-title">${esc(l.title)}</span>${mpill(l.status, LST[l.status] || l.status)}</div>
+        <div class="meta">${l.kind === 'space' ? 'Space' : 'Professional service'}, ${esc(l.ownerName)} (${esc(l.ownerEmail)}). ${esc(l.priceText)}${l.capacity ? `, up to ${l.capacity} people` : ''}${l.availability ? `, ${esc(l.availability)}` : ''}${l.area ? `, ${esc(l.area)}` : ''}</div>
+        ${l.description ? `<p class="item-body">${esc(l.description)}</p>` : ''}
+        ${l.reviewNote ? `<p class="meta">Last note: ${esc(l.reviewNote)}</p>` : ''}
+        ${l.status === 'pending_review' ? `<div class="accept-row">
+          <input placeholder="Note for the seller (needed to reject)" data-lnote="${esc(l.id)}" style="max-width:380px">
+          <button class="btn small" type="button" data-mlist="${esc(l.id)}" data-decision="approve">Approve and publish</button>
+          <button class="btn warn small" type="button" data-mlist="${esc(l.id)}" data-decision="reject">Ask for a change</button></div>` : ''}
+      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No listings yet</strong>Spaces from businesses and services from professionals appear here first.</div></div>';
+  }
+  document.querySelector('#view-market .view-tabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-mtab]'); if (!b) return;
+    document.querySelectorAll('[data-mtab]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.getElementById('marketRequests').hidden = b.dataset.mtab !== 'requests';
+    document.getElementById('marketListings').hidden = b.dataset.mtab !== 'listings';
+  });
+  document.getElementById('view-market').addEventListener('click', async e => {
+    const r = e.target.closest('[data-mreq]'), l = e.target.closest('[data-mlist]');
+    if (!r && !l) return;
+    const id = (r || l).dataset.mreq || (r || l).dataset.mlist;
+    const note = document.querySelector(r ? `[data-mnote="${id}"]` : `[data-lnote="${id}"]`)?.value || '';
+    try {
+      await api(r ? `/admin/market/requests/${encodeURIComponent(id)}/review` : `/admin/market/listings/${encodeURIComponent(id)}/review`, { method: 'POST', body: { decision: (r || l).dataset.decision, note } });
+      toast(r ? ((r.dataset.decision === 'forward') ? 'Forwarded to the seller' : 'Request declined') : (l.dataset.decision === 'approve' ? 'Listing is live' : 'Seller asked for a change'));
+      loadMarket();
+    } catch (ex) { toast(ex.message, true); }
+  });
+
+  document.getElementById('marketRefresh').addEventListener('click', () => loadMarket().then(() => toast('Up to date')).catch(err => toast(err.message, true)));
+  // Keep the queues fresh while the Marketplace section is open
+  setInterval(() => { if (!document.getElementById('view-market').hidden && !document.hidden) loadMarket().catch(() => {}); }, 60000);
+
+  const loaders = { market: loadMarket, overview: loadOverview, enquiries: loadEnquiries, validation: loadMedia, leads: loadLeads, profiles: loadUsers, gigs: loadGigs, bookings: loadBookings };
   initViews(name => loaders[name] && loaders[name]().catch(err => toast(err.message, true)));
+  loadMarket().catch(() => {}); // waiting-review badge in the menu
   loadOverview().catch(() => {});
 })();

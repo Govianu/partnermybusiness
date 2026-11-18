@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { clearOtp, issueOtp, issueOtpForUsers, otpIsActive, otpMatches, recordOtpFailure, MAX_OTP_ATTEMPTS } = require('../utils/otp');
+const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure, MAX_OTP_ATTEMPTS } = require('../utils/otp');
 
 process.env.JWT_SECRET = 'test-secret-for-otp-only';
 
@@ -15,19 +15,6 @@ test('issues a one-time six-digit code and stores only its digest', async () => 
   assert.equal(otpMatches(user, wrongCode), false);
   assert.equal(user.emailOtpAttempts, 0);
   assert.equal(otpIsActive(user), true);
-});
-
-test('issues one email code that verifies every profile under that email', async () => {
-  const profiles = [
-    { email: 'person@example.com', async save() {} },
-    { email: 'PERSON@example.com', async save() {} }
-  ];
-  const code = await issueOtpForUsers(profiles);
-
-  assert.match(code, /^\d{6}$/);
-  assert.equal(otpMatches(profiles[0], code), true);
-  assert.equal(otpMatches(profiles[1], code), true);
-  assert.equal(profiles[0].emailOtpHash, profiles[1].emailOtpHash);
 });
 
 test('rejects expired codes and clears one-time state', async () => {

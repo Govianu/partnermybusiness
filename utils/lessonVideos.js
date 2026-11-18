@@ -6,11 +6,7 @@ const path = require('path');
 const LessonVideo = require('../models/LessonVideo');
 const heygen = require('./heygen');
 
-const APP_DIR = path.resolve(__dirname, '..');
-const DATA_DIR = process.env.DATA_DIR
-  ? path.resolve(APP_DIR, process.env.DATA_DIR)
-  : path.join(APP_DIR, 'data');
-const DIR = path.join(DATA_DIR, 'lesson-videos');
+const DIR = path.join(__dirname, '..', 'data', 'lesson-videos');
 const MAX_PARALLEL = 3;
 const monthlyCap = () => Number(process.env.HEYGEN_MONTHLY_MINUTES) || 60;
 // About 150 spoken words a minute: used to reserve minutes before HeyGen reports the real length

@@ -38,6 +38,7 @@
         <div class="tabs" role="tablist" aria-label="Account type">
           <button type="button" role="tab" aria-selected="true" data-role="business">I own a business</button>
           <button type="button" role="tab" aria-selected="false" data-role="associate">I’m a skilled worker</button>
+          <button type="button" role="tab" aria-selected="false" data-role="buyer">I want to book</button>
         </div>
 
         <form id="signupForm" novalidate>
@@ -101,6 +102,27 @@
             </div>
           </div>
 
+          <div data-for="buyer" hidden>
+            <div class="row">
+              <div class="field">
+                <label for="buyerType">You are</label>
+                <select id="buyerType" name="buyerType" disabled>
+                  <option value="event_manager">An event manager</option>
+                  <option value="company">A company</option>
+                  <option value="individual">An individual</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="locationBuyer">City or area</label>
+                <input id="locationBuyer" name="location" placeholder="Bengaluru" disabled>
+              </div>
+            </div>
+            <div class="field">
+              <label for="company">Company name <span class="hint">optional</span></label>
+              <input id="company" name="company" maxlength="160" disabled>
+            </div>
+          </div>
+
           <div data-for="admin" hidden>
             <div class="field">
               <label for="inviteCode">Team invite code</label>
@@ -145,17 +167,10 @@
             <input id="otpCode" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
           </div>
           <input type="hidden" name="email">
-          <input type="hidden" name="profileId">
           <button class="btn wide" type="submit">Verify and open dashboard</button>
           <p class="meta" id="otpMsg" role="status" style="margin:.8rem 0 0"></p>
           <p class="switch"><button class="link-btn" type="button" id="resendOtp">Send a new code</button> · <button class="link-btn" type="button" id="changeEmail">Use a different email</button></p>
         </form>
-        <div id="profilePicker" class="panel" style="margin-top:1rem" hidden>
-          <h3 id="profilePrompt">Choose a dashboard</h3>
-          <div id="profileOptions" style="display:grid;gap:.65rem"></div>
-          <div id="profileError" class="error-box" role="alert" hidden></div>
-          <p class="switch"><button class="link-btn" type="button" id="profileChangeEmail">Use a different email</button></p>
-        </div>
         <p class="switch">No password needed. Every sign-in uses a fresh code sent to your email.</p>
         <p class="switch">New here? <button class="link-btn" type="button" data-go="signup">Create a profile</button></p>
       </div>

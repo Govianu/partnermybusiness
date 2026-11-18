@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/growth.css">
+  <link rel="stylesheet" href="/css/market.css">
 </head>
 <body>
 <div class="shell">
@@ -22,7 +23,9 @@
     <nav class="nav" aria-label="Dashboard">
       <a href="#overview" data-view="overview">Overview</a>
       <a href="#learn" data-view="learn">Learn &amp; earn</a>
+      <a href="#spaces" data-view="spaces">My spaces</a>
       <a href="#bookings" data-view="bookings">Booking requests</a>
+      <a href="#find" data-view="find">Find &amp; book</a>
       <a href="#profile" data-view="profile">Profile</a>
     </nav>
     <div class="side-foot"><a class="link-btn" href="/login.html?switch=1#login">Switch dashboard</a><button class="link-btn" onclick="logout()">Log out</button></div>
@@ -43,6 +46,21 @@
       <div class="stats" id="stats"></div>
       <div class="section-title"><h2>Waiting for your answer</h2><a id="bookingLink" target="_blank" rel="noopener">Open your booking page</a></div>
       <div id="pendingList"></div>
+    </section>
+
+    <section id="view-spaces" hidden>
+      <div class="view-head"><div><h1>My spaces</h1><p>List your free space and quiet hours. Event managers, companies and professionals can request them, and our team handles every request for you.</p></div></div>
+      <div id="mySpaces"></div>
+    </section>
+
+    <section id="view-find" hidden>
+      <div class="view-head"><div><h1>Find &amp; book</h1><p>Book spaces and professionals from other partners: a chef for an event, a trainer for your guests, extra space for a big booking.</p></div></div>
+      <div class="view-tabs" role="group" aria-label="Find or track">
+        <button type="button" data-find-tab="browse" aria-pressed="true">Find</button>
+        <button type="button" data-find-tab="mine" aria-pressed="false">My requests</button>
+      </div>
+      <div id="findBox"></div>
+      <div id="myRequestsBox" hidden></div>
     </section>
 
     <section id="view-learn" hidden>
@@ -97,6 +115,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/lesson-videos.js"></script>
 <script src="/js/growth.js"></script>
+<script src="/js/market.js"></script>
 <script src="/js/business.js"></script>
 </body>
 </html>

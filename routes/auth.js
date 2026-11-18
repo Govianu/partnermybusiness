@@ -10,7 +10,7 @@ const { TERMS_VERSION } = require('../utils/terms');
 const { issueLink, findByToken } = require('../utils/links');
 const { sendMail, mailConfigured } = require('../utils/mailer');
 const { emailOtp, loginLink } = require('../utils/emails');
-const { clearOtp, issueOtpForUsers, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
+const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
@@ -33,7 +33,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const email = str(b.email).toLowerCase().slice(0, 200);
   const location = str(b.location).slice(0, 200);
 
-  if (!['business', 'associate', 'admin'].includes(role)) throw fail('Choose whether you are a business or an associate');
+  if (!['business', 'associate', 'admin', 'buyer'].includes(role)) throw fail('Choose whether you are a business, a professional or a buyer');
   if (!name) throw fail('Enter your name');
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
   if (b.termsAccepted !== true && b.termsAccepted !== 'true' && b.termsAccepted !== 'on') throw fail('Please agree to the Terms and Conditions to create your profile');
@@ -44,28 +44,29 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   if (!mailConfigured() && process.env.NODE_ENV === 'production') {
     throw fail('Email verification is not configured. Please contact support.', 503);
   }
-  const existingProfiles = await User.find({ email });
-  if (existingProfiles.some(profile => profile.role === role)) {
-    const primary = existingProfiles[0];
-    const code = await issueOtpForUsers(existingProfiles);
-    const result = await sendMail(emailOtp({
-      name: primary.name, email, code, role: primary.role, category: primary.category,
-      sectorId: primary.sectorId, multipleProfiles: existingProfiles.length > 1
-    }));
-    if (result.error || (!result.sent && process.env.NODE_ENV === 'production' && !mailConfigured())) {
-      throw fail('We could not send your verification code. Please try again later.', 503);
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    if (!existingUser.emailVerifiedAt) {
+      const code = await issueOtp(existingUser);
+      const result = await sendMail(emailOtp({
+        name: existingUser.name, email, code, role: existingUser.role, category: existingUser.category, sectorId: existingUser.sectorId
+      }));
+      if (result.error || (!result.sent && process.env.NODE_ENV === 'production' && !mailConfigured())) {
+        throw fail('We could not send your verification code. Please try again later.', 503);
+      }
+      return res.status(200).json({
+        ok: true, verificationRequired: true, email,
+        devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
+      });
     }
-    return res.status(200).json({
-      ok: true, verificationRequired: true, email,
-      devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
-    });
+    throw fail('An account with this email already exists. Log in with an email code instead.', 409);
   }
 
   const doc = {
     role, name, email,
     phone: str(b.phone).slice(0, 40),
     location: location.toLowerCase(),
-    status: role === 'admin' ? 'approved' : 'pending',
+    status: role === 'admin' || role === 'buyer' ? 'approved' : 'pending',
     termsAcceptedAt: new Date().toISOString(),
     termsVersion: TERMS_VERSION
   };
@@ -86,6 +87,9 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
         sops: sopsFor(category)
       }
     });
+  } else if (role === 'buyer') {
+    const type = ['event_manager', 'company', 'individual'].includes(b.buyerType) ? b.buyerType : 'individual';
+    doc.buyer = { type, company: str(b.company).slice(0, 160) };
   } else if (role === 'associate') {
     const skill = ASSOCIATE_SKILLS.includes(b.skill) ? b.skill : 'other';
     const years = b.experienceYears === undefined || b.experienceYears === '' ? 0 : Number(b.experienceYears);
@@ -113,12 +117,8 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       .catch(err => console.error('Opportunity seeding failed:', err.message));
   }
 
-  const profiles = await User.find({ email });
-  const code = await issueOtpForUsers(profiles);
-  const mailResult = await sendMail(emailOtp({
-    name: user.name, email, code, role, category: user.category, sectorId: user.sectorId,
-    multipleProfiles: profiles.length > 1
-  }));
+  const code = await issueOtp(user);
+  const mailResult = await sendMail(emailOtp({ name: user.name, email, code, role, category: user.category, sectorId: user.sectorId }));
   if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
 
   res.status(201).json({
@@ -134,16 +134,15 @@ router.post('/login', async (req, res) => {
 router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const email = str(req.body?.email).toLowerCase().slice(0, 200);
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
-  const users = await User.find({ email });
+  const user = await User.findOne({ email });
   let devOtp;
-  if (users.length) {
+  if (user) {
     if (!mailConfigured() && process.env.NODE_ENV === 'production') {
       throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
     }
-    const code = await issueOtpForUsers(users);
+    const code = await issueOtp(user);
     const result = await sendMail(emailOtp({
-      name: users[0].name, email, code, role: users[0].role, category: users[0].category,
-      sectorId: users[0].sectorId, multipleProfiles: users.length > 1
+      name: user.name, email, code, role: user.role, category: user.category, sectorId: user.sectorId
     }));
     if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
     if (!mailConfigured() && process.env.NODE_ENV !== 'production') devOtp = code;
@@ -159,37 +158,23 @@ router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
 router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
   const email = str(req.body?.email).toLowerCase().slice(0, 200);
   const code = str(req.body?.code);
-  const profileId = str(req.body?.profileId);
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
-  const users = await User.find({ email });
-  const active = users.filter(otpIsActive);
-  if (!active.length) {
-    for (const user of users) {
-      if (user.emailOtpHash) { clearOtp(user); await user.save(); }
+  const user = await User.findOne({ email });
+  if (!user || !otpIsActive(user)) {
+    if (user?.emailOtpHash) {
+      clearOtp(user);
+      await user.save();
     }
     throw fail('That code has expired or is incorrect. Request a new code.', 401);
   }
-  const codeMatches = active.some(candidate => otpMatches(candidate, code));
-  if (!codeMatches) {
-    for (const candidate of active) {
-      recordOtpFailure(candidate);
-      await candidate.save();
-    }
+  if (!otpMatches(user, code)) {
+    recordOtpFailure(user);
+    await user.save();
     throw fail('That code has expired or is incorrect. Request a new code.', 401);
   }
-  const user = profileId
-    ? active.find(candidate => String(candidate._id) === profileId && otpMatches(candidate, code))
-    : active.find(candidate => otpMatches(candidate, code));
-  if (!user) throw fail('That dashboard is not linked to this email.', 404);
-  if (!profileId && active.length > 1) {
-    return res.json({ profiles: active.map(profileSummary) });
-  }
-  const verifiedAt = new Date().toISOString();
-  for (const profile of users) {
-    profile.emailVerifiedAt = profile.emailVerifiedAt || verifiedAt;
-    clearOtp(profile);
-    await profile.save();
-  }
+  user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
+  clearOtp(user);
+  await user.save();
   issueToken(res, user);
   res.json({ user, redirect: `/${user.role}.html` });
 });

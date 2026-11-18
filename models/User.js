@@ -4,7 +4,7 @@ module.exports = createModel('User', {
   required: ['name', 'role'],
   unique: ['handle'],
   enums: {
-    role: ['business', 'associate', 'admin'],
+    role: ['business', 'associate', 'admin', 'buyer'],
     status: ['pending', 'approved', 'rejected', 'imported']
   },
   defaults: {

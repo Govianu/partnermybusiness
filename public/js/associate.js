@@ -131,7 +131,27 @@
     await load();
   });
 
-  initViews(view => { if (view !== 'learn' && player) player.pause(); });
+  // ---------- Marketplace: offer your services, book spaces (PMB is the third party) ----------
+  let browse = null;
+  function showFindTab(tab) {
+    document.querySelectorAll('[data-find-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.findTab === tab)));
+    document.getElementById('findBox').hidden = tab !== 'browse';
+    document.getElementById('myRequestsBox').hidden = tab !== 'mine';
+    if (tab === 'mine') Market.renderMyRequests(document.getElementById('myRequestsBox'));
+  }
+  document.querySelector('#view-find .view-tabs').addEventListener('click', e => { const b = e.target.closest('[data-find-tab]'); if (b) showFindTab(b.dataset.findTab); });
+  document.addEventListener('market:requested', () => showFindTab('mine'));
+  document.getElementById('incomingRefresh').addEventListener('click', () => Market.renderIncoming(document.getElementById('incomingBox')));
+  const offerIdeas = (ctx.sector.s || []).concat(ctx.sector.p || []);
+
+  initViews(view => {
+    if (view !== 'learn' && player) player.pause();
+    if (view === 'offers') {
+      Market.renderMyListings(document.getElementById('myOffers'), { role: 'associate', suggestions: offerIdeas, area: user.location || '' });
+      Market.renderIncoming(document.getElementById('incomingBox'));
+    }
+    if (view === 'find' && !browse) browse = Market.renderBrowse(document.getElementById('findBox'), { user });
+  });
   renderGrowth();
   preview();
   await load();

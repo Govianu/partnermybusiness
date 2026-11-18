@@ -20,21 +20,13 @@ function otpMatches(user, code) {
   return crypto.timingSafeEqual(expected, actual);
 }
 
-async function issueOtpForUsers(users) {
-  if (!Array.isArray(users) || !users.length) throw new Error('Cannot issue an email code without a profile');
-  const code = createOtp();
-  const expiresAt = new Date(Date.now() + OTP_TTL_MS).toISOString();
-  await Promise.all(users.map(async user => {
-    user.emailOtpHash = hashOtp(user.email, code);
-    user.emailOtpExpiresAt = expiresAt;
-    user.emailOtpAttempts = 0;
-    await user.save();
-  }));
-  return code;
-}
-
 async function issueOtp(user) {
-  return issueOtpForUsers([user]);
+  const code = createOtp();
+  user.emailOtpHash = hashOtp(user.email, code);
+  user.emailOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS).toISOString();
+  user.emailOtpAttempts = 0;
+  await user.save();
+  return code;
 }
 
 function clearOtp(user) {
@@ -53,4 +45,4 @@ function otpIsActive(user, now = Date.now()) {
   return Boolean(user.emailOtpHash) && Number.isFinite(expiresAt) && expiresAt > now;
 }
 
-module.exports = { MAX_OTP_ATTEMPTS, clearOtp, issueOtp, issueOtpForUsers, otpIsActive, otpMatches, recordOtpFailure };
+module.exports = { MAX_OTP_ATTEMPTS, clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure };

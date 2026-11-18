@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buyer dashboard: Partnermybusiness.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/growth.css">
+  <link rel="stylesheet" href="/css/market.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <a class="brandmark" href="/">Partnermybusiness<span>.ai</span></a>
+    <div class="who">
+      <div class="who-name" id="whoName"></div>
+      <code class="handle" id="whoHandle"></code>
+      <span id="whoStatus"></span>
+    </div>
+    <nav class="nav" aria-label="Dashboard">
+      <a href="#find" data-view="find">Find &amp; book</a>
+      <a href="#requests" data-view="requests">My requests</a>
+      <a href="#profile" data-view="profile">Profile</a>
+    </nav>
+    <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
+  </aside>
+
+  <main class="main">
+    <div class="ctabar-wrap" id="ctaBar"></div>
+
+    <section id="view-find">
+      <p class="hello-line"><strong id="hello">Hello</strong> <span class="meta">Find spaces and professionals. Our team checks every request and connects you.</span></p>
+      <div id="findBox"></div>
+    </section>
+
+    <section id="view-requests" hidden>
+      <div class="view-head"><div><h1>My requests</h1><p>Every request is checked by our team, then sent to the seller. You’ll see each step here and by email.</p></div></div>
+      <div id="myRequestsBox"></div>
+    </section>
+
+    <section id="view-profile" hidden>
+      <div class="view-head"><div><h1>Profile</h1><p>Your details stay private. Sellers only see your first name and the type of buyer you are.</p></div></div>
+      <div class="panel" id="profileBox"></div>
+    </section>
+  </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/market.js"></script>
+<script src="/js/buyer.js"></script>
+</body>
+</html>

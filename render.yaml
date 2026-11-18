@@ -1,6 +1,12 @@
+# FREE test setup on Render: Dashboard > New > Blueprint > pick this repository.
+# Free plan limits (fine for testing, not for real customers):
+#  - Email ports are blocked, so email goes through the Brevo API (BREVO_API_KEY), not Zoho SMTP.
+#  - No disk: accounts, listings and bookings are wiped whenever the service restarts, redeploys or wakes from sleep.
+#  - The service sleeps after about 15 minutes without visitors; the first visit after that takes up to a minute.
+# For the real launch use render-paid.yaml.example (Starter + disk).
 services:
   - type: web
-    name: partnermybusiness-web
+    name: partnermybusiness-test
     runtime: node
     plan: free
     region: singapore
@@ -12,25 +18,15 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
-      - key: DATA_DIR
-        value: ./data
-      - key: UPLOAD_DIR
-        value: ./data/uploads
       - key: ADMIN_INVITE_CODE
+        sync: false
+      - key: APP_URL
         sync: false
       - key: BREVO_API_KEY
         sync: false
       - key: MAIL_FROM
-        sync: false
+        value: Partnermybusiness.ai <info@partnermybusiness.ai>
       - key: TEAM_INBOX
-        sync: false
-      - key: HEYGEN_API_KEY
-        sync: false
-      - key: HEYGEN_AVATAR_ID
-        sync: false
-      - key: HEYGEN_VOICE_ID
-        sync: false
+        value: info@partnermybusiness.ai
       - key: HEYGEN_TEST_MODE
         value: "true"
-      - key: HEYGEN_MONTHLY_MINUTES
-        value: "60"

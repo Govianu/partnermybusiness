@@ -11,7 +11,7 @@ npm install
 npm run dev              # http://localhost:3000
 ```
 
-For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without `BREVO_API_KEY` or SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
+For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
 
 ## Passwordless email sign-in
 
@@ -19,7 +19,6 @@ For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=prod
 2. The app emails a six-digit verification code. Codes expire in 10 minutes, can be used once, and allow at most five verification attempts.
 3. Entering a valid code verifies the email and signs the user into the correct dashboard. Existing accounts also use this flow; passwords are no longer accepted.
 4. The login page uses the same email-code flow. Responses for unknown emails do not disclose whether an account exists.
-5. If an email has multiple business or professional profiles, the user chooses the dashboard after verifying. The dashboard sidebar can switch between those profiles.
 
 ## How an enquiry works
 
@@ -42,7 +41,6 @@ For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=prod
 - Supported uploads: JPG/PNG/WebP/GIF images (10 MB), MP4/WebM videos (100 MB), and PDF menus/slides/course files (25 MB). Each account has a 300 MB quota; the site-wide limit is 800 MB.
 - Local files are stored under `data/uploads/` by default. On Render, mount a persistent disk and set both `DATA_DIR` and `UPLOAD_DIR` on that mount, such as `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`; otherwise account data or uploaded files may be lost when the service restarts or redeploys.
 - Both dashboards keep quick actions visible for common tasks.
-- Users with multiple profiles under one email can switch between dashboards from the sidebar.
 
 ## Booking emails
 
@@ -66,22 +64,9 @@ OTP attempt and request limits currently use in-memory rate limiting. Run a sing
 
 Run the focused upload and OTP tests with `node --test`.
 
-## Deploying on Render
+## Deploying
 
-The root `render.yaml` is configured for a free public test. In Render, choose **New + > Blueprint** and connect this repository. This free service has no persistent disk and may sleep when idle; accounts, enquiries, uploads and lesson videos stored on its filesystem can be lost when it restarts or redeploys. Use it only as a temporary preview, not as the reliable production site for real partners.
-
-For production, upgrade to a paid web service and attach a persistent disk mounted at `/var/data`, then set `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`. Review Render's current service and disk charges before upgrading or creating paid resources.
-
-Before using the live site, set these environment variables in the Render service settings (or provide them when Render prompts during Blueprint setup):
-
-- `ADMIN_INVITE_CODE`: a private code for creating an admin account.
-- `BREVO_API_KEY`: a Brevo API key. The app uses Brevo's HTTPS API, which works on Render Free; the sender must be verified in Brevo.
-- `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
-- `TEAM_INBOX`: where new enquiries are sent.
-
-The Blueprint generates `JWT_SECRET`; email links use Render's generated public URL automatically. If you later attach a custom domain, set `APP_URL` to that HTTPS address. Render Free blocks outbound SMTP on ports 25, 465 and 587; SMTP is only an option on hosts that allow those ports. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; until then lessons continue to use their slide versions. Keep `HEYGEN_TEST_MODE=true` until you have verified a test video.
-
-Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
+Any Node host works (Render, Railway, a VPS). Set the `.env` values in the host's settings, and choose a persistent disk for `DATA_DIR` and `UPLOAD_DIR` so both `app-data.json` and uploads survive restarts and redeploys. Point partnermybusiness.ai's DNS at the host. Netlify only hosts static pages, so it can't run this server.
 
 ## Dashboards: business-type specific, with skills and video lessons
 
@@ -110,5 +95,31 @@ version available; it swaps in automatically.
 4. `HEYGEN_MONTHLY_MINUTES` caps new video minutes per month. Above it, lessons show the slides instead.
 
 Scripts are written on the server (`utils/lessonScript.js`), never sent from the browser, so nobody can create
-videos of their own text. Finished videos are stored under `DATA_DIR/lesson-videos/` (HeyGen's own links expire after 7 days),
-so keep `DATA_DIR` on a persistent disk.
+videos of their own text. Finished videos are stored in `data/lesson-videos/` (HeyGen's own links expire after 7 days),
+so keep `data/` on a persistent disk.
+
+## Marketplace (buyers and sellers, with PMB in the middle)
+
+| Who | Where | What they do |
+|---|---|---|
+| Business | My spaces, Booking requests, Find & book | List spaces and free slots; accept forwarded requests; book professionals or other spaces |
+| Professional | My offers, Find & book | List services with a price; accept forwarded requests; book spaces for workshops |
+| Buyer (event manager, company, individual) | `/buyer.html` | Search, request, follow each request; "Find it for me" |
+| Anyone | `/find.html` | Search and request without an account |
+| PMB team | Admin > Marketplace | Approve listings; forward or decline every request; connect both sides |
+
+Flow: listing added > PMB approves > buyer requests > PMB checks and forwards > seller accepts > PMB manager connects both
+and arranges payment. Buyers and sellers never see each other's email or phone.
+
+## Go live on Render (Blueprint)
+
+`render.yaml` is the FREE test setup (email via the Brevo API, no disk: data resets on restart).
+`render-paid.yaml.example` is the real-launch setup (Starter + 1 GB disk); rename it to `render.yaml` when you upgrade.
+
+1. Put this folder in a private GitHub repository (without `.env` and `data/`).
+2. In Render: New > Blueprint > choose the repository. It reads `render.yaml`.
+3. Fill the values it asks for: `ADMIN_INVITE_CODE` (a private team code), `APP_URL` (first the `onrender.com`
+   address, later `https://partnermybusiness.ai`) and `SMTP_PASS` (the Zoho app password). Approve the price (Starter + 1 GB disk).
+4. After the first deploy, check the logs for `[mail] SMTP connection OK`, sign up your team with the invite code, and test an enquiry.
+5. Custom domain: Settings > Custom Domains > add `partnermybusiness.ai` and `www`, add the DNS records Render shows
+   (never change MX records), then set `APP_URL=https://partnermybusiness.ai`.

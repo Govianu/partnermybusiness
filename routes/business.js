@@ -23,10 +23,14 @@ router.get('/dashboard', async (req, res) => {
     Booking.find({ business: req.user._id }).sort({ createdAt: -1 }).limit(100),
     Media.find({ owner: req.user._id }).sort({ createdAt: -1 })
   ]);
-  const withSplit = bookings.map(b => ({
-    ...b.toJSON(),
-    split: computeSplit(b.amount, b.splitModel, b.partnerShare)
-  }));
+  // PMB is the third party: sellers only see requests our team has checked, and never the buyer's contact details
+  const visible = bookings.filter(b => b.status !== 'pending_review' && b.status !== 'cancelled');
+  const withSplit = visible.map(b => {
+    const row = { ...b.toJSON(), split: computeSplit(b.amount, b.splitModel, b.partnerShare) };
+    delete row.requesterEmail; delete row.requesterPhone; delete row.timeline; delete row.termsAcceptedAt;
+    row.requesterName = `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${String(b.buyerType).toLowerCase()}` : ''}`;
+    return row;
+  });
   const yourShare = withSplit
     .filter(b => b.status === 'accepted' || b.status === 'completed')
     .reduce((sum, b) => sum + (b.split.lines.find(l => l.party === 'business')?.amountInr || 0), 0);
@@ -37,8 +41,8 @@ router.get('/dashboard', async (req, res) => {
     media,
     industry: industryFor(req.user),
     stats: {
-      pending: bookings.filter(b => b.status === 'requested').length,
-      accepted: bookings.filter(b => b.status === 'accepted').length,
+      pending: visible.filter(b => b.status === 'requested').length,
+      accepted: visible.filter(b => b.status === 'accepted').length,
       yourShare,
       potentialMonthly: opportunities.reduce((s, o) => s + (o.estMonthly || 0), 0)
     },

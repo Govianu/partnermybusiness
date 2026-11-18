@@ -225,7 +225,25 @@
     : 'A PMB manager will be assigned once your profile is reviewed.';
   document.getElementById('sopList').innerHTML = (user.business?.sops || []).map(s => `<li>${esc(s)}</li>`).join('') || '<li>Added after review</li>';
 
-  initViews(view => { if (view !== 'learn' && player) player.pause(); });
+  // ---------- Marketplace: sell your spaces, book other partners (PMB is the third party) ----------
+  let browse = null;
+  const spaceIdeas = String(ctx.sector.a || '').split(',').map(x => x.trim()).filter(Boolean)
+    .map(x => x.charAt(0).toUpperCase() + x.slice(1)).concat(ctx.sector.s || []);
+  function showFindTab(tab) {
+    document.querySelectorAll('[data-find-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.findTab === tab)));
+    document.getElementById('findBox').hidden = tab !== 'browse';
+    document.getElementById('myRequestsBox').hidden = tab !== 'mine';
+    if (tab === 'mine') Market.renderMyRequests(document.getElementById('myRequestsBox'));
+  }
+  document.querySelector('#view-find .view-tabs').addEventListener('click', e => { const b = e.target.closest('[data-find-tab]'); if (b) showFindTab(b.dataset.findTab); });
+  document.addEventListener('market:requested', () => showFindTab('mine'));
+
+  initViews(view => {
+    if (view !== 'learn' && player) player.pause();
+    if ((view === 'bookings' || view === 'overview') && typeof state !== 'undefined' && state.bookings) load().catch(() => {}); // fresh requests each time
+    if (view === 'spaces') Market.renderMyListings(document.getElementById('mySpaces'), { role: 'business', suggestions: spaceIdeas, area: user.location || '' });
+    if (view === 'find' && !browse) browse = Market.renderBrowse(document.getElementById('findBox'), { user });
+  });
   await load();
   if (!ctx.skills.length && !sessionStorage.getItem('pmbSkillsAsked:' + user._id)) {
     sessionStorage.setItem('pmbSkillsAsked:' + user._id, '1');

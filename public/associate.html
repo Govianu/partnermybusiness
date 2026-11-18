@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/growth.css">
+  <link rel="stylesheet" href="/css/market.css">
 </head>
 <body>
 <div class="shell">
@@ -22,8 +23,10 @@
     <nav class="nav" aria-label="Dashboard">
       <a href="#overview" data-view="overview">Overview</a>
       <a href="#learn" data-view="learn">Learn &amp; earn</a>
+      <a href="#offers" data-view="offers">My offers</a>
       <a href="#gigs" data-view="gigs">Shifts near you</a>
       <a href="#workshops" data-view="workshops">Run a workshop</a>
+      <a href="#find" data-view="find">Find &amp; book</a>
       <a href="#profile" data-view="profile">Skills & profile</a>
     </nav>
     <div class="side-foot"><a class="link-btn" href="/login.html?switch=1#login">Switch dashboard</a><button class="link-btn" onclick="logout()">Log out</button></div>
@@ -45,6 +48,23 @@
         <div class="panel"><h3>Your PMB manager</h3><div id="managerBox" class="meta"></div></div>
         <div class="panel"><h3>Your work</h3><div id="myGigs"></div></div>
       </div>
+    </section>
+
+    <section id="view-offers" hidden>
+      <div class="view-head"><div><h1>My offers</h1><p>List what you offer and your price. Businesses and buyers find you, and our team checks every request before it reaches you.</p></div></div>
+      <div id="myOffers"></div>
+      <div class="section-title" style="margin-top:2rem"><h2>Requests for you</h2><button class="btn ghost small" type="button" id="incomingRefresh">Refresh</button></div>
+      <div id="incomingBox"></div>
+    </section>
+
+    <section id="view-find" hidden>
+      <div class="view-head"><div><h1>Find &amp; book</h1><p>Book a space for your workshop or class, or team up with other professionals.</p></div></div>
+      <div class="view-tabs" role="group" aria-label="Find or track">
+        <button type="button" data-find-tab="browse" aria-pressed="true">Find</button>
+        <button type="button" data-find-tab="mine" aria-pressed="false">My requests</button>
+      </div>
+      <div id="findBox"></div>
+      <div id="myRequestsBox" hidden></div>
     </section>
 
     <section id="view-learn" hidden>
@@ -114,6 +134,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/lesson-videos.js"></script>
 <script src="/js/growth.js"></script>
+<script src="/js/market.js"></script>
 <script src="/js/associate.js"></script>
 </body>
 </html>

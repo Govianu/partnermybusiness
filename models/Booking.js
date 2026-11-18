@@ -4,7 +4,8 @@ module.exports = createModel('Booking', {
   required: ['business', 'requesterName', 'eventType'],
   enums: {
     splitModel: ['four_way', 'infra_first'],
-    status: ['requested', 'accepted', 'declined', 'completed'],
+    // pending_review: with the PMB team (we're the third party); requested: forwarded to the seller
+    status: ['pending_review', 'requested', 'accepted', 'declined', 'completed', 'cancelled'],
     'payment.status': ['none', 'created', 'paid']
   },
   defaults: {
@@ -15,5 +16,6 @@ module.exports = createModel('Booking', {
     agreementAccepted: false,
     payment: { status: 'none' }
   },
-  refs: { business: ['User', false] }
+  // business = the seller (a business or a professional); buyer = logged-in buyer, if any
+  refs: { business: ['User', false], buyer: ['User', false], listing: ['Listing', false] }
 });

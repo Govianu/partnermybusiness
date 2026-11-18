@@ -5,7 +5,7 @@
   const profileIdParam = params.get('profileId') || '';
   const switchMode = params.get('switch') === '1';
   const goTo = redirect => {
-    const safe = /^(business|associate|admin)\.html(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('.')[0]);
+    const safe = /^(business|associate|admin|buyer)\.html(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('.')[0]);
     location.href = safe ? '/' + next : redirect;
   };
 
@@ -28,18 +28,13 @@
   const loginForm = document.getElementById('loginForm');
   const otpForm = document.getElementById('otpForm');
   const otpMessage = document.getElementById('otpMsg');
-  const profilePicker = document.getElementById('profilePicker');
-  const profileOptions = document.getElementById('profileOptions');
-  const profileError = document.getElementById('profileError');
 
-  function showOtpForm(email, devOtp, message, profileId = '') {
+  function showOtpForm(email, devOtp, message) {
     document.getElementById('loginPane').hidden = false;
     document.getElementById('signupPane').hidden = true;
     loginForm.hidden = true;
     otpForm.hidden = false;
-    profilePicker.hidden = true;
     otpForm.elements.email.value = email;
-    otpForm.elements.profileId.value = profileId;
     document.getElementById('otpEmail').textContent = email;
     document.getElementById('otpCode').value = '';
     otpMessage.textContent = message || 'Check your inbox and spam folder. The code expires in 10 minutes.';
@@ -49,44 +44,9 @@
 
   function resetOtpForm() {
     otpForm.hidden = true;
-    profilePicker.hidden = true;
     loginForm.hidden = false;
     otpMessage.textContent = '';
-    loginForm.elements.email.value = '';
     loginForm.elements.email.focus();
-  }
-
-  function showProfilePicker(profiles, { email, code, authenticated = false }) {
-    loginForm.hidden = true;
-    otpForm.hidden = true;
-    profilePicker.hidden = false;
-    profileError.hidden = true;
-    profileError.textContent = '';
-    document.getElementById('profilePrompt').textContent = authenticated
-      ? 'Choose a dashboard to switch to.'
-      : 'This email has several dashboards. Choose which one to open.';
-    profileOptions.textContent = '';
-    profiles.forEach(profile => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'btn wide';
-      button.textContent = profile.label;
-      button.addEventListener('click', async () => {
-        button.disabled = true;
-        try {
-          const result = await api(authenticated ? '/auth/switch-profile' : '/auth/verify-otp', {
-            method: 'POST',
-            body: authenticated ? { profileId: profile.id } : { email, code, profileId: profile.id }
-          });
-          goTo(result.redirect);
-        } catch (err) {
-          button.disabled = false;
-          profileError.textContent = err.message;
-          profileError.hidden = false;
-        }
-      });
-      profileOptions.appendChild(button);
-    });
   }
 
   const { businessCategories, associateSkills } = await api('/auth/options').catch(() => ({
@@ -105,6 +65,11 @@
       title: 'Earn from your days off.',
       text: 'Run paid workshops in partner kitchens or pick up nearby shifts. Upload a 30-second intro and a PMB manager gets you live.',
       sample: ['chef', 'sadashivnagar', 'mahesh'], catLabel: 'your skill'
+    },
+    buyer: {
+      title: 'Book spaces and professionals.',
+      text: 'Find halls, kitchens, studios and skilled professionals. Our team checks every request and connects you, so your details stay private.',
+      sample: ['buyer', 'bengaluru', 'you'], catLabel: 'you book'
     },
     admin: {
       title: 'PMB operations team.',
@@ -142,7 +107,7 @@
     const role = roleInput.value;
     const sample = copy[role].sample;
     const v = formData(form);
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'buyer') {
       setSeg('segCat', '', sample[0]); setSeg('segLoc', '', sample[1]);
       setSeg('segName', slug((v.name || '').split(' ')[0]), sample[2]);
       return;
@@ -169,12 +134,8 @@
   });
 
   onSubmit(otpForm, async data => {
-    const result = await api('/auth/verify-otp', { method: 'POST', body: data });
-    if (result.profiles) {
-      showProfilePicker(result.profiles, { email: data.email, code: data.code });
-      return;
-    }
-    goTo(result.redirect);
+    const { redirect } = await api('/auth/verify-otp', { method: 'POST', body: data });
+    goTo(redirect);
   });
 
   document.getElementById('resendOtp').addEventListener('click', async () => {
@@ -189,7 +150,6 @@
     }
   });
   document.getElementById('changeEmail').addEventListener('click', resetOtpForm);
-  document.getElementById('profileChangeEmail').addEventListener('click', resetOtpForm);
 
   document.querySelectorAll('[data-go]').forEach(button => button.addEventListener('click', () => {
     resetOtpForm();
@@ -199,25 +159,12 @@
     (login ? document.getElementById('loginEmail') : document.getElementById('name')).focus();
   }));
 
-  setRole(params.get('as') === 'associate' ? 'associate' : 'business');
+  const asRole = new URLSearchParams(location.search).get('as');
+  setRole(['associate', 'buyer'].includes(asRole) ? asRole : 'business');
+  const emailParam = new URLSearchParams(location.search).get('email');
   if (emailParam) document.getElementById('loginEmail').value = emailParam;
   if (location.hash === '#login' || next) {
     document.getElementById('signupPane').hidden = true;
     document.getElementById('loginPane').hidden = false;
-  }
-  if (emailParam && params.get('verify') === '1') {
-    showOtpForm(emailParam, null, 'Enter the verification code in your enquiry email.', profileIdParam);
-  }
-  if (switchMode) {
-    document.getElementById('signupPane').hidden = true;
-    document.getElementById('loginPane').hidden = false;
-    try {
-      const { profiles } = await api('/auth/profiles');
-      showProfilePicker(profiles, { authenticated: true });
-    } catch {
-      loginForm.hidden = false;
-      profilePicker.hidden = true;
-      loginForm.querySelector('.error-box').textContent = 'Sign in with an email code before switching dashboards.';
-    }
   }
 })();

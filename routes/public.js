@@ -5,7 +5,7 @@ const Booking = require('../models/Booking');
 const Lead = require('../models/Lead');
 const { fail, str } = require('../utils/http');
 const { sendMail } = require('../utils/mailer');
-const { bookingRequested } = require('../utils/emails');
+const { marketRequestReceived, marketRequestTeam } = require('../utils/emails');
 
 router.get('/profile/:handle', async (req, res) => {
   const user = await User.findOne({ handle: req.params.handle.toLowerCase(), role: { $in: ['business', 'associate'] } });
@@ -42,14 +42,18 @@ router.post('/bookings/:handle', async (req, res) => {
     guests: Number(b.guests) || undefined,
     amount: Math.max(0, Number(b.amount) || 0),
     message: str(b.message),
-    leadGenName: str(b.leadGenName)
+    leadGenName: str(b.leadGenName),
+    status: 'pending_review', source: 'booking_link',
+    timeline: [{ status: 'pending_review', at: new Date().toISOString(), note: 'Request sent to the PMB team' }]
   });
   await Lead.create({
     name: booking.requesterName, company: booking.leadGenName, email: booking.requesterEmail, phone: booking.requesterPhone,
     source: 'booking', relatedUser: business._id, relatedBooking: booking._id,
     history: [{ stage: 'new', note: `Booking request: ${booking.eventType} at ${business.handle}` }]
   });
-  if (business.email) await sendMail(bookingRequested({ business, booking }));
+  // PMB is the third party: the team checks the request before it reaches the business
+  if (booking.requesterEmail) await sendMail(marketRequestReceived({ booking, listing: null }));
+  await sendMail(marketRequestTeam({ booking, listing: null, seller: business }));
   res.status(201).json({ ok: true, bookingId: booking._id });
 });
 

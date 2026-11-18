@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/market.css">
 </head>
 <body>
 <div class="shell">
@@ -20,6 +21,7 @@
     </div>
     <nav class="nav" aria-label="Operations">
       <a href="#overview" data-view="overview">Today</a>
+      <a href="#market" data-view="market">Marketplace</a>
       <a href="#enquiries" data-view="enquiries">Website enquiries</a>
       <a href="#import" data-view="import">Import from Maps</a>
       <a href="#validation" data-view="validation">Validation queue</a>
@@ -37,6 +39,16 @@
       <div class="stats" id="stats"></div>
       <h2>Lead pipeline</h2>
       <div class="stats" id="pipeline"></div>
+    </section>
+
+    <section id="view-market" hidden>
+      <div class="view-head"><div><h1>Marketplace</h1><p>We’re the third party. Check every request before it reaches the seller, and every listing before buyers see it. Buyers and sellers only see each other’s first names.</p></div><button class="btn ghost" type="button" id="marketRefresh">Refresh</button></div>
+      <div class="view-tabs" role="group" aria-label="Queues">
+        <button type="button" data-mtab="requests" aria-pressed="true">Requests</button>
+        <button type="button" data-mtab="listings" aria-pressed="false">Listings</button>
+      </div>
+      <div id="marketRequests"></div>
+      <div id="marketListings" hidden></div>
     </section>
 
     <section id="view-enquiries" hidden>

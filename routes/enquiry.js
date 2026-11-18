@@ -9,7 +9,7 @@ const { uniqueHandle, slugify } = require('../utils/handle');
 const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { sendMail, mailConfigured } = require('../utils/mailer');
 const { enquiryWelcome, teamEnquiry } = require('../utils/emails');
-const { issueOtpForUsers } = require('../utils/otp');
+const { issueOtp } = require('../utils/otp');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -62,6 +62,10 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
 
   // The exact type picked on the homepage (one of the 100 in utils/catalog.json), so emails and the
   // dashboard can speak the person's language: "your restaurant", "as a chef"
+  const sector = (role === 'host' || role === 'pro')
+    ? (sectorById(b.business_type_id) || sectorFor({ category: fields.businessType }))
+    : null;
+
   // Find or create the dashboard account
   const accountRole = ACCOUNT_ROLE[role];
   let user = null;
@@ -80,7 +84,8 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
       if (sector && !user.sectorId) { user.sectorId = sector.id; await user.save(); }
     } else {
       const isBusiness = accountRole === 'business';
-      const category = sector ? slugify(sector.noun, true) : (slugify(fields.businessType, true) || (isBusiness ? 'business' : 'professional'));
+      const category = role === 'partner' ? 'brand'
+        : sector ? slugify(sector.noun, true) : (slugify(fields.businessType, true) || (isBusiness ? 'business' : 'professional'));
       const area = areaFrom(fields.location);
       const displayName = isBusiness ? (fields.business || name) : name;
       user = await User.create({
@@ -101,7 +106,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
           .catch(err => console.error('Opportunity seeding failed:', err.message));
       }
     }
-    emailCode = await issueOtpForUsers(await User.find({ email }));
+    emailCode = await issueOtp(user);
   }
 
   const enquiry = await Enquiry.create({
@@ -122,8 +127,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     sendMail(enquiryWelcome({
       name, email, roleName: ROLE_NAMES[role], code: emailCode,
       hasDashboard: !!accountRole, existingAccount, category: user?.category,
-      sectorId: sector?.id || user?.sectorId, businessName: role === 'host' ? fields.business : '',
-      dashboardRole: accountRole, dashboardProfileId: user?._id
+      sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : ''
     })),
     sendMail(teamEnquiry({ ...enquiry, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
   ]);

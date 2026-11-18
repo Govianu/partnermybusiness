@@ -207,6 +207,72 @@ router.patch('/gigs/:id', async (req, res) => {
   res.json({ gig });
 });
 
+// ---------- Marketplace: PMB checks every listing and request (third party) ----------
+router.get('/market', async (req, res) => {
+  const { publicListing, STATUS_LABEL } = require('./market');
+  const Listing = require('../models/Listing');
+  const listings = (await Listing.find({})).filter(l => l.status !== 'removed').sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const owners = new Map();
+  const ownerOf = async id => { if (!owners.has(String(id))) owners.set(String(id), await User.findById(id)); return owners.get(String(id)); };
+  const listingRows = [];
+  for (const l of listings.slice(0, 300)) {
+    const o = await ownerOf(l.owner);
+    listingRows.push({ ...publicListing(l, o), ownerName: o?.business?.businessName || o?.name || '', ownerEmail: o?.email || '', ownerHandle: o?.handle || '', reviewNote: l.reviewNote || '' });
+  }
+  const bookings = (await Booking.find({})).filter(b => b.listing || b.source === 'booking_link' || b.status === 'pending_review')
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 300);
+  const requestRows = [];
+  for (const b of bookings) {
+    const l = b.listing ? await Listing.findById(b.listing) : null;
+    const s = await ownerOf(b.business);
+    requestRows.push({ id: b._id, status: b.status, statusLabel: STATUS_LABEL[b.status] || b.status, what: b.eventType, date: b.eventDate, people: b.guests,
+      budget: b.amount, message: b.message, listingTitle: l?.title || 'Direct booking link', price: l ? require('../utils/emails').priceText(l) : '',
+      buyer: { name: b.requesterName, email: b.requesterEmail, phone: b.requesterPhone, type: b.buyerType || '' },
+      seller: { name: s?.business?.businessName || s?.name || '', email: s?.email || '', handle: s?.handle || '' }, createdAt: b.createdAt });
+  }
+  res.json({ listings: listingRows, requests: requestRows });
+});
+
+router.post('/market/listings/:id/review', async (req, res) => {
+  const Listing = require('../models/Listing');
+  const { sendMail } = require('../utils/mailer');
+  const { listingReviewed } = require('../utils/emails');
+  const decision = req.body?.decision;
+  if (!['approve', 'reject'].includes(decision)) throw fail('Choose approve or reject');
+  const note = str(req.body?.note).slice(0, 500);
+  if (decision === 'reject' && !note) throw fail('Add a note so the seller knows what to change');
+  const l = await Listing.findById(req.params.id);
+  if (!l) throw fail('Listing not found', 404);
+  l.status = decision === 'approve' ? 'live' : 'rejected';
+  l.reviewNote = note; l.reviewedBy = req.user._id; l.reviewedAt = new Date().toISOString();
+  await l.save();
+  const owner = await User.findById(l.owner);
+  if (owner?.email) await sendMail(listingReviewed({ listing: l, seller: owner, approved: decision === 'approve', note }));
+  res.json({ ok: true, status: l.status });
+});
+
+router.post('/market/requests/:id/review', async (req, res) => {
+  const Listing = require('../models/Listing');
+  const { sendMail } = require('../utils/mailer');
+  const { marketDecision, marketRequestForSeller } = require('../utils/emails');
+  const decision = req.body?.decision;
+  if (!['forward', 'decline'].includes(decision)) throw fail('Choose forward or decline');
+  const note = str(req.body?.note).slice(0, 500);
+  if (decision === 'decline' && !note) throw fail('Add a note for the buyer');
+  const b = await Booking.findById(req.params.id);
+  if (!b) throw fail('Request not found', 404);
+  if (b.status !== 'pending_review') throw fail('This request has already been reviewed');
+  b.status = decision === 'forward' ? 'requested' : 'declined';
+  b.buyerNote = note; b.reviewedBy = req.user._id; b.reviewedAt = new Date().toISOString();
+  b.timeline = [...(b.timeline || []), { status: b.status, at: b.reviewedAt, note: decision === 'forward' ? 'Checked by PMB and sent to the seller' : 'Declined by PMB' }];
+  await b.save();
+  const l = b.listing ? await Listing.findById(b.listing) : null;
+  const sellerUser = await User.findById(b.business);
+  if (decision === 'forward' && sellerUser?.email) await sendMail(marketRequestForSeller({ seller: sellerUser, booking: b, listing: l }));
+  if (b.requesterEmail) await sendMail(marketDecision({ booking: b, listing: l, outcome: decision === 'forward' ? 'forwarded' : 'declined', note }));
+  res.json({ ok: true, status: b.status });
+});
+
 // ---------- Bookings ----------
 router.get('/bookings', async (req, res) => {
   const bookings = await Booking.find().populate('business', 'business.businessName handle').sort({ createdAt: -1 }).limit(200);
