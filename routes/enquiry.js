@@ -50,6 +50,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   };
   if (role === 'host' && !fields.business) throw fail('Add your business name.');
   if ((role === 'host' || role === 'pro') && !fields.location) throw fail('Add your area and city or a Google Maps link.');
+  // Keep the exact homepage selection for emails and the dashboard.
   const selectedSector = sectorById(b.business_type_id) || sectorFor({ category: fields.businessType });
   const sector = (role === 'host' || role === 'pro') ? selectedSector : null;
   if (sector && sector.t !== (role === 'host' ? 'b' : 'p')) {
@@ -59,12 +60,6 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     throw fail(role === 'host' ? 'Choose a business type.' : 'Choose a profession.');
   }
   const termsAcceptedAt = new Date().toISOString();
-
-  // The exact type picked on the homepage (one of the 100 in utils/catalog.json), so emails and the
-  // dashboard can speak the person's language: "your restaurant", "as a chef"
-  const sector = (role === 'host' || role === 'pro')
-    ? (sectorById(b.business_type_id) || sectorFor({ category: fields.businessType }))
-    : null;
 
   // Find or create the dashboard account
   const accountRole = ACCOUNT_ROLE[role];
