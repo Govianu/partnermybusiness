@@ -2,14 +2,73 @@
   const user = await guard('associate');
   if (!user) return;
   fillWho(user, user.name);
-  document.getElementById('hello').textContent = `Hello, ${user.name.split(' ')[0]}`;
+  document.getElementById('hello').textContent = `Hello, ${firstNameOf(user.name)}`;
+
+  // ---------- Growth kit (profession specific) ----------
+  const growth = await api('/growth');
+  const ctx = Growth.contextFor({ role: 'associate', user, industry: growth.industry, skills: growth.skills, watched: growth.lessonsWatched });
+  document.title = `${ctx.display} dashboard: Partnermybusiness.ai`;
+  let player = null;
+  let lastData = null;
+
+  function openLesson(i) {
+    location.hash = 'learn';
+    setTimeout(() => player && player.select(i, true), 60);
+  }
+  function editSkills() {
+    Growth.openSkillsDialog(ctx, skills => {
+      ctx.skills = skills;
+      renderGrowth();
+      player && player.refresh(ctx);
+      load();
+    });
+  }
+  document.getElementById('changeSkills').addEventListener('click', editSkills);
+  document.getElementById('profileSkillsBtn').addEventListener('click', editSkills);
+
+  Growth.renderCtaBar(document.getElementById('ctaBar'), ctx, {
+    secondary: `<a class="btn ghost" href="#gigs">Shifts near you</a>
+      <button class="btn ghost" type="button" data-cta="run_workshop">Run a workshop</button>`
+  });
+  Growth.renderSlides(document.getElementById('slides'), ctx, { onLesson: openLesson });
+  Growth.renderPlanner(document.getElementById('planner'), ctx);
+  player = Growth.mountPlayer(document.getElementById('player'), document.getElementById('playlist'), ctx, {
+    onWatched: async lesson => {
+      try { await api('/growth/lessons/watched', { method: 'POST', body: { key: lesson.key } }); } catch { /* progress is a nice-to-have */ }
+      renderGrowth();
+      load();
+    }
+  });
+
+  function renderGrowth() {
+    Growth.renderSkills(document.getElementById('skillsBox'), ctx, editSkills);
+    Growth.renderLessonStrip(document.getElementById('lessonStrip'), ctx, openLesson);
+    document.getElementById('lessonsTitle').textContent = ctx.skills.length ? 'Your video lessons' : `Video lessons for ${ctx.plural}`;
+    document.getElementById('learnIntro').textContent = ctx.skills.length
+      ? `Built from your skills: ${ctx.skills.slice(0, 4).join(', ')}.`
+      : `Lessons for ${ctx.plural}. Choose your skills to make them yours.`;
+    document.getElementById('profileSkills').innerHTML = ctx.skills.length
+      ? ctx.skills.map(s => `<li>${esc(s)}</li>`).join('')
+      : '<li>No skills chosen yet</li>';
+  }
 
   async function load() {
     const d = await api('/associate/dashboard');
+    lastData = d;
 
-    document.getElementById('steps').innerHTML = d.steps
-      .map(s => `<li class="${s.done ? 'done' : ''}"><strong>${esc(s.label)}</strong><div class="meta">${s.done ? 'Done' : 'To do'}</div></li>`)
-      .join('');
+    const done = d.steps.filter(s => s.done).length;
+    const pct = Math.round((done / d.steps.length) * 100);
+    const actions = { skills: ['Choose', 'skills'], lesson: ['Watch', '#learn'], profile: ['Complete', '#profile'], live: ['See profile', '#profile'] };
+    document.getElementById('steps').innerHTML = `
+      <div class="nextsteps-head"><div class="ring" style="--p:${pct}"><span>${pct}%</span></div>
+        <div><h2 style="margin:0">Your next steps</h2><p class="meta" style="margin:0">${done} of ${d.steps.length} done</p></div></div>
+      <ol>${d.steps.map(s => {
+        const [label, target] = actions[s.key] || ['Open', '#profile'];
+        const btn = s.done ? '' : (target === 'skills'
+          ? `<button class="btn ghost small" type="button" data-step="skills">${label}</button>`
+          : `<a class="btn ghost small" href="${target}">${label}</a>`);
+        return `<li class="${s.done ? 'done' : ''}"><strong>${esc(s.label)}</strong>${btn}</li>`;
+      }).join('')}</ol>`;
 
     const m = d.user.assignedManager;
     document.getElementById('managerBox').innerHTML = m
@@ -27,17 +86,12 @@
           ${g.description ? `<p class="item-body">${esc(g.description)}</p>` : ''}
           ${g.type === 'shift' ? `<button class="btn small" data-apply="${g._id}">Apply for this shift</button>` : ''}
         </div>`).join('')}</div>`
-      : `<div class="list"><div class="empty"><strong>No open shifts in ${esc(user.location)} right now</strong>New shifts are added by the PMB team every week.</div></div>`;
-
-    const kinds = { intro_video: 'Intro video', training_video: 'Training video', course_pdf: 'Course PDF' };
-    document.getElementById('mediaList').innerHTML = d.media.length
-      ? `<div class="list">${d.media.map(x => `<div class="item">
-          <div class="item-top"><a class="item-title" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>${pill(x.status)}</div>
-          <div class="meta">${kinds[x.kind]}, uploaded ${fmtDate(x.createdAt)}</div>
-          ${x.reviewNote ? `<p class="item-body"><strong>Team note:</strong> ${esc(x.reviewNote)}</p>` : ''}
-        </div>`).join('')}</div>`
-      : '<div class="list"><div class="empty"><strong>No uploads yet</strong>Start with a 30-second intro: who you are, what you cook or do, and your best skill.</div></div>';
+      : `<div class="list"><div class="empty"><strong>No open shifts in ${esc(user.location)} right now</strong>Tap “Find me ${esc(ctx.noun)} work” and we’ll match you with partner businesses.</div></div>`;
   }
+
+  document.getElementById('steps').addEventListener('click', e => {
+    if (e.target.closest('[data-step="skills"]')) editSkills();
+  });
 
   document.addEventListener('click', async e => {
     const id = e.target.dataset?.apply;
@@ -47,10 +101,15 @@
     catch (err) { toast(err.message, true); e.target.disabled = false; }
   });
 
-  onSubmit(document.getElementById('mediaForm'), async (data, form) => {
-    await api('/associate/media', { method: 'POST', body: data });
-    form.reset();
-    toast('Uploaded. The team will review it.');
+  const profileForm = document.getElementById('associateProfileForm');
+  profileForm.phone.value = user.phone || '';
+  profileForm.skill.value = user.associate?.skill || ctx.display;
+  profileForm.experienceYears.value = user.associate?.experienceYears || 0;
+  profileForm.availability.value = user.associate?.availability || '';
+  profileForm.bio.value = user.associate?.bio || '';
+  onSubmit(profileForm, async data => {
+    await api('/associate/profile', { method: 'PATCH', body: data });
+    toast('Professional profile saved');
     await load();
   });
 
@@ -72,7 +131,12 @@
     await load();
   });
 
-  initViews();
+  initViews(view => { if (view !== 'learn' && player) player.pause(); });
+  renderGrowth();
   preview();
   await load();
+  if (!ctx.skills.length && !sessionStorage.getItem('pmbSkillsAsked:' + user._id)) {
+    sessionStorage.setItem('pmbSkillsAsked:' + user._id, '1');
+    editSkills();
+  }
 })();

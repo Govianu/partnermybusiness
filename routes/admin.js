@@ -119,7 +119,7 @@ router.get('/media', async (req, res) => {
 router.post('/media/:id/review', async (req, res) => {
   const decision = req.body?.decision;
   if (!['approved', 'rejected'].includes(decision)) throw fail('Choose approve or reject');
-  if (decision === 'rejected' && !str(req.body.note)) throw fail('Add a note so the associate knows what to fix');
+  if (decision === 'rejected' && !str(req.body.note)) throw fail('Add a note so the media owner knows what to fix');
   const media = await Media.findByIdAndUpdate(
     req.params.id,
     { status: decision, reviewNote: str(req.body.note), reviewedBy: req.user._id, reviewedAt: new Date() },

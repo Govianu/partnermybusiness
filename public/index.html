@@ -415,7 +415,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px soli
 .world .cta-row{margin-top:1.5rem}
 .starts{list-style:none;margin-top:1.25rem;border-top:1px solid rgba(255,255,255,.2)}
 .starts li{display:flex;gap:.7rem;align-items:baseline;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.2);color:#fff;font-weight:500}
-@media (min-width:900px){.world-in{grid-template-columns:1fr 1fr;gap:4.5rem}}
+@media (min-width:900px){.world-in{grid-template-columns:1fr;gap:4.5rem}}
 
 /* about */
 .about{display:grid;gap:2.5rem}
@@ -563,7 +563,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
     <div class="hero-extra">
       <p class="credo">Business is collaboration, not competition.</p>
-      <p class="hero-links"><a href="#start" data-role="partner">I am a brand or supplier</a><a href="tel:+918103990990">Call +91 81039 90990</a></p>
+      <p class="hero-links"><a href="tel:+918103990990">Call +91 81039 90990</a></p>
     </div>
   </div>
 </section>
@@ -809,14 +809,6 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <li><span class="dot" style="--c:var(--hours-b)"></span>Workshops and private hire</li>
       </ul>
     </div>
-    <div>
-      <h3>Country partners</h3>
-      <p>Outside India we grow through country partners: local operators who sign hosts and partners, coordinate installation, support and compliance, and run on our platform, agreements and standards.</p>
-      <p>The brand, technology, partner approval, revenue reporting and quality assurance stay central, so a host in any country gets the same system.</p>
-      <div class="cta-row">
-        <a class="btn btn-gold" href="#start" data-role="country">Apply as a country partner</a>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -894,8 +886,6 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
           <legend>I am</legend>
           <label><input type="radio" name="role" value="host" checked><span>A business</span></label>
           <label><input type="radio" name="role" value="pro"><span>A professional</span></label>
-          <label><input type="radio" name="role" value="partner"><span>A brand or supplier</span></label>
-          <label><input type="radio" name="role" value="country"><span>A future country partner</span></label>
         </fieldset>
 
         <div class="plan-box" id="planBox" hidden>
@@ -906,30 +896,17 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
         <div class="fields">
           <div><label for="fName">Your name</label><input id="fName" name="name" type="text" autocomplete="name" required></div>
-          <div><label for="fBiz">Business or brand name</label><input id="fBiz" name="business" type="text" autocomplete="organization"></div>
+          <div><label for="fBiz" id="fBizLabel">Business name</label><input id="fBiz" name="business" type="text" autocomplete="organization" required></div>
           <div><label for="fPhone">Phone or WhatsApp <span class="hint">(optional)</span></label><input id="fPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel"></div>
           <div><label for="fEmail">Email <span class="hint">(your dashboard link is sent here)</span></label><input id="fEmail" name="email" type="email" autocomplete="email" required></div>
 
           <div class="full" data-for="host pro">
-            <label for="fType">Business or profession</label>
-            <select id="fType" name="business_type"></select>
+            <label for="fType" id="fTypeLabel">Type of business</label>
+            <select id="fType" name="business_type" required></select>
           </div>
           <div class="full">
             <label for="fCity">Location <span class="hint">(Google Maps link, or area and city)</span></label>
-            <input id="fCity" name="location" type="text" autocomplete="off">
-          </div>
-
-          <div class="full" data-for="partner" hidden>
-            <label for="fOffer">What do you offer?</label>
-            <select id="fOffer" name="offer">
-              <option>Products</option><option>Equipment</option><option>Workshops and classes</option>
-              <option>Professional services</option><option>Advertising or sampling campaigns</option>
-            </select>
-          </div>
-
-          <div class="full" data-for="country" hidden>
-            <label for="fTerr">Country or territory you would run</label>
-            <input id="fTerr" name="territory" type="text">
+            <input id="fCity" name="location" type="text" autocomplete="off" required>
           </div>
 
           <div class="full">
@@ -1351,8 +1328,20 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     });
     $("bizLabel").textContent = kind === "b" ? "Your kind of business" : "Your profession";
   }
-  fillKind("b"); fillGrouped(bizSwitch); fillGrouped(fType, "Choose a business or profession");
-  var otherOpt = el("option", null, "Something else"); otherOpt.value = "other"; fType.appendChild(otherOpt);
+  fillKind("b"); fillGrouped(bizSwitch);
+  function fillEnquiryType(kind){
+    fType.textContent = "";
+    var placeholder = el("option", null, kind === "b" ? "Choose a business type" : "Choose a profession");
+    placeholder.value = "";
+    fType.appendChild(placeholder);
+    SECTORS.filter(function(s){ return s.t === kind; }).forEach(function(s){
+      var option = el("option", null, s.n);
+      option.value = s.id;
+      fType.appendChild(option);
+    });
+    $("fTypeLabel").textContent = kind === "b" ? "Type of business" : "Your profession";
+  }
+  fillEnquiryType("b");
   document.querySelectorAll('input[name="kind"]').forEach(function(r){
     r.addEventListener("change", function(){ if (r.checked) fillKind(r.value); });
   });
@@ -1508,11 +1497,15 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
   /* ================= enquiry ================= */
   var form = $("startForm"), ready = $("ready"), errBox = $("formErr");
-  var ROLE_NAMES = {host:"Business", pro:"Professional", partner:"Brand or supplier", country:"Country partner"};
+  var ROLE_NAMES = {host:"Business", pro:"Professional"};
   function setRole(role){
     var r = form.querySelector('input[name="role"][value="' + role + '"]');
     if (r) r.checked = true;
     form.querySelectorAll("[data-for]").forEach(function(b){ b.hidden = b.getAttribute("data-for").split(" ").indexOf(role) < 0; });
+    var kind = role === "host" ? "b" : "p";
+    fillEnquiryType(kind);
+    $("fBizLabel").textContent = role === "host" ? "Business name" : "Organization name (optional)";
+    $("fBiz").required = role === "host";
     $("planBox").hidden = !((role === "host" || role === "pro") && $("fPlan").value);
   }
   form.querySelectorAll('input[name="role"]').forEach(function(r){ r.addEventListener("change", function(){ setRole(r.value); }); });
@@ -1533,9 +1526,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     $("fPlan").value = lines.join("\n");
     $("planHead").textContent = "Your plan: " + s.n + ", " + money(t) + " a month at steady state";
     $("planLines").textContent = "Partners in view: " + s.c.join("; ");
+    setRole(s.t === "b" ? "host" : "pro");
     fType.value = String(s.id);
     if (loc.text) $("fCity").value = loc.lat !== null ? mapsLink() : loc.text;
-    setRole(s.t === "b" ? "host" : "pro");
   });
 
   function postJSON(url, data){
@@ -1558,13 +1551,16 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     var role = form.querySelector('input[name="role"]:checked').value;
     var v = function(id){ return $(id).value.trim(); };
     var name = v("fName"), phone = v("fPhone"), email = v("fEmail");
-    var problem = "";
-    if (!name) problem = "Add your name so we know who to reply to.";
-    else if (!email) problem = "Add your email address. We send your dashboard link there.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) problem = "That email address looks incomplete. Check it and try again.";
+    var problem = "", focusId = "";
+    if (!name) { problem = "Add your name so we know who to reply to."; focusId = "fName"; }
+    else if (!email) { problem = "Add your email address. We send your dashboard verification code there."; focusId = "fEmail"; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { problem = "That email address looks incomplete. Check it and try again."; focusId = "fEmail"; }
+    else if (role === "host" && !v("fBiz")) { problem = "Add your business name."; focusId = "fBiz"; }
+    else if (!fType.value) { problem = role === "host" ? "Choose your type of business." : "Choose your profession."; focusId = "fType"; }
+    else if (!v("fCity")) { problem = "Add your area and city or a Google Maps link."; focusId = "fCity"; }
     if (problem){
       errBox.textContent = problem; errBox.hidden = false; ready.hidden = true; $("sent").hidden = true; termsStep.hidden = true;
-      $(!name ? "fName" : "fEmail").focus();
+      $(focusId).focus();
       return;
     }
     errBox.hidden = true;
@@ -1572,13 +1568,11 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     var typeName = usesType && fType.value ? fType.options[fType.selectedIndex].textContent : "";
     var plan = usesType ? $("fPlan").value : "";
     var lines = ["Enquiry type: " + ROLE_NAMES[role], "Name: " + name];
-    if (v("fBiz")) lines.push("Business or brand: " + v("fBiz"));
+    if (v("fBiz")) lines.push((role === "host" ? "Business" : "Organization") + ": " + v("fBiz"));
     if (phone) lines.push("Phone or WhatsApp: " + phone);
     lines.push("Email: " + email);
     if (typeName) lines.push("Business or profession: " + typeName);
     if (v("fCity")) lines.push("Location: " + v("fCity"));
-    if (role === "partner") lines.push("Offer: " + $("fOffer").value);
-    if (role === "country" && v("fTerr")) lines.push("Territory: " + v("fTerr"));
     if (v("fMsg")) lines.push("", "Notes: " + v("fMsg"));
     if (plan) lines.push("", "Dashboard plan", plan);
     var subject = "Partnermybusiness enquiry: " + ROLE_NAMES[role] + (v("fBiz") ? ", " + v("fBiz") : "");
@@ -1589,9 +1583,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
     var data = {"bot-field":$("botField").value, role:role, name:name, business:v("fBiz"), phone:phone, email:email,
                 location:v("fCity"), message:v("fMsg"), plan:plan};
-    if (typeName) data.business_type = typeName;
-    if (role === "partner") data.offer = $("fOffer").value;
-    if (role === "country") data.territory = v("fTerr");
+    data.business_type = typeName;
+    data.business_type_id = fType.value;
     pending = data;
 
     $("termsEmail").textContent = email;
@@ -1616,22 +1609,30 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         termsErr.hidden = false;
         return;
       }
-      $("sentHead").textContent = "Check your inbox";
+      $("sentHead").textContent = r.emailSent ? "Check your inbox" : "Enquiry received";
       $("sentText").textContent = r.hasDashboard
-        ? (r.existingAccount
-            ? "Your enquiry reached our team. You already have a dashboard with " + r.email + ", so we emailed you a link to log in."
-            : "Your enquiry reached our team. We emailed " + r.email + " a link to open your dashboard. It may take a minute, so check your spam folder too.")
-        : "Your enquiry reached our team, and a confirmation is on its way to " + r.email + ". We will be in touch within two working days.";
+        ? (r.emailSent
+            ? "Your enquiry reached our team. We emailed " + r.email + " a verification code to open your dashboard. Check your spam folder too."
+            : r.devOtp
+              ? "Your enquiry reached our team. Use the local test code below to open your dashboard."
+              : "Your enquiry reached our team, but we could not deliver the verification email. Use the login page to request another code or contact our team.")
+        : (r.emailSent
+            ? "Your enquiry reached our team, and a confirmation is on its way to " + r.email + ". We will be in touch within two working days."
+            : "Your enquiry reached our team, but we could not email a confirmation. We will follow up within two working days.");
       $("resendBtn").hidden = !r.hasDashboard;
+      $("resendBtn").textContent = "Email another code";
       $("resendMsg").textContent = "";
       var dev = $("devNote");
-      if (r.devLink){
-        dev.innerHTML = "<strong>Test mode:</strong> email isn\u2019t set up on this server yet, so here is the link that would be emailed: <a></a>";
-        dev.querySelector("a").href = r.devLink; dev.querySelector("a").textContent = "open the dashboard link";
+      if (r.devOtp){
+        dev.textContent = "Local test code: " + r.devOtp + ". ";
+        var login = document.createElement("a");
+        login.href = "/login.html?email=" + encodeURIComponent(r.email) + "#login";
+        login.textContent = "Open dashboard sign-in";
+        dev.appendChild(login);
         dev.hidden = false;
       } else dev.hidden = true;
       $("resendBtn").dataset.email = r.email;
-      ["fName","fBiz","fPhone","fEmail","fCity","fTerr","fMsg","fPlan"].forEach(function(id){ $(id).value = ""; });
+      ["fName","fBiz","fPhone","fEmail","fCity","fMsg","fPlan"].forEach(function(id){ $(id).value = ""; });
       fType.value = ""; setRole("host"); pending = null;
       showPanel($("sent"));
     }).catch(function(){
@@ -1643,9 +1644,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
   $("resendBtn").addEventListener("click", function(){
     var btn = this, msg = $("resendMsg");
     btn.disabled = true;
-    postJSON("/api/auth/request-link", {email: btn.dataset.email}).then(function(r){
+    postJSON("/api/auth/request-otp", {email: btn.dataset.email}).then(function(r){
       btn.disabled = false;
-      msg.textContent = r.httpOk ? "Sent again. Check your inbox and spam folder." : (r.error || "Couldn\u2019t resend right now. Try again shortly.");
+      msg.textContent = r.httpOk ? "If that email has a dashboard, a new code is on its way." : (r.error || "Couldn\u2019t resend right now. Try again shortly.");
     }).catch(function(){ btn.disabled = false; msg.textContent = "Couldn\u2019t resend right now. Try again shortly."; });
   });
 

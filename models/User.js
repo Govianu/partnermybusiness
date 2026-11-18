@@ -2,7 +2,7 @@ const { createModel } = require('../utils/jsonModel');
 
 module.exports = createModel('User', {
   required: ['name', 'role'],
-  unique: ['email', 'handle'],
+  unique: ['handle'],
   enums: {
     role: ['business', 'associate', 'admin'],
     status: ['pending', 'approved', 'rejected', 'imported']

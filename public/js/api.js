@@ -1,10 +1,11 @@
 // Shared helpers for every page
 async function api(path, { method = 'GET', body } = {}) {
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const res = await fetch('/api' + path, {
     method,
     credentials: 'same-origin',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined
+    headers: body && !isFormData ? { 'Content-Type': 'application/json' } : {},
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
@@ -14,6 +15,13 @@ async function api(path, { method = 'GET', body } = {}) {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const inr = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 const fmtDate = d => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+// "Divyaj.govianu05" -> "Divyaj" for greetings
+const firstNameOf = name => {
+  let n = String(name || '').trim().split(/\s+/)[0] || '';
+  if (n.includes('@')) n = n.split('@')[0];
+  n = n.split(/[._]/)[0].replace(/\d+$/, '');
+  return /[a-z]/i.test(n) ? n.charAt(0).toUpperCase() + n.slice(1).toLowerCase() : 'there';
+};
 const pretty = s => String(s || '').replace(/_/g, ' ');
 const pill = s => `<span class="pill ${esc(s)}">${esc(pretty(s))}</span>`;
 const formData = form => Object.fromEntries(new FormData(form).entries());
@@ -66,7 +74,11 @@ function fillWho(user, displayName) {
 function initViews(onChange) {
   const show = () => {
     const links = [...document.querySelectorAll('.nav a[data-view]')];
-    const name = location.hash.slice(1) || links[0].dataset.view;
+    // Old links (#opportunities, #savings, #media) and unknown sections open the closest current section
+    const MOVED = { opportunities: 'learn' };
+    let name = location.hash.slice(1) || links[0].dataset.view;
+    name = MOVED[name] || name;
+    if (!document.getElementById('view-' + name)) name = links[0].dataset.view;
     document.querySelectorAll('section[id^="view-"]').forEach(s => (s.hidden = s.id !== 'view-' + name));
     links.forEach(a => (a.dataset.view === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
     onChange && onChange(name);
@@ -99,7 +111,8 @@ function onSubmit(form, fn) {
     if (errBox) errBox.textContent = '';
     if (btn) btn.disabled = true;
     try {
-      await fn(formData(form), form);
+      const data = form.querySelector('input[type="file"]') ? new FormData(form) : formData(form);
+      await fn(data, form);
     } catch (err) {
       if (errBox) errBox.textContent = err.message;
       else toast(err.message, true);

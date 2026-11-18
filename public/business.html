@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/growth.css">
 </head>
 <body>
 <div class="shell">
@@ -20,52 +21,55 @@
     </div>
     <nav class="nav" aria-label="Dashboard">
       <a href="#overview" data-view="overview">Overview</a>
-      <a href="#opportunities" data-view="opportunities">Ways to earn</a>
+      <a href="#learn" data-view="learn">Learn &amp; earn</a>
       <a href="#bookings" data-view="bookings">Booking requests</a>
-      <a href="#savings" data-view="savings">Supply savings</a>
       <a href="#profile" data-view="profile">Profile</a>
     </nav>
-    <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
+    <div class="side-foot"><a class="link-btn" href="/login.html?switch=1#login">Switch dashboard</a><button class="link-btn" onclick="logout()">Log out</button></div>
   </aside>
 
   <main class="main">
+    <div class="ctabar-wrap" id="ctaBar"></div>
     <section id="view-overview">
-      <div class="view-head">
-        <div><h1 id="hello">Hello</h1><p id="statusLine"></p></div>
-        <a class="btn ghost" id="bookingLink" target="_blank" rel="noopener">Open your booking page</a>
+      <p class="hello-line"><strong id="hello">Hello</strong> <span id="statusLine" class="meta"></span></p>
+      <div id="slides"></div>
+      <div id="skillsBox"></div>
+      <div class="section-title"><h2 id="lessonsTitle">Your video lessons</h2><a href="#learn">See all lessons</a></div>
+      <div id="lessonStrip"></div>
+      <div class="overview-grid">
+        <div id="planner"></div>
+        <div class="nextsteps" id="nextSteps"></div>
       </div>
       <div class="stats" id="stats"></div>
-      <h2>Waiting for your answer</h2>
+      <div class="section-title"><h2>Waiting for your answer</h2><a id="bookingLink" target="_blank" rel="noopener">Open your booking page</a></div>
       <div id="pendingList"></div>
     </section>
 
-    <section id="view-opportunities" hidden>
+    <section id="view-learn" hidden>
       <div class="view-head">
-        <div><h1>Ways to earn from idle time</h1><p>Ideas picked for your business. Tap “I’m interested” and your PMB manager sets it up.</p></div>
-        <button class="btn ghost" id="refreshOpps">Suggest new ideas</button>
+        <div><h1 id="learnTitle">Learn &amp; earn</h1><p id="learnIntro">Short lessons on how to earn from your skills, built for your business.</p></div>
+        <button class="btn ghost" type="button" id="changeSkills">Change skills</button>
       </div>
-      <div class="opps" id="opps"></div>
+      <div class="learn">
+        <div id="player"></div>
+        <div><h3 style="margin-top:0">Your playlist</h3><div id="playlist"></div></div>
+      </div>
+
+      <div class="earn-block">
+        <div class="section-title">
+          <div><h2 id="opportunityTitle">Ways to grow your business</h2><p class="meta" id="opportunityIntro" style="margin:.2rem 0 0">Ideas picked for your business.</p></div>
+          <button class="btn ghost small" id="refreshOpps" type="button">Suggest new ideas</button>
+        </div>
+        <div class="opps" id="opps"></div>
+      </div>
     </section>
 
     <section id="view-bookings" hidden>
       <div class="view-head">
         <div><h1>Booking requests</h1><p>Event managers and customers who want your space. Accepting books an onboarding call.</p></div>
+        <button class="btn ghost" type="button" id="shareBookingPage">Copy booking page link</button>
       </div>
       <div id="bookingList"></div>
-    </section>
-
-    <section id="view-savings" hidden>
-      <div class="view-head">
-        <div><h1>Supply savings</h1><p>See what you keep by buying direct from producers instead of through distributors.</p></div>
-      </div>
-      <div class="panel">
-        <div class="calc-rows" id="calcRows"></div>
-        <button class="btn ghost small" id="addRow" type="button">Add another item</button>
-      </div>
-      <div class="panel">
-        <div class="calc-out" id="calcTotal">₹0<small>saved per month</small></div>
-        <p class="meta" id="calcYear"></p>
-      </div>
     </section>
 
     <section id="view-profile" hidden>
@@ -91,6 +95,8 @@
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/lesson-videos.js"></script>
+<script src="/js/growth.js"></script>
 <script src="/js/business.js"></script>
 </body>
 </html>

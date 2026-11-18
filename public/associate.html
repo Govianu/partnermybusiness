@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/growth.css">
 </head>
 <body>
 <div class="shell">
@@ -20,20 +21,40 @@
     </div>
     <nav class="nav" aria-label="Dashboard">
       <a href="#overview" data-view="overview">Overview</a>
+      <a href="#learn" data-view="learn">Learn &amp; earn</a>
       <a href="#gigs" data-view="gigs">Shifts near you</a>
       <a href="#workshops" data-view="workshops">Run a workshop</a>
-      <a href="#media" data-view="media">Videos & courses</a>
+      <a href="#profile" data-view="profile">Skills & profile</a>
     </nav>
-    <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
+    <div class="side-foot"><a class="link-btn" href="/login.html?switch=1#login">Switch dashboard</a><button class="link-btn" onclick="logout()">Log out</button></div>
   </aside>
 
   <main class="main">
+    <div class="ctabar-wrap" id="ctaBar"></div>
     <section id="view-overview">
-      <div class="view-head"><div><h1 id="hello">Hello</h1><p>Four steps to start earning on your days off.</p></div></div>
-      <ol class="steps" id="steps"></ol>
-      <div class="two-col" style="margin-top:2rem">
+      <p class="hello-line"><strong id="hello">Hello</strong> <span class="meta">Here’s how to earn more from your skills.</span></p>
+      <div id="slides"></div>
+      <div id="skillsBox"></div>
+      <div class="section-title"><h2 id="lessonsTitle">Your video lessons</h2><a href="#learn">See all lessons</a></div>
+      <div id="lessonStrip"></div>
+      <div class="overview-grid">
+        <div id="planner"></div>
+        <div class="nextsteps" id="steps"></div>
+      </div>
+      <div class="two-col">
         <div class="panel"><h3>Your PMB manager</h3><div id="managerBox" class="meta"></div></div>
         <div class="panel"><h3>Your work</h3><div id="myGigs"></div></div>
+      </div>
+    </section>
+
+    <section id="view-learn" hidden>
+      <div class="view-head">
+        <div><h1 id="learnTitle">Learn &amp; earn</h1><p id="learnIntro">Short lessons on how to earn from your skills.</p></div>
+        <button class="btn ghost" type="button" id="changeSkills">Change skills</button>
+      </div>
+      <div class="learn">
+        <div id="player"></div>
+        <div><h3 style="margin-top:0">Your playlist</h3><div id="playlist"></div></div>
       </div>
     </section>
 
@@ -69,30 +90,30 @@
       </div>
     </section>
 
-    <section id="view-media" hidden>
-      <div class="view-head"><div><h1>Videos & courses</h1><p>Share a Google Drive or YouTube link. The PMB team checks each upload before it goes live.</p></div></div>
-      <div class="two-col">
-        <form class="panel" id="mediaForm">
-          <div class="error-box" role="alert"></div>
-          <div class="field"><label for="mk">What are you uploading?</label>
-            <select id="mk" name="kind">
-              <option value="intro_video">30-second intro video</option>
-              <option value="training_video">Training video</option>
-              <option value="course_pdf">Course details (PDF)</option>
-            </select>
-          </div>
-          <div class="field"><label for="mt">Title</label><input id="mt" name="title" required></div>
-          <div class="field"><label for="mu">Link</label><input id="mu" name="url" type="url" placeholder="https://drive.google.com/..." required></div>
-          <div class="field"><label for="md">Short description</label><textarea id="md" name="description"></textarea></div>
-          <button class="btn" type="submit">Upload for review</button>
-        </form>
-        <div><h3>Your uploads</h3><div id="mediaList"></div></div>
-      </div>
+    <section id="view-profile" hidden>
+      <div class="view-head"><div><h1>Skills & profile</h1><p>Help PMB match you with the right shifts, workshops and partner businesses.</p></div></div>
+      <form class="panel" id="associateProfileForm">
+        <div class="error-box" role="alert"></div>
+        <div class="row">
+          <div class="field"><label for="apPhone">Phone</label><input id="apPhone" name="phone" type="tel"></div>
+          <div class="field"><label for="apSkill">Primary skill</label><input id="apSkill" name="skill" maxlength="80" placeholder="Chef, trainer, beautician"></div>
+        </div>
+        <div class="field"><span class="label-like">Skillset</span>
+          <div class="skills-inline"><ul class="skill-chips" id="profileSkills"></ul><button class="btn ghost small" type="button" id="profileSkillsBtn">Change skills</button></div></div>
+        <div class="row">
+          <div class="field"><label for="apExperience">Years of experience</label><input id="apExperience" name="experienceYears" type="number" min="0" max="60"></div>
+          <div class="field"><label for="apAvailability">Availability</label><input id="apAvailability" name="availability" maxlength="200" placeholder="Tuesdays and Thursdays after 4pm"></div>
+        </div>
+        <div class="field"><label for="apBio">Short professional bio</label><textarea id="apBio" name="bio" maxlength="1000" placeholder="Your experience, specialties and the work you are looking for."></textarea></div>
+        <button class="btn" type="submit">Save professional profile</button>
+      </form>
     </section>
   </main>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/lesson-videos.js"></script>
+<script src="/js/growth.js"></script>
 <script src="/js/associate.js"></script>
 </body>
 </html>

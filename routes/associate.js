@@ -5,6 +5,10 @@ const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
 const { computeSplit } = require('../utils/split');
 const { fail, str } = require('../utils/http');
+const { industryFor } = require('../utils/industry');
+const { uploadMiddleware } = require('../utils/mediaUpload');
+const { createMediaUpload, deleteOwnedMedia } = require('../utils/mediaController');
+const rateLimit = require('../utils/rateLimit');
 
 router.use(requireAuth('associate'));
 
@@ -21,16 +25,17 @@ router.get('/dashboard', async (req, res) => {
       .sort({ createdAt: -1 })
   ]);
 
-  const approvedVideo = media.some(m => m.kind === 'intro_video' && m.status === 'approved');
+  const skillSet = Array.isArray(me.skills) && me.skills.length ? me.skills : (Array.isArray(me.associate?.skills) ? me.associate.skills : []);
   const steps = [
-    { key: 'profile', label: 'Profile created', done: true },
-    { key: 'video', label: 'Intro video uploaded', done: media.some(m => m.kind === 'intro_video') },
-    { key: 'validated', label: 'Video validated by PMB team', done: approvedVideo },
+    { key: 'skills', label: 'Choose your skills', done: skillSet.length > 0 },
+    { key: 'lesson', label: 'Watch your first lesson', done: (me.lessonsWatched || []).length > 0 },
+    { key: 'profile', label: 'Add a short bio and availability', done: Boolean(me.associate?.bio && me.associate?.availability) },
     { key: 'live', label: 'Profile live for bookings', done: me.status === 'approved' }
   ];
 
   res.json({
     user: me,
+    industry: industryFor(me),
     steps,
     media,
     openGigs: openGigs.filter(g => !g.applicants.some(a => String(a) === String(me._id))),
@@ -38,15 +43,15 @@ router.get('/dashboard', async (req, res) => {
   });
 });
 
-router.post('/media', async (req, res) => {
-  const b = req.body || {};
-  if (!['intro_video', 'training_video', 'course_pdf'].includes(b.kind)) throw fail('Choose what you are uploading');
-  if (!str(b.title)) throw fail('Give your upload a title');
-  if (!/^https?:\/\//i.test(str(b.url))) throw fail('Paste a link that starts with https:// (Google Drive, YouTube...)');
-  const media = await Media.create({
-    owner: req.user._id, kind: b.kind, title: str(b.title), description: str(b.description), url: str(b.url)
-  });
+router.post('/media', rateLimit(10, 60 * 60 * 1000), uploadMiddleware, async (req, res) => {
+  const allowedKinds = ['intro_video', 'training_video', 'course_pdf', 'portfolio_image', 'portfolio_slides'];
+  const media = await createMediaUpload({ req, owner: req.user, allowedKinds });
   res.status(201).json({ media });
+});
+
+router.delete('/media/:id', async (req, res) => {
+  await deleteOwnedMedia({ id: req.params.id, owner: req.user });
+  res.json({ ok: true });
 });
 
 router.post('/gigs/workshop', async (req, res) => {
@@ -90,9 +95,17 @@ router.post('/gigs/:id/apply', async (req, res) => {
 router.patch('/profile', async (req, res) => {
   const b = req.body || {};
   const u = req.user;
-  for (const key of ['availability', 'bio']) if (typeof b[key] === 'string') u.associate[key] = b[key].trim();
-  if (b.experienceYears !== undefined) u.associate.experienceYears = Number(b.experienceYears) || 0;
-  if (typeof b.phone === 'string') u.phone = b.phone.trim();
+  for (const key of ['availability', 'bio', 'skill']) if (typeof b[key] === 'string') u.associate[key] = b[key].trim().slice(0, 1000);
+  if (b.experienceYears !== undefined) {
+    const years = Number(b.experienceYears);
+    if (!Number.isInteger(years) || years < 0 || years > 60) throw fail('Enter experience from 0 to 60 years');
+    u.associate.experienceYears = years;
+  }
+  if (b.skills !== undefined) {
+    const skills = Array.isArray(b.skills) ? b.skills.slice(0, 12) : String(b.skills).slice(0, 800).split(',');
+    u.associate.skills = skills.map(item => str(item).trim().slice(0, 60)).filter(Boolean).slice(0, 12);
+  }
+  if (typeof b.phone === 'string') u.phone = b.phone.trim().slice(0, 40);
   await u.save();
   res.json({ user: u });
 });

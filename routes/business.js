@@ -2,20 +2,26 @@ const router = require('express').Router();
 const Booking = require('../models/Booking');
 const Opportunity = require('../models/Opportunity');
 const Lead = require('../models/Lead');
+const Media = require('../models/Media');
 const { requireAuth } = require('../middleware/auth');
 const { computeSplit } = require('../utils/split');
 const { createMeeting, meetConfigured } = require('../utils/meet');
 const { generateOpportunities } = require('../utils/ai');
-const { fail } = require('../utils/http');
+const { fail, str } = require('../utils/http');
 const { sendMail } = require('../utils/mailer');
 const { bookingAccepted } = require('../utils/emails');
+const { industryFor } = require('../utils/industry');
+const { uploadMiddleware } = require('../utils/mediaUpload');
+const { createMediaUpload, deleteOwnedMedia } = require('../utils/mediaController');
+const rateLimit = require('../utils/rateLimit');
 
 router.use(requireAuth('business'));
 
 router.get('/dashboard', async (req, res) => {
-  const [opportunities, bookings] = await Promise.all([
+  const [opportunities, bookings, media] = await Promise.all([
     Opportunity.find({ business: req.user._id, status: { $ne: 'dismissed' } }).sort({ createdAt: -1 }),
-    Booking.find({ business: req.user._id }).sort({ createdAt: -1 }).limit(100)
+    Booking.find({ business: req.user._id }).sort({ createdAt: -1 }).limit(100),
+    Media.find({ owner: req.user._id }).sort({ createdAt: -1 })
   ]);
   const withSplit = bookings.map(b => ({
     ...b.toJSON(),
@@ -28,6 +34,8 @@ router.get('/dashboard', async (req, res) => {
   res.json({
     opportunities,
     bookings: withSplit,
+    media,
+    industry: industryFor(req.user),
     stats: {
       pending: bookings.filter(b => b.status === 'requested').length,
       accepted: bookings.filter(b => b.status === 'accepted').length,
@@ -36,6 +44,17 @@ router.get('/dashboard', async (req, res) => {
     },
     meetConfigured: meetConfigured()
   });
+});
+
+router.post('/media', rateLimit(10, 60 * 60 * 1000), uploadMiddleware, async (req, res) => {
+  const allowedKinds = ['business_video', 'business_image', 'business_menu', 'business_slides'];
+  const media = await createMediaUpload({ req, owner: req.user, allowedKinds });
+  res.status(201).json({ media });
+});
+
+router.delete('/media/:id', async (req, res) => {
+  await deleteOwnedMedia({ id: req.params.id, owner: req.user });
+  res.json({ ok: true });
 });
 
 router.post('/opportunities/refresh', async (req, res) => {
@@ -110,9 +129,9 @@ router.patch('/profile', async (req, res) => {
   const b = req.body || {};
   const u = req.user;
   for (const key of ['address', 'idleSlots', 'razorpayAccountId']) {
-    if (typeof b[key] === 'string') u.business[key] = b[key].trim();
+    if (typeof b[key] === 'string') u.business[key] = b[key].trim().slice(0, 500);
   }
-  if (typeof b.phone === 'string') u.phone = b.phone.trim();
+  if (typeof b.phone === 'string') u.phone = b.phone.trim().slice(0, 40);
   await u.save();
   res.json({ user: u });
 });

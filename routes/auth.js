@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const bcrypt = require('bcryptjs');
+const { industryFor } = require('../utils/industry');
 const User = require('../models/User');
 const Opportunity = require('../models/Opportunity');
 const { issueToken, requireAuth, COOKIE } = require('../middleware/auth');
@@ -9,37 +9,61 @@ const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
 const { issueLink, findByToken } = require('../utils/links');
 const { sendMail, mailConfigured } = require('../utils/mailer');
-const { loginLink } = require('../utils/emails');
+const { emailOtp, loginLink } = require('../utils/emails');
+const { clearOtp, issueOtpForUsers, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
 
+function profileSummary(user) {
+  const industry = industryFor(user);
+  const title = user.role === 'business'
+    ? `${user.business?.businessName || user.name} — ${industry.display} business`
+    : user.role === 'associate' ? `${user.name} — ${industry.display} professional` : `${user.name} — PMB team`;
+  return { id: user._id, role: user.role, label: title };
+}
+
 router.get('/options', (req, res) => res.json({ businessCategories: BUSINESS_CATEGORIES, associateSkills: ASSOCIATE_SKILLS }));
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const b = req.body || {};
   const role = str(b.role);
-  const name = str(b.name);
-  const email = str(b.email).toLowerCase();
-  const password = typeof b.password === 'string' ? b.password : '';
-  const location = str(b.location);
+  const name = str(b.name).slice(0, 120);
+  const email = str(b.email).toLowerCase().slice(0, 200);
+  const location = str(b.location).slice(0, 200);
 
   if (!['business', 'associate', 'admin'].includes(role)) throw fail('Choose whether you are a business or an associate');
   if (!name) throw fail('Enter your name');
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
-  if (password.length < 8) throw fail('Use a password with at least 8 characters');
   if (b.termsAccepted !== true && b.termsAccepted !== 'true' && b.termsAccepted !== 'on') throw fail('Please agree to the Terms and Conditions to create your profile');
   if (role === 'admin' && (!process.env.ADMIN_INVITE_CODE || b.inviteCode !== process.env.ADMIN_INVITE_CODE)) {
     throw fail('That team invite code is not valid', 403);
   }
   if (role !== 'admin' && !location) throw fail('Enter your area, for example Sadashivnagar');
-  if (await User.exists({ email })) throw fail('An account with this email already exists. Log in instead.', 409);
+  if (!mailConfigured() && process.env.NODE_ENV === 'production') {
+    throw fail('Email verification is not configured. Please contact support.', 503);
+  }
+  const existingProfiles = await User.find({ email });
+  if (existingProfiles.some(profile => profile.role === role)) {
+    const primary = existingProfiles[0];
+    const code = await issueOtpForUsers(existingProfiles);
+    const result = await sendMail(emailOtp({
+      name: primary.name, email, code, role: primary.role, category: primary.category,
+      sectorId: primary.sectorId, multipleProfiles: existingProfiles.length > 1
+    }));
+    if (result.error || (!result.sent && process.env.NODE_ENV === 'production' && !mailConfigured())) {
+      throw fail('We could not send your verification code. Please try again later.', 503);
+    }
+    return res.status(200).json({
+      ok: true, verificationRequired: true, email,
+      devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
+    });
+  }
 
   const doc = {
     role, name, email,
-    phone: str(b.phone),
-    passwordHash: await bcrypt.hash(password, 10),
+    phone: str(b.phone).slice(0, 40),
     location: location.toLowerCase(),
     status: role === 'admin' ? 'approved' : 'pending',
     termsAcceptedAt: new Date().toISOString(),
@@ -47,7 +71,7 @@ router.post('/signup', async (req, res) => {
   };
 
   if (role === 'business') {
-    const businessName = str(b.businessName);
+    const businessName = str(b.businessName).slice(0, 160);
     const category = BUSINESS_CATEGORIES.includes(b.category) ? b.category : 'other';
     if (!businessName) throw fail('Enter your business name');
     Object.assign(doc, {
@@ -64,44 +88,122 @@ router.post('/signup', async (req, res) => {
     });
   } else if (role === 'associate') {
     const skill = ASSOCIATE_SKILLS.includes(b.skill) ? b.skill : 'other';
+    const years = b.experienceYears === undefined || b.experienceYears === '' ? 0 : Number(b.experienceYears);
+    const suppliedSkills = Array.isArray(b.skills) ? b.skills.slice(0, 12) : str(b.skills).slice(0, 800).split(',');
+    if (!Number.isInteger(years) || years < 0 || years > 60) throw fail('Enter experience from 0 to 60 years');
     Object.assign(doc, {
       category: skill,
       slug: name,
       handle: await uniqueHandle(skill, location, name.split(' ')[0]),
       associate: {
         skill,
-        experienceYears: Number(b.experienceYears) || 0,
-        availability: str(b.availability),
-        bio: str(b.bio)
+        skills: suppliedSkills.map(str).map(s => s.slice(0, 60)).filter(Boolean),
+        experienceYears: years,
+        availability: str(b.availability).slice(0, 200),
+        bio: str(b.bio).slice(0, 1000)
       }
     });
   }
 
   const user = await User.create(doc);
-
   // Seed the opportunity feed in the background so signup stays fast
   if (role === 'business') {
-    generateOpportunities({ name: user.business.businessName, category: user.category, location: user.location })
+    generateOpportunities({ name: user.business.businessName, category: user.category, sectorId: user.sectorId, location: user.location })
       .then(ops => Opportunity.insertMany(ops.map(o => ({ ...o, business: user._id }))))
       .catch(err => console.error('Opportunity seeding failed:', err.message));
   }
 
-  issueToken(res, user);
-  res.status(201).json({ user, redirect: `/${role}.html` });
+  const profiles = await User.find({ email });
+  const code = await issueOtpForUsers(profiles);
+  const mailResult = await sendMail(emailOtp({
+    name: user.name, email, code, role, category: user.category, sectorId: user.sectorId,
+    multipleProfiles: profiles.length > 1
+  }));
+  if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
+
+  res.status(201).json({
+    ok: true, verificationRequired: true, email,
+    devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
+  });
 });
 
 router.post('/login', async (req, res) => {
-  const email = str(req.body?.email).toLowerCase();
-  const password = typeof req.body?.password === 'string' ? req.body.password : '';
-  const user = await User.findOne({ email }).select('+passwordHash');
-  if (user && !user.passwordHash) {
-    throw fail('Your dashboard isn’t activated yet. Use “Email me a login link” below and we’ll send it again.', 401);
+  throw fail('Password login is no longer available. Request a sign-in code by email.', 410);
+});
+
+router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
+  const email = str(req.body?.email).toLowerCase().slice(0, 200);
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
+  const users = await User.find({ email });
+  let devOtp;
+  if (users.length) {
+    if (!mailConfigured() && process.env.NODE_ENV === 'production') {
+      throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
+    }
+    const code = await issueOtpForUsers(users);
+    const result = await sendMail(emailOtp({
+      name: users[0].name, email, code, role: users[0].role, category: users[0].category,
+      sectorId: users[0].sectorId, multipleProfiles: users.length > 1
+    }));
+    if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
+    if (!mailConfigured() && process.env.NODE_ENV !== 'production') devOtp = code;
   }
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    throw fail('Email or password is incorrect', 401);
+
+  res.json({
+    ok: true,
+    message: 'If that email has a dashboard, a sign-in code is on its way.',
+    devOtp
+  });
+});
+
+router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
+  const email = str(req.body?.email).toLowerCase().slice(0, 200);
+  const code = str(req.body?.code);
+  const profileId = str(req.body?.profileId);
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
+  const users = await User.find({ email });
+  const active = users.filter(otpIsActive);
+  if (!active.length) {
+    for (const user of users) {
+      if (user.emailOtpHash) { clearOtp(user); await user.save(); }
+    }
+    throw fail('That code has expired or is incorrect. Request a new code.', 401);
+  }
+  const codeMatches = active.some(candidate => otpMatches(candidate, code));
+  if (!codeMatches) {
+    for (const candidate of active) {
+      recordOtpFailure(candidate);
+      await candidate.save();
+    }
+    throw fail('That code has expired or is incorrect. Request a new code.', 401);
+  }
+  const user = profileId
+    ? active.find(candidate => String(candidate._id) === profileId && otpMatches(candidate, code))
+    : active.find(candidate => otpMatches(candidate, code));
+  if (!user) throw fail('That dashboard is not linked to this email.', 404);
+  if (!profileId && active.length > 1) {
+    return res.json({ profiles: active.map(profileSummary) });
+  }
+  const verifiedAt = new Date().toISOString();
+  for (const profile of users) {
+    profile.emailVerifiedAt = profile.emailVerifiedAt || verifiedAt;
+    clearOtp(profile);
+    await profile.save();
   }
   issueToken(res, user);
   res.json({ user, redirect: `/${user.role}.html` });
+});
+
+router.get('/profiles', requireAuth(), async (req, res) => {
+  const profiles = await User.find({ email: req.user.email }).sort({ createdAt: 1 });
+  res.json({ profiles: profiles.map(profileSummary) });
+});
+
+router.post('/switch-profile', requireAuth(), async (req, res) => {
+  const profile = await User.findById(str(req.body?.profileId));
+  if (!profile || profile.email !== req.user.email) throw fail('Dashboard not found', 404);
+  issueToken(res, profile);
+  res.json({ user: profile, redirect: `/${profile.role}.html` });
 });
 
 router.post('/logout', (req, res) => {
@@ -111,10 +213,10 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth(), async (req, res) => {
   await req.user.populate('assignedManager', 'name email phone');
-  res.json({ user: req.user });
+  res.json({ user: req.user, industry: industryFor(req.user) });
 });
 
-// ---------- One-time links: activate a dashboard from the enquiry email, or reset a password ----------
+// Older email links remain valid, but now verify the address and open the dashboard without a password.
 router.get('/link/:token', async (req, res) => {
   const user = await findByToken(User, req.params.token);
   if (!user) throw fail('This link has expired or was already used. Request a new one below.', 410);
@@ -122,12 +224,10 @@ router.get('/link/:token', async (req, res) => {
 });
 
 router.post('/activate', async (req, res) => {
-  const password = typeof req.body?.password === 'string' ? req.body.password : '';
-  if (password.length < 8) throw fail('Use a password with at least 8 characters');
   const user = await findByToken(User, req.body?.token);
   if (!user) throw fail('This link has expired or was already used. Request a new one below.', 410);
-  user.passwordHash = await bcrypt.hash(password, 10);
   user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
+  clearOtp(user);
   user.linkTokenHash = null;
   user.linkTokenExpires = null;
   user.linkTokenPurpose = null;

@@ -1,20 +1,93 @@
 (async function () {
-  const next = new URLSearchParams(location.search).get('next') || '';
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next') || '';
+  const emailParam = params.get('email') || '';
+  const profileIdParam = params.get('profileId') || '';
+  const switchMode = params.get('switch') === '1';
   const goTo = redirect => {
     const safe = /^(business|associate|admin)\.html(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('.')[0]);
     location.href = safe ? '/' + next : redirect;
   };
 
-  // Already logged in? Go straight to the dashboard.
+  // Keep the requested sign-in flow when an email link names a different account.
   try {
     const { user } = await api('/auth/me');
-    goTo(`/${user.role}.html`);
-    return;
+    const expectedRole = /^(business|associate|admin)\.html/.exec(next)?.[1];
+    const sameRequestedProfile = user.email?.toLowerCase() === emailParam.toLowerCase()
+      && (!profileIdParam || String(user._id) === profileIdParam)
+      && (!expectedRole || user.role === expectedRole);
+    if ((!emailParam && !switchMode) || (emailParam && sameRequestedProfile)) {
+      goTo(`/${user.role}.html`);
+      return;
+    }
   } catch { /* not logged in */ }
 
   const form = document.getElementById('signupForm');
   const roleInput = form.querySelector('input[name="role"]');
   const tabs = document.querySelectorAll('.tabs button');
+  const loginForm = document.getElementById('loginForm');
+  const otpForm = document.getElementById('otpForm');
+  const otpMessage = document.getElementById('otpMsg');
+  const profilePicker = document.getElementById('profilePicker');
+  const profileOptions = document.getElementById('profileOptions');
+  const profileError = document.getElementById('profileError');
+
+  function showOtpForm(email, devOtp, message, profileId = '') {
+    document.getElementById('loginPane').hidden = false;
+    document.getElementById('signupPane').hidden = true;
+    loginForm.hidden = true;
+    otpForm.hidden = false;
+    profilePicker.hidden = true;
+    otpForm.elements.email.value = email;
+    otpForm.elements.profileId.value = profileId;
+    document.getElementById('otpEmail').textContent = email;
+    document.getElementById('otpCode').value = '';
+    otpMessage.textContent = message || 'Check your inbox and spam folder. The code expires in 10 minutes.';
+    if (devOtp) otpMessage.textContent += ` Local test code: ${devOtp}`;
+    document.getElementById('otpCode').focus();
+  }
+
+  function resetOtpForm() {
+    otpForm.hidden = true;
+    profilePicker.hidden = true;
+    loginForm.hidden = false;
+    otpMessage.textContent = '';
+    loginForm.elements.email.value = '';
+    loginForm.elements.email.focus();
+  }
+
+  function showProfilePicker(profiles, { email, code, authenticated = false }) {
+    loginForm.hidden = true;
+    otpForm.hidden = true;
+    profilePicker.hidden = false;
+    profileError.hidden = true;
+    profileError.textContent = '';
+    document.getElementById('profilePrompt').textContent = authenticated
+      ? 'Choose a dashboard to switch to.'
+      : 'This email has several dashboards. Choose which one to open.';
+    profileOptions.textContent = '';
+    profiles.forEach(profile => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn wide';
+      button.textContent = profile.label;
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const result = await api(authenticated ? '/auth/switch-profile' : '/auth/verify-otp', {
+            method: 'POST',
+            body: authenticated ? { profileId: profile.id } : { email, code, profileId: profile.id }
+          });
+          goTo(result.redirect);
+        } catch (err) {
+          button.disabled = false;
+          profileError.textContent = err.message;
+          profileError.hidden = false;
+        }
+      });
+      profileOptions.appendChild(button);
+    });
+  }
 
   const { businessCategories, associateSkills } = await api('/auth/options').catch(() => ({
     businessCategories: ['restaurant'], associateSkills: ['chef']
@@ -84,40 +157,67 @@
   form.addEventListener('input', updateHandle);
   form.addEventListener('change', updateHandle);
 
-  document.querySelectorAll('[data-go]').forEach(b =>
-    b.addEventListener('click', () => {
-      const login = b.dataset.go === 'login';
-      document.getElementById('loginPane').hidden = !login;
-      document.getElementById('signupPane').hidden = login;
-      (login ? document.getElementById('loginEmail') : document.getElementById('name')).focus();
-    })
-  );
-
   onSubmit(form, async data => {
     if (!form.querySelector('[name="termsAccepted"]').checked) throw new Error('Please agree to the Terms and Conditions to create your profile');
-    const { redirect } = await api('/auth/signup', { method: 'POST', body: { ...data, termsAccepted: true } });
-    goTo(redirect);
+    const result = await api('/auth/signup', { method: 'POST', body: { ...data, termsAccepted: true } });
+    showOtpForm(result.email, result.devOtp, 'We sent a verification code. Check your inbox and spam folder.');
   });
 
-  onSubmit(document.getElementById('loginForm'), async data => {
-    const { redirect } = await api('/auth/login', { method: 'POST', body: data });
-    goTo(redirect);
+  onSubmit(loginForm, async data => {
+    const result = await api('/auth/request-otp', { method: 'POST', body: data });
+    showOtpForm(data.email, result.devOtp, result.message || 'Check your inbox and spam folder.');
   });
 
-  const linkForm = document.getElementById('linkForm');
-  document.getElementById('linkToggle').addEventListener('click', () => {
-    linkForm.hidden = false;
-    linkForm.email.value = document.getElementById('loginEmail').value;
-    linkForm.email.focus();
-  });
-  onSubmit(linkForm, async data => {
-    if (!/^\S+@\S+\.\S+$/.test(data.email || '')) throw new Error('Enter the email you used for your enquiry or profile');
-    const r = await api('/auth/request-link', { method: 'POST', body: data });
-    const msg = document.getElementById('linkMsg');
-    msg.textContent = 'If that email has a dashboard, a login link is on its way. Check your inbox and spam folder.';
-    if (r.devLink) msg.innerHTML += ` <br><strong>Test mode (email not set up yet):</strong> <a href="${esc(r.devLink)}">open the link</a>`;
+  onSubmit(otpForm, async data => {
+    const result = await api('/auth/verify-otp', { method: 'POST', body: data });
+    if (result.profiles) {
+      showProfilePicker(result.profiles, { email: data.email, code: data.code });
+      return;
+    }
+    goTo(result.redirect);
   });
 
-  setRole(new URLSearchParams(location.search).get('as') === 'associate' ? 'associate' : 'business');
-  if (location.hash === '#login' || next) document.querySelector('[data-go="login"]').click();
+  document.getElementById('resendOtp').addEventListener('click', async () => {
+    otpMessage.textContent = '';
+    try {
+      const email = otpForm.elements.email.value;
+      const result = await api('/auth/request-otp', { method: 'POST', body: { email } });
+      otpMessage.textContent = result.message || 'If that email has a dashboard, a new code is on its way.';
+      if (result.devOtp) otpMessage.textContent += ` Local test code: ${result.devOtp}`;
+    } catch (err) {
+      otpMessage.textContent = err.message;
+    }
+  });
+  document.getElementById('changeEmail').addEventListener('click', resetOtpForm);
+  document.getElementById('profileChangeEmail').addEventListener('click', resetOtpForm);
+
+  document.querySelectorAll('[data-go]').forEach(button => button.addEventListener('click', () => {
+    resetOtpForm();
+    const login = button.dataset.go === 'login';
+    document.getElementById('loginPane').hidden = !login;
+    document.getElementById('signupPane').hidden = login;
+    (login ? document.getElementById('loginEmail') : document.getElementById('name')).focus();
+  }));
+
+  setRole(params.get('as') === 'associate' ? 'associate' : 'business');
+  if (emailParam) document.getElementById('loginEmail').value = emailParam;
+  if (location.hash === '#login' || next) {
+    document.getElementById('signupPane').hidden = true;
+    document.getElementById('loginPane').hidden = false;
+  }
+  if (emailParam && params.get('verify') === '1') {
+    showOtpForm(emailParam, null, 'Enter the verification code in your enquiry email.', profileIdParam);
+  }
+  if (switchMode) {
+    document.getElementById('signupPane').hidden = true;
+    document.getElementById('loginPane').hidden = false;
+    try {
+      const { profiles } = await api('/auth/profiles');
+      showProfilePicker(profiles, { authenticated: true });
+    } catch {
+      loginForm.hidden = false;
+      profilePicker.hidden = true;
+      loginForm.querySelector('.error-box').textContent = 'Sign in with an email code before switching dashboards.';
+    }
+  }
 })();

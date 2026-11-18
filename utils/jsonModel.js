@@ -2,11 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const APP_DIR = path.resolve(__dirname, '..');
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(APP_DIR, process.env.DATA_DIR)
+  : path.join(APP_DIR, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'app-data.json');
 const models = {};
 // Never sent to the browser
-const USER_SECRETS = ['passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose'];
+const USER_SECRETS = [
+  'passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose',
+  'emailOtpHash', 'emailOtpExpiresAt', 'emailOtpAttempts'
+];
 let data;
 
 function loadData() {

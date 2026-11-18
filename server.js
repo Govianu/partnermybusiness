@@ -18,10 +18,18 @@ app.use(cookieParser());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/business', require('./routes/business'));
 app.use('/api/associate', require('./routes/associate'));
+app.use('/api/media', require('./routes/media'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/public', require('./routes/public'));
 app.use('/api/enquiry', require('./routes/enquiry'));
+app.use('/api/growth', require('./routes/growth'));
+app.use('/api/lesson-videos', require('./routes/lessonVideos'));
+// The 100 business types and professions, served to the dashboards from the same file the server uses
+app.get('/js/catalog.js', (req, res) => {
+  res.type('application/javascript').set('Cache-Control', 'public, max-age=3600');
+  res.send('window.PMB_CATALOG = ' + JSON.stringify(require('./utils/catalog').data) + ';');
+});
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -40,5 +48,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 initialize();
+require('./utils/lessonVideos').startWorker(); // AI presenter videos (only when HeyGen is set up)
 verifyMail();
 app.listen(PORT, () => console.log(`partnermybusiness running on http://localhost:${PORT}`));

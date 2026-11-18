@@ -8,20 +8,25 @@ const Opportunity = require('../models/Opportunity');
 const { uniqueHandle, slugify } = require('../utils/handle');
 const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { sendMail, mailConfigured } = require('../utils/mailer');
-const { enquiryWelcome, teamEnquiry, APP_URL } = require('../utils/emails');
-const { issueLink } = require('../utils/links');
+const { enquiryWelcome, teamEnquiry } = require('../utils/emails');
+const { issueOtpForUsers } = require('../utils/otp');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
+const { sectorById, sectorFor } = require('../utils/catalog');
 
-const ROLE_NAMES = { host: 'A business', pro: 'A professional', partner: 'A brand or supplier', country: 'A future country partner' };
+const ROLE_NAMES = { host: 'A business', pro: 'A professional', country: 'A future country partner' };
 // Which dashboard each enquiry type gets. Country partners are handled by the team directly.
-const ACCOUNT_ROLE = { host: 'business', pro: 'associate', partner: 'business', country: null };
+const ACCOUNT_ROLE = { host: 'business', pro: 'associate', country: null };
 
 function areaFrom(location) {
   const loc = str(location);
   if (!loc || /^https?:\/\//i.test(loc)) return 'bengaluru';
   return loc.split(',')[0].trim() || 'bengaluru';
+}
+
+function profileName(value) {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
@@ -35,7 +40,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
 
   if (!ROLE_NAMES[role]) throw fail('Choose what kind of enquiry this is');
   if (!name) throw fail('Add your name so we know who to reply to.');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw fail('Add a valid email address. We send your dashboard link there.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw fail('Add a valid email address. We send your dashboard verification code there.');
   if (b.termsAccepted !== true) throw fail('Please read and agree to the Terms and Conditions to continue.');
 
   const fields = {
@@ -43,26 +48,44 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     location: str(b.location).slice(0, 500), message: str(b.message).slice(0, 4000),
     plan: str(b.plan).slice(0, 6000), offer: str(b.offer).slice(0, 120), territory: str(b.territory).slice(0, 200)
   };
+  if (role === 'host' && !fields.business) throw fail('Add your business name.');
+  if ((role === 'host' || role === 'pro') && !fields.location) throw fail('Add your area and city or a Google Maps link.');
+  const selectedSector = sectorById(b.business_type_id) || sectorFor({ category: fields.businessType });
+  const sector = (role === 'host' || role === 'pro') ? selectedSector : null;
+  if (sector && sector.t !== (role === 'host' ? 'b' : 'p')) {
+    throw fail(role === 'host' ? 'Choose a business type.' : 'Choose a profession.');
+  }
+  if ((role === 'host' || role === 'pro') && !sector) {
+    throw fail(role === 'host' ? 'Choose a business type.' : 'Choose a profession.');
+  }
   const termsAcceptedAt = new Date().toISOString();
 
+  // The exact type picked on the homepage (one of the 100 in utils/catalog.json), so emails and the
+  // dashboard can speak the person's language: "your restaurant", "as a chef"
   // Find or create the dashboard account
   const accountRole = ACCOUNT_ROLE[role];
   let user = null;
   let existingAccount = false;
-  let link = null;
+  let emailCode = null;
   if (accountRole) {
-    user = await User.findOne({ email });
+    const emailProfiles = await User.find({ email });
+    user = emailProfiles.find(profile => {
+      if (profile.role !== accountRole) return false;
+      const profileSector = sectorById(profile.sectorId) || sectorFor(profile);
+      if (profileSector?.id !== sector.id) return false;
+      return role !== 'host' || profileName(profile.business?.businessName) === profileName(fields.business);
+    }) || null;
     if (user) {
       existingAccount = true;
-      link = user.passwordHash ? `${APP_URL()}/login.html#login` : await issueLink(user, 'activate');
+      if (sector && !user.sectorId) { user.sectorId = sector.id; await user.save(); }
     } else {
       const isBusiness = accountRole === 'business';
-      const category = role === 'partner' ? 'brand' : (slugify(fields.businessType, true) || (isBusiness ? 'business' : 'professional'));
+      const category = sector ? slugify(sector.noun, true) : (slugify(fields.businessType, true) || (isBusiness ? 'business' : 'professional'));
       const area = areaFrom(fields.location);
       const displayName = isBusiness ? (fields.business || name) : name;
       user = await User.create({
         role: accountRole, name, email, phone,
-        category, location: area.toLowerCase(), slug: displayName,
+        category, sectorId: sector?.id || null, location: area.toLowerCase(), slug: displayName,
         handle: await uniqueHandle(category, area, isBusiness ? displayName : name.split(' ')[0]),
         status: 'pending',
         termsAcceptedAt, termsVersion: TERMS_VERSION,
@@ -72,13 +95,13 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
               mapsUrl: /^https?:/i.test(fields.location) ? fields.location : '', sops: sopsFor(category) } }
           : { associate: { skill: category, bio: fields.message.slice(0, 500) } })
       });
-      link = await issueLink(user, 'activate');
       if (isBusiness) {
-        generateOpportunities({ name: displayName, category, location: user.location })
+        generateOpportunities({ name: displayName, category, location: user.location, sectorId: sector?.id })
           .then(ops => Opportunity.insertMany(ops.map(o => ({ ...o, business: user._id }))))
           .catch(err => console.error('Opportunity seeding failed:', err.message));
       }
     }
+    emailCode = await issueOtpForUsers(await User.find({ email }));
   }
 
   const enquiry = await Enquiry.create({
@@ -96,7 +119,12 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   });
 
   const [toPerson, toTeam] = await Promise.all([
-    sendMail(enquiryWelcome({ name, email, roleName: ROLE_NAMES[role], link, hasDashboard: !!accountRole, existingAccount })),
+    sendMail(enquiryWelcome({
+      name, email, roleName: ROLE_NAMES[role], code: emailCode,
+      hasDashboard: !!accountRole, existingAccount, category: user?.category,
+      sectorId: sector?.id || user?.sectorId, businessName: role === 'host' ? fields.business : '',
+      dashboardRole: accountRole, dashboardProfileId: user?._id
+    })),
     sendMail(teamEnquiry({ ...enquiry, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
   ]);
   enquiry.emailStatus = { person: toPerson.sent ? 'sent' : (toPerson.error ? 'failed' : 'outbox'), team: toTeam.sent ? 'sent' : (toTeam.error ? 'failed' : 'outbox') };
@@ -108,8 +136,8 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     hasDashboard: !!accountRole,
     existingAccount,
     emailSent: toPerson.sent,
-    // Only while SMTP isn't configured in development, so the flow can still be tested end to end
-    devLink: !mailConfigured() && process.env.NODE_ENV !== 'production' && accountRole ? link : undefined
+    // Only while SMTP isn't configured in development, so verification can be tested locally.
+    devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' && accountRole ? emailCode : undefined
   });
 });
 

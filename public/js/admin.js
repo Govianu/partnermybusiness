@@ -61,19 +61,27 @@
   // ---------- Validation ----------
   async function loadMedia() {
     const { media } = await api('/admin/media?status=pending');
-    const kinds = { intro_video: 'Intro video', training_video: 'Training video', course_pdf: 'Course PDF' };
+    const kinds = {
+      intro_video: 'Intro video', training_video: 'Training video', course_pdf: 'Course PDF',
+      portfolio_image: 'Portfolio photos', portfolio_slides: 'Portfolio slides',
+      business_video: 'Business video', business_image: 'Business photos',
+      business_menu: 'Menu or service list', business_slides: 'Business slides'
+    };
     document.getElementById('mediaQueue').innerHTML = media.length
-      ? `<div class="list">${media.map(m => `<div class="item">
-          <div class="item-top"><a class="item-title" href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.title)}</a><span class="meta">${kinds[m.kind]}</span></div>
+      ? `<div class="list">${media.map(m => {
+        const fileUrl = m.storageKey ? `/api/media/${encodeURIComponent(m._id)}/file` : m.url;
+        return `<div class="item">
+          <div class="item-top"><a class="item-title" href="${esc(fileUrl)}" target="_blank" rel="noopener">${esc(m.title)}</a><span class="meta">${kinds[m.kind] || 'Media'}</span></div>
           <div class="meta"><code class="handle">${handleHtml(m.owner?.handle)}</code>, sent ${fmtDate(m.createdAt)}</div>
           ${m.description ? `<p class="item-body">${esc(m.description)}</p>` : ''}
           <div class="accept-row">
-            <input placeholder="Note for the associate (needed to reject)" data-note="${m._id}" style="max-width:420px">
+            <input placeholder="Note for owner (needed to reject)" data-note="${m._id}" style="max-width:420px">
             <button class="btn small" data-review="${m._id}" data-decision="approved">Approve</button>
             <button class="btn warn small" data-review="${m._id}" data-decision="rejected">Reject</button>
           </div>
-        </div>`).join('')}</div>`
-      : '<div class="list"><div class="empty"><strong>Queue is clear</strong>New uploads from associates will appear here.</div></div>';
+        </div>`;
+      }).join('')}</div>`
+      : '<div class="list"><div class="empty"><strong>Queue is clear</strong>New uploads from businesses and associates will appear here.</div></div>';
   }
 
   // ---------- Leads ----------

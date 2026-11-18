@@ -171,6 +171,25 @@ textarea { min-height: 96px; resize: vertical; }
 .main { padding: clamp(1.25rem, 3vw, 2.5rem); max-width: 1180px; width: 100%; }
 .view-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .view-head p { color: var(--muted); margin: 0; }
+.dashboard-cta-bar {
+  position: sticky; top: 0; z-index: 4; display: flex; flex-wrap: wrap; gap: .55rem;
+  padding: .65rem 0; margin: -.5rem 0 1.25rem; background: var(--paper);
+}
+.setup-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .75rem; }
+.setup-step { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: .9rem; display: flex; flex-direction: column; gap: .7rem; }
+.setup-step > div { display: flex; justify-content: space-between; gap: .5rem; }
+.setup-step .btn { align-self: flex-start; }
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+.media-card { min-width: 0; overflow: hidden; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); }
+.media-preview { height: 190px; background: var(--teal-soft); display: grid; place-items: center; overflow: hidden; }
+.media-preview img, .media-preview video { width: 100%; height: 100%; object-fit: cover; background: #101528; }
+.media-document { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: .45rem; color: var(--ink); text-decoration: none; padding: 1rem; text-align: center; }
+.media-document > span { display: grid; place-items: center; width: 56px; height: 68px; border-radius: 8px; background: var(--surface); color: var(--teal); font: 700 .82rem var(--display); box-shadow: 0 4px 16px rgba(15,27,61,.12); }
+.media-document small { color: var(--teal); font-weight: 650; }
+.media-card-info { padding: .9rem; }
+.media-card-info .item-body { font-size: .9rem; margin-bottom: 0; }
+.media-remove { margin-top: .75rem; }
+.upload-help { margin: -.6rem 0 1rem; }
 
 @media (max-width: 860px) {
   .shell { grid-template-columns: 1fr; }

@@ -52,7 +52,7 @@
           <div data-for="business">
             <div class="field">
               <label for="businessName">Business name</label>
-              <input id="businessName" name="businessName" placeholder="Magic Masala">
+              <input id="businessName" name="businessName" maxlength="160" placeholder="Magic Masala">
             </div>
             <div class="row">
               <div class="field">
@@ -95,6 +95,10 @@
                 <input id="availability" name="availability" placeholder="Tuesdays, after 4pm" disabled>
               </div>
             </div>
+            <div class="field">
+              <label for="skills">Other skills <span class="hint">optional, separate with commas</span></label>
+              <input id="skills" name="skills" maxlength="800" placeholder="Tandoor, meal prep, food safety" disabled>
+            </div>
           </div>
 
           <div data-for="admin" hidden>
@@ -114,14 +118,9 @@
               <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+91">
             </div>
           </div>
-          <div class="field">
-            <label for="password">Password <span class="hint">at least 8 characters</span></label>
-            <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
-          </div>
-
           <label class="check field"><input type="checkbox" name="termsAccepted" value="true" required>
             <span>I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
-          <button class="btn wide" type="submit">Create profile</button>
+          <button class="btn wide" type="submit">Create profile and verify email</button>
         </form>
         <p class="switch">Already a partner? <button class="link-btn" type="button" data-go="login">Log in</button></p>
         <p class="switch">PMB team member? <button class="link-btn" type="button" id="adminToggle">Sign up with an invite code</button></p>
@@ -136,22 +135,28 @@
             <label for="loginEmail">Email</label>
             <input id="loginEmail" name="email" type="email" autocomplete="email" required>
           </div>
-          <div class="field">
-            <label for="loginPassword">Password</label>
-            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
-          </div>
-          <button class="btn wide" type="submit">Log in</button>
+          <button class="btn wide" type="submit">Email me a sign-in code</button>
         </form>
-        <p class="switch">Sent an enquiry, or forgot your password? <button class="link-btn" type="button" id="linkToggle">Email me a login link</button></p>
-        <form id="linkForm" class="panel" style="margin-top:1rem" hidden novalidate>
+        <form id="otpForm" class="panel" style="margin-top:1rem" hidden novalidate>
           <div class="error-box" role="alert"></div>
+          <p class="meta">Enter the 6-digit code sent to <strong id="otpEmail"></strong>.</p>
           <div class="field">
-            <label for="linkEmail">Email</label>
-            <input id="linkEmail" name="email" type="email" autocomplete="email" required>
+            <label for="otpCode">Email verification code</label>
+            <input id="otpCode" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
           </div>
-          <button class="btn wide" type="submit">Send me a link</button>
-          <p class="meta" id="linkMsg" role="status" style="margin:.8rem 0 0"></p>
+          <input type="hidden" name="email">
+          <input type="hidden" name="profileId">
+          <button class="btn wide" type="submit">Verify and open dashboard</button>
+          <p class="meta" id="otpMsg" role="status" style="margin:.8rem 0 0"></p>
+          <p class="switch"><button class="link-btn" type="button" id="resendOtp">Send a new code</button> · <button class="link-btn" type="button" id="changeEmail">Use a different email</button></p>
         </form>
+        <div id="profilePicker" class="panel" style="margin-top:1rem" hidden>
+          <h3 id="profilePrompt">Choose a dashboard</h3>
+          <div id="profileOptions" style="display:grid;gap:.65rem"></div>
+          <div id="profileError" class="error-box" role="alert" hidden></div>
+          <p class="switch"><button class="link-btn" type="button" id="profileChangeEmail">Use a different email</button></p>
+        </div>
+        <p class="switch">No password needed. Every sign-in uses a fresh code sent to your email.</p>
         <p class="switch">New here? <button class="link-btn" type="button" data-go="signup">Create a profile</button></p>
       </div>
     </div>
