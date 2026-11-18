@@ -6,12 +6,12 @@ Data is stored in `data/app-data.json` (created on first start).
 ## Run it
 
 ```bash
-cp .env.example .env     # fill in JWT_SECRET, ADMIN_INVITE_CODE, APP_URL and the SMTP settings
+cp .env.example .env     # fill in JWT_SECRET, ADMIN_INVITE_CODE, APP_URL and email settings
 npm install
 npm run dev              # http://localhost:3000
 ```
 
-For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
+For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=production`. Without `BREVO_API_KEY` or SMTP settings, every email is saved to `data/outbox/` (open the .html files in a browser), and the sign-in flow shows a local test code. Never enable this test-code response in production.
 
 ## Passwordless email sign-in
 
@@ -75,11 +75,11 @@ For production, upgrade to a paid web service and attach a persistent disk mount
 Before using the live site, set these environment variables in the Render service settings (or provide them when Render prompts during Blueprint setup):
 
 - `ADMIN_INVITE_CODE`: a private code for creating an admin account.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: working SMTP credentials. Email verification and enquiry notifications depend on SMTP.
-- `MAIL_FROM`: the sender name/address approved by your email provider.
+- `BREVO_API_KEY`: a Brevo API key. The app uses Brevo's HTTPS API, which works on Render Free; the sender must be verified in Brevo.
+- `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
 - `TEAM_INBOX`: where new enquiries are sent.
 
-The Blueprint generates `JWT_SECRET`; email links use Render's generated public URL automatically. If you later attach a custom domain, set `APP_URL` to that HTTPS address. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; until then lessons continue to use their slide versions. Keep `HEYGEN_TEST_MODE=true` until you have verified a test video.
+The Blueprint generates `JWT_SECRET`; email links use Render's generated public URL automatically. If you later attach a custom domain, set `APP_URL` to that HTTPS address. Render Free blocks outbound SMTP on ports 25, 465 and 587; SMTP is only an option on hosts that allow those ports. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; until then lessons continue to use their slide versions. Keep `HEYGEN_TEST_MODE=true` until you have verified a test video.
 
 Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
 

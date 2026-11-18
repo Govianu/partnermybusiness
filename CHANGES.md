@@ -39,3 +39,7 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - "Copy booking page link" moved to the Booking requests page.
 - Old links to #opportunities open Learn & earn; links to removed sections (#savings, #media) open the overview.
 - `utils/lessonScript.js` also returns the script in sections (`segments`), ready for subtitles.
+
+## Email delivery on Render Free
+- `utils/mailer.js` now supports Brevo's transactional email HTTPS API, preferred when `BREVO_API_KEY` is set; SMTP remains available on hosts that allow it.
+- Render Free deployment instructions now require a verified `MAIL_FROM` sender and `BREVO_API_KEY`, because Render blocks standard outbound SMTP ports on free web services.
