@@ -1,4 +1,4 @@
-# Nginx in front of the Node app on the VPS.
+# Nginx in front of the Node app on the VPS, when nginx alone serves the site (no Apache/public_html).
 # Copy to /etc/nginx/sites-available/partnermybusiness, change server_name, then run certbot for HTTPS.
 server {
     listen 80;

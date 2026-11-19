@@ -11,7 +11,11 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-app.set('trust proxy', 1); // correct client IPs behind Nginx (used for rate limits and the terms record)
+// Real visitor IPs behind nginx/Apache on this server (used for rate limits and the terms record).
+// 'loopback' trusts every proxy hop on 127.0.0.1, so nginx -> Apache -> Node still sees the visitor's IP.
+// Set TRUST_PROXY to a number of hops or a list of proxy IPs if your proxies are on other addresses.
+const trustProxy = process.env.TRUST_PROXY || 'loopback';
+app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 

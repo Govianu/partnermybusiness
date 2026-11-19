@@ -18,6 +18,13 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
+## npm run build for Apache/nginx with public_html
+- `scripts/build.js` (`npm run build`) writes the pages to `dist/` or `BUILD_OUT` (e.g. public_html), plus an
+  `.htaccess` block that forwards `/api` to the Node API (PM2). The API must still run; the pages call it.
+- Visitor IPs are now read through every proxy on 127.0.0.1 (`TRUST_PROXY`, default `loopback`), so nginx -> Apache
+  -> Node doesn't make every visitor share one rate limit.
+- `deploy/nginx-api.conf.example` for sending `/api` to Node from nginx directly.
+
 ## Hosting on a VPS instead of Render
 - Removed `render.yaml` and `render-paid.yaml.example`, and Render-specific notes in the code and docs.
 - Added `ecosystem.config.js` (PM2) and `deploy/nginx.conf.example`; README has the VPS steps.

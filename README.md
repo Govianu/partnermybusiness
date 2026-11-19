@@ -64,44 +64,59 @@ OTP attempt and request limits currently use in-memory rate limiting. Run a sing
 
 Run the focused upload and OTP tests with `node --test`.
 
-## Deploying on a VPS
+## Deploying on a VPS (Apache + nginx, public_html)
 
-The app is one Node.js process (Node 20 or newer) that keeps its data in `DATA_DIR`. There is no build step: install with `npm ci --omit=dev`, then run it with PM2 behind Nginx.
+The site has two parts:
+- **Pages** (HTML, CSS, JS): `npm run build` writes them as static files, which Apache/nginx serve from `public_html`.
+- **The API** (sign-in, dashboards, email, uploads, deals, lesson videos): a Node.js process (Node 20 or newer) kept
+  running by PM2. The `.htaccess` that the build writes forwards every `/api/...` request to it on `127.0.0.1:PORT`.
 
-1. On the server (Ubuntu shown), install Node 20, Nginx, PM2 and Certbot:
+Both are needed: the pages alone load, but sign-in and every dashboard button call `/api`.
+
+1. Install Node 20 and PM2 (Rocky/Alma/CentOS shown; on Ubuntu use `deb.nodesource.com` and `apt`):
    ```sh
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt install -y nodejs nginx certbot python3-certbot-nginx git
-   sudo npm install -g pm2
+   curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+   dnf install -y nodejs git
+   npm install -g pm2
    ```
-2. Get the code and install it:
+2. Get the code **outside** `public_html` (the code and `.env` must not be downloadable), and install it:
    ```sh
-   sudo mkdir -p /var/www /var/lib/partnermybusiness && sudo chown $USER /var/www /var/lib/partnermybusiness
-   git clone https://github.com/Govianu/partnermybusiness.git /var/www/partnermybusiness
-   cd /var/www/partnermybusiness && npm ci --omit=dev
+   git clone https://github.com/Govianu/partnermybusiness.git /home/<user>/partnermybusiness
+   cd /home/<user>/partnermybusiness && npm ci --omit=dev
    ```
-3. Create `/var/www/partnermybusiness/.env` from `.env.example`. Set at least `NODE_ENV=production`, a long random
-   `JWT_SECRET`, `ADMIN_INVITE_CODE`, `APP_URL=https://partnermybusiness.ai`,
-   `DATA_DIR=/var/lib/partnermybusiness`, `UPLOAD_DIR=/var/lib/partnermybusiness/uploads`, the email settings
-   (`BREVO_API_KEY` or `SMTP_*`, `MAIL_FROM`, `TEAM_INBOX`) and, for AI lesson videos, `HIGGSFIELD_API_KEY_ID` and
-   `HIGGSFIELD_API_KEY_SECRET`. The `.env` file stays on the server; never commit it.
-4. Start it and keep it running after reboots:
+3. Create `.env` in that folder from `.env.example`. Set at least `NODE_ENV=production`, a long random `JWT_SECRET`,
+   `ADMIN_INVITE_CODE`, `APP_URL=https://partnermybusiness.ai`, `PORT` (a free local port, e.g. 3000),
+   `DATA_DIR`/`UPLOAD_DIR` (a folder outside `public_html`, e.g. `/home/<user>/pmb-data`), the email settings
+   (`SMTP_*` or `BREVO_API_KEY`, `MAIL_FROM`, `TEAM_INBOX`) and `HIGGSFIELD_API_KEY_ID`/`HIGGSFIELD_API_KEY_SECRET`.
+4. Start the API and keep it running after reboots:
    ```sh
    pm2 start ecosystem.config.js && pm2 save && pm2 startup
    ```
-5. Nginx: copy `deploy/nginx.conf.example` to `/etc/nginx/sites-available/partnermybusiness`, set your domain,
-   enable it, then add HTTPS:
+5. Build the pages into `public_html`:
    ```sh
-   sudo ln -s /etc/nginx/sites-available/partnermybusiness /etc/nginx/sites-enabled/
-   sudo nginx -t && sudo systemctl reload nginx
-   sudo certbot --nginx -d partnermybusiness.ai -d www.partnermybusiness.ai
+   BUILD_OUT=/home/<user>/public_html npm run build
    ```
-6. To deploy an update: `cd /var/www/partnermybusiness && git pull && npm ci --omit=dev && pm2 reload partnermybusiness`.
+   This writes the pages, `js/catalog.js` and the `# BEGIN partnermybusiness` block of `public_html/.htaccess`.
+   Other files in `public_html` and the rest of `.htaccess` are left alone. (`npm run build` alone writes to `dist/`;
+   then copy it with `cp -a dist/. /home/<user>/public_html/`, including the hidden `.htaccess`.)
+6. Apache needs `mod_rewrite`, `mod_proxy` and `mod_proxy_http` for the `/api` forwarding (on cPanel/WHM:
+   EasyApache, usually already on). Check it: `curl https://partnermybusiness.ai/api/auth/options` should return JSON.
+   A 404 there means the proxy modules are off, and a 503 means the API isn't running (`pm2 status`).
+   If you can edit the nginx site config instead, `deploy/nginx-api.conf.example` sends `/api` straight to Node.
+7. To deploy an update:
+   ```sh
+   cd /home/<user>/partnermybusiness && git pull && npm ci --omit=dev
+   BUILD_OUT=/home/<user>/public_html npm run build && pm2 reload partnermybusiness
+   ```
 
-Check `pm2 logs partnermybusiness` for the email provider's connection status and `[lesson-video]` lines.
-Back up `DATA_DIR` regularly: it holds accounts, bookings, uploads and lesson videos. Many VPS providers block outbound
-port 25; use port 465/587 SMTP or `BREVO_API_KEY`. Rate limits are kept in memory, so run a single instance (as the PM2
-config does). Netlify and GitHub Pages only host static files and cannot run this app.
+Check `pm2 logs partnermybusiness` for `[mail] SMTP connection OK` and `[lesson-video]` lines. Back up `DATA_DIR`
+regularly: it holds accounts, bookings, uploads and lesson videos. Some VPS providers block outbound email ports; if
+the log shows `SMTP connection failed`, try `SMTP_PORT=587` or ask the provider to open it. Rate limits are kept in
+memory, so run a single API instance (as the PM2 config does). Visitor IPs are read through nginx and Apache on
+`127.0.0.1`; if your proxies use other addresses, set `TRUST_PROXY` (see `.env.example`).
+
+The Node server also serves the pages itself (as on a laptop with `npm start`), so a plain reverse proxy to it without
+`public_html` works too: see `deploy/nginx.conf.example`.
 
 ## Dashboards: business-type specific, with skills and video lessons
 
