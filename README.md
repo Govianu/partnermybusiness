@@ -97,7 +97,9 @@ Both are needed: the pages alone load, but sign-in and every dashboard button ca
    BUILD_OUT=/home/<user>/public_html npm run build
    ```
    This writes the pages, `js/catalog.js` and the `# BEGIN partnermybusiness` block of `public_html/.htaccess`.
-   Other files in `public_html` and the rest of `.htaccess` are left alone. (`npm run build` alone writes to `dist/`;
+   Other files in `public_html` and the rest of `.htaccess` are left alone. Written files get 644 and folders 755, and
+   when root runs the build they are given to `public_html`'s own owner and group (on CWP, e.g. `partner:nobody`),
+   so don't `chown` them to `user:user` afterwards: Apache reads them through the `nobody` group. (`npm run build` alone writes to `dist/`;
    then copy it with `cp -a dist/. /home/<user>/public_html/`, including the hidden `.htaccess`.)
 6. Apache needs `mod_rewrite`, `mod_proxy` and `mod_proxy_http` for the `/api` forwarding (on cPanel/WHM:
    EasyApache, usually already on). Check it: `curl https://partnermybusiness.ai/api/auth/options` should return JSON.

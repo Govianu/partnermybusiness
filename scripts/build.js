@@ -23,20 +23,35 @@ if (OUT === SRC || OUT === ROOT) throw new Error(`BUILD_OUT must not be the proj
 if (isDefaultOut) fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
+// The web server (Apache runs as another user, e.g. nobody) must be able to read everything written here,
+// whatever the umask of whoever runs the build. When root builds into a user's public_html, the files are also
+// given to the folder's owner and group (on CWP: partner:nobody), as if that user had uploaded them.
+const outStat = fs.statSync(OUT);
+const asRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+function settle(p, mode) {
+  try { fs.chmodSync(p, mode); } catch { /* Windows or not ours: leave as is */ }
+  if (asRoot && outStat.uid !== 0) { try { fs.chownSync(p, outStat.uid, outStat.gid); } catch { /* keep going */ } }
+}
+// public_html itself must stay enterable by the web server
+try { fs.chmodSync(OUT, (outStat.mode & 0o777) | 0o055); } catch { /* keep going */ }
+
 let files = 0;
 function copyDir(from, to) {
   fs.mkdirSync(to, { recursive: true });
+  if (to !== OUT) settle(to, 0o755);
   for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
     const a = path.join(from, entry.name), b = path.join(to, entry.name);
     if (entry.isDirectory()) copyDir(a, b);
-    else { fs.copyFileSync(a, b); files += 1; }
+    else { fs.copyFileSync(a, b); settle(b, 0o644); files += 1; }
   }
 }
 copyDir(SRC, OUT);
 
 // The 100 business types, served by the Node server at /js/catalog.js; written as a file here
 fs.mkdirSync(path.join(OUT, 'js'), { recursive: true });
-fs.writeFileSync(path.join(OUT, 'js', 'catalog.js'), 'window.PMB_CATALOG = ' + JSON.stringify(require('../utils/catalog').data) + ';\n');
+const catalogFile = path.join(OUT, 'js', 'catalog.js');
+fs.writeFileSync(catalogFile, 'window.PMB_CATALOG = ' + JSON.stringify(require('../utils/catalog').data) + ';\n');
+settle(catalogFile, 0o644);
 files += 1;
 
 // Apache: forward /api to the Node API (needs mod_rewrite, mod_proxy and mod_proxy_http).
@@ -68,6 +83,7 @@ const start = existing.indexOf(BEGIN), stop = existing.indexOf(END);
 if (start !== -1 && stop !== -1) existing = existing.slice(0, start) + existing.slice(stop + END.length);
 existing = existing.trim();
 fs.writeFileSync(htaccess, block + (existing ? '\n' + existing + '\n' : ''));
+settle(htaccess, 0o644);
 files += 1;
 
 console.log(`Built ${files} files into ${OUT}`);
