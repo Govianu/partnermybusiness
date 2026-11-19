@@ -28,5 +28,9 @@ services:
         value: Partnermybusiness.ai <info@partnermybusiness.ai>
       - key: TEAM_INBOX
         value: info@partnermybusiness.ai
-      - key: HEYGEN_TEST_MODE
-        value: "true"
+      - key: HIGGSFIELD_API_KEY_ID
+        sync: false
+      - key: HIGGSFIELD_API_KEY_SECRET
+        sync: false
+      - key: HIGGSFIELD_MONTHLY_MINUTES
+        value: "20"

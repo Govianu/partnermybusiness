@@ -155,7 +155,7 @@
     const $ = sel => root.querySelector(sel);
     if (!voice) { $('.lp-voice').hidden = true; }
 
-    // ---------- AI presenter videos (HeyGen, made on first request and reused) ----------
+    // ---------- AI presenter videos (Higgsfield, made on first request and reused) ----------
     const presenter = { enabled: false, mode: 'presenter', byKey: {}, poll: null };
     const lp = root.querySelector('.lp');
     const pane = $('.lp-presenter');
@@ -207,12 +207,12 @@
           const next = lessons[li + 1];
           note.innerHTML = next ? `Lesson complete. <button class="link-btn" type="button" data-lp="nextlesson">Play next: ${esc(next.title)}</button>` : 'Lesson complete.';
         });
-        note.textContent = st.testMode ? 'Test video from HeyGen (watermarked). Real videos appear once test mode is off.' : '';
+        note.textContent = '';
         if (autoplay) v.play().catch(() => {});
         return;
       }
       // Still being made: offer the slides meanwhile and swap the video in when it's ready
-      pane.innerHTML = `<div class="lp-wait"><span class="lp-spin" aria-hidden="true"></span>
+      pane.innerHTML = `<div class="lp-wait" ${st.poster ? `style="background:linear-gradient(rgba(255,255,255,.82),rgba(255,255,255,.82)),url('${esc(st.poster)}') center/cover"` : ''}><span class="lp-spin" aria-hidden="true"></span>
         <p><strong>Your AI presenter is recording this lesson.</strong><br>It usually takes a few minutes. It will appear here when it’s ready.</p>
         <button class="lp-cta" type="button" data-lp="mode-slides">Watch the slide version now</button></div>`;
       note.textContent = '';

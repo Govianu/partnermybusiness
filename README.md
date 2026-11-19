@@ -77,7 +77,7 @@ Set these values in Render's service settings:
 - `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
 - `TEAM_INBOX`: where new enquiries are sent.
 
-The Blueprint generates `JWT_SECRET`; email links use Render's public URL automatically. For a custom domain, set `APP_URL` to that HTTPS address. On paid hosting, SMTP is also an option if the host allows outbound email ports. To enable AI presenter videos, add `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`; keep `HEYGEN_TEST_MODE=true` until a test video is verified.
+The Blueprint generates `JWT_SECRET`; email links use Render's public URL automatically. For a custom domain, set `APP_URL` to that HTTPS address. On paid hosting, SMTP is also an option if the host allows outbound email ports. To enable AI presenter videos, add `HIGGSFIELD_API_KEY_ID` and `HIGGSFIELD_API_KEY_SECRET`, and keep `HIGGSFIELD_MONTHLY_MINUTES` low until a first video is checked.
 
 Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
 
@@ -94,22 +94,33 @@ emails ("Magic Masala, your restaurant"), slides, skill suggestions, lessons, ea
 - Business menu: Overview, Learn & earn (lessons + growth ideas), Booking requests, Profile.
 - The main button is worded for each business type ("Launch dining memberships"), and every idea card has its own launch button.
 
-### AI presenter videos (HeyGen)
+### AI presenter videos (Higgsfield)
 
 Lessons can be real videos of an AI presenter speaking the lesson. Videos are made **only when someone opens a
 lesson**, then saved on your server and reused for everyone with the same business type and topic, so each one is
 paid for once. Until a video is ready, the person sees "Your AI presenter is recording this lesson" with the slide
 version available; it swaps in automatically.
 
-1. Sign up at heygen.com, create an API key and add pay-as-you-go API credit.
-2. Add `HEYGEN_API_KEY` to `.env`, then run `npm run heygen:list -- india` and copy an avatar ID and a voice ID
-   into `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`.
-3. Keep `HEYGEN_TEST_MODE=true` for a first try (free, watermarked), then set it to `false`.
-4. `HEYGEN_MONTHLY_MINUTES` caps new video minutes per month. Above it, lessons show the slides instead.
+Each video is made with [Higgsfield](https://docs.higgsfield.ai) in two steps:
+1. **Image:** a photo of the presenter in a setting that fits the business type (Soul V2, text to image). It is also
+   the video's poster, and it shows behind the "recording" message while the video is made.
+2. **Video:** that photo brought to life, speaking the lesson in up to 6 shots of up to 15 seconds each
+   (Kling 3.0 Pro, image to video with native sound).
 
-Scripts are written on the server (`utils/lessonScript.js`), never sent from the browser, so nobody can create
-videos of their own text. Finished videos are stored in `data/lesson-videos/` (HeyGen's own links expire after 7 days),
-so keep `data/` on a persistent disk.
+Setup:
+1. Sign up at console.higgsfield.ai, create an API key (you get a key ID and a secret) and add credit.
+2. Add `HIGGSFIELD_API_KEY_ID` and `HIGGSFIELD_API_KEY_SECRET` to `.env`, then run `npm run higgsfield:check`
+   to check them. It makes one small image and prints its link.
+3. `HIGGSFIELD_MONTHLY_MINUTES` caps new video minutes per month (default 20). Above it, lessons show the slides instead.
+   Higgsfield has no free test mode, so watch a first video before raising it.
+4. Optional: `HIGGSFIELD_PRESENTER` describes the presenter, and `HIGGSFIELD_SEED` keeps them looking alike across lessons.
+   `HIGGSFIELD_IMAGE_MODEL` and `HIGGSFIELD_VIDEO_MODEL` switch to other Higgsfield models with the same inputs.
+
+Speech comes from the video model's own audio, guided by the script in each shot's prompt, so check that a first
+video says the lines clearly before relying on it. Scripts are written on the server (`utils/lessonScript.js`), never
+sent from the browser, so nobody can create videos of their own text. Finished videos and posters are stored in
+`data/lesson-videos/` (Higgsfield deletes its own copies about 7 days after they are made), so keep `data/` on a
+persistent disk. Videos made earlier with HeyGen keep playing.
 
 ## Marketplace (buyers and sellers, with PMB in the middle)
 

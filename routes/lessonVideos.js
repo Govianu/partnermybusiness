@@ -7,18 +7,18 @@ const LessonVideo = require('../models/LessonVideo');
 const { requireAuth } = require('../middleware/auth');
 const { lessonScript } = require('../utils/lessonScript');
 const { requestVideo, refresh, publicView, DIR } = require('../utils/lessonVideos');
-const heygen = require('../utils/heygen');
+const higgsfield = require('../utils/higgsfield');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
 
 router.use(requireAuth('business', 'associate', 'admin'));
 
-router.get('/config', (req, res) => res.json({ enabled: heygen.configured() }));
+router.get('/config', (req, res) => res.json({ enabled: higgsfield.configured() }));
 
 router.post('/request', rateLimit(30, 60 * 60 * 1000), async (req, res) => {
   const topic = str(req.body?.topic).slice(0, 80);
   if (!topic) throw fail('Missing lesson topic');
-  if (!heygen.configured()) return res.json({ enabled: false });
+  if (!higgsfield.configured()) return res.json({ enabled: false });
   const lesson = lessonScript({ user: req.user, topic });
   if (!lesson) return res.json({ enabled: true, unavailable: 'unknown_type' });
   try {
@@ -33,7 +33,7 @@ router.post('/request', rateLimit(30, 60 * 60 * 1000), async (req, res) => {
 router.get('/:id', async (req, res) => {
   let v = await LessonVideo.findById(req.params.id);
   if (!v) throw fail('Video not found', 404);
-  // Check with HeyGen at most every 10 seconds while someone is waiting
+  // Check with Higgsfield at most every 10 seconds while someone is waiting
   if (v.status === 'processing' && (!v.checkedAt || Date.now() - new Date(v.checkedAt) > 10000)) {
     try { v = await refresh(v); } catch (err) { console.error('[lesson-video] status check failed:', err.message); }
   }
@@ -44,7 +44,8 @@ function sendStored(kind) {
   return async (req, res) => {
     const v = await LessonVideo.findById(req.params.id);
     const name = kind === 'poster' ? v?.thumbFile : v?.file;
-    if (!v || v.status !== 'ready' || !name) throw fail('Video not ready', 404);
+    // The poster (the presenter image) exists before the video does, so it can be shown while the video is made
+    if (!v || !name || (kind === 'video' && v.status !== 'ready')) throw fail('Video not ready', 404);
     const file = path.join(DIR, path.basename(name));
     if (!fs.existsSync(file)) throw fail('Video file missing', 404);
     res.set('Cache-Control', 'private, max-age=86400');

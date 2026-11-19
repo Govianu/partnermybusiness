@@ -71,6 +71,8 @@ function lessonScript({ user, topic }) {
     kind,
     title: `${cap(String(topic).trim())} for ${plural(noun)}`,
     script: script.length > 1450 ? script.slice(0, 1447).replace(/\s+\S*$/, '') + '.' : script,
+    // Where the AI presenter stands in the video (used for the image prompt)
+    scene: isPro ? `a bright workspace used by ${plural(noun)} in India` : `inside a welcoming, well-run Indian ${noun}`,
     segments
   };
 }
