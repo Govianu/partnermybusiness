@@ -12,6 +12,7 @@ const { sendMail, mailConfigured } = require('../utils/mailer');
 const { emailOtp, loginLink } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
+const { isStaffEmail, staffDomains } = require('../utils/staff');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
@@ -24,7 +25,8 @@ function profileSummary(user) {
   return { id: user._id, role: user.role, label: title };
 }
 
-router.get('/options', (req, res) => res.json({ businessCategories: BUSINESS_CATEGORIES, associateSkills: ASSOCIATE_SKILLS }));
+// staffDomains: the login page shows the PMB team sign-up only for these email domains
+router.get('/options', (req, res) => res.json({ businessCategories: BUSINESS_CATEGORIES, associateSkills: ASSOCIATE_SKILLS, staffDomains: staffDomains() }));
 
 router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const b = req.body || {};
@@ -37,6 +39,9 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   if (!name) throw fail('Enter your name');
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
   if (b.termsAccepted !== true && b.termsAccepted !== 'true' && b.termsAccepted !== 'on') throw fail('Please agree to the Terms and Conditions to create your profile');
+  if (role === 'admin' && !isStaffEmail(email)) {
+    throw fail(`The PMB team dashboard is only for Govianu employees. Sign up with your @${staffDomains()[0]} email.`, 403);
+  }
   if (role === 'admin' && (!process.env.ADMIN_INVITE_CODE || b.inviteCode !== process.env.ADMIN_INVITE_CODE)) {
     throw fail('That team invite code is not valid', 403);
   }
@@ -175,6 +180,7 @@ router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
   user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
   clearOtp(user);
   await user.save();
+  if (user.role === 'admin' && !isStaffEmail(user.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
   issueToken(res, user);
   res.json({ user, redirect: `/${user.role}.html` });
 });
@@ -187,6 +193,7 @@ router.get('/profiles', requireAuth(), async (req, res) => {
 router.post('/switch-profile', requireAuth(), async (req, res) => {
   const profile = await User.findById(str(req.body?.profileId));
   if (!profile || profile.email !== req.user.email) throw fail('Dashboard not found', 404);
+  if (profile.role === 'admin' && !isStaffEmail(profile.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
   issueToken(res, profile);
   res.json({ user: profile, redirect: `/${profile.role}.html` });
 });

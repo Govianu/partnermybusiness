@@ -49,9 +49,11 @@
     loginForm.elements.email.focus();
   }
 
-  const { businessCategories, associateSkills } = await api('/auth/options').catch(() => ({
-    businessCategories: ['restaurant'], associateSkills: ['chef']
+  const { businessCategories, associateSkills, staffDomains = ['govianu.com'] } = await api('/auth/options').catch(() => ({
+    businessCategories: ['restaurant'], associateSkills: ['chef'], staffDomains: ['govianu.com']
   }));
+  // The PMB team sign-up is shown only to Govianu employees: it appears once a staff email is typed
+  const isStaffEmail = email => staffDomains.includes(String(email || '').trim().toLowerCase().split('@')[1] || '');
   document.getElementById('category').innerHTML = businessCategories.map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
   document.getElementById('skill').innerHTML = associateSkills.map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
 
@@ -68,7 +70,7 @@
     },
     buyer: {
       title: 'Book spaces and professionals.',
-      text: 'Find halls, kitchens, studios and skilled professionals. Our team checks every request and connects you, so your details stay private.',
+      text: 'Find halls, kitchens, studios and skilled professionals. Our team approves every match and connects you, so your details stay private until then.',
       sample: ['buyer', 'bengaluru', 'you'], catLabel: 'you book'
     },
     admin: {
@@ -119,6 +121,14 @@
 
   tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
   document.getElementById('adminToggle').addEventListener('click', () => setRole('admin'));
+  const staffSwitch = document.getElementById('adminSwitch');
+  const syncStaff = () => {
+    const staff = isStaffEmail(form.elements.email.value);
+    staffSwitch.hidden = !staff;
+    if (!staff && roleInput.value === 'admin') setRole('business');
+  };
+  form.elements.email.addEventListener('input', syncStaff);
+  syncStaff();
   form.addEventListener('input', updateHandle);
   form.addEventListener('change', updateHandle);
 
@@ -161,7 +171,6 @@
 
   const asRole = new URLSearchParams(location.search).get('as');
   setRole(['associate', 'buyer'].includes(asRole) ? asRole : 'business');
-  const emailParam = new URLSearchParams(location.search).get('email');
   if (emailParam) document.getElementById('loginEmail').value = emailParam;
   if (location.hash === '#login' || next) {
     document.getElementById('signupPane').hidden = true;

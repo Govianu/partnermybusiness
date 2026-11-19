@@ -137,6 +137,14 @@
         <button class="btn" data-accept="${b._id}">Accept booking</button>
         <button class="btn warn small" data-decline="${b._id}">Decline</button>
       </div>`;
+    } else if (b.status === 'pending_approval') {
+      action = '<p class="meta">You accepted: it’s a match. The PMB team is approving it now.</p>';
+    } else if (b.status === 'awaiting_payment') {
+      action = b.share
+        ? `<div class="contact-box"><strong>One step left:</strong> pay the Partnermybusiness share of ${inr(b.share.amount)} to confirm the match.${b.share.payUrl ? ` <a class="btn small" href="${esc(b.share.payUrl)}" target="_blank" rel="noopener">Pay ${inr(b.share.amount)}</a>` : ' Your PMB manager will send the payment details.'}</div>`
+        : '<p class="meta">Approved by the PMB team. The match is confirmed as soon as the PMB share is received.</p>';
+    } else if (b.status === 'matched') {
+      action = `<div class="contact-box"><strong>It’s a match.</strong> ${esc(b.requesterName)}${b.requesterEmail ? `, <a href="mailto:${esc(b.requesterEmail)}">${esc(b.requesterEmail)}</a>` : ''}${b.requesterPhone ? `, <a href="tel:${esc(b.requesterPhone)}">${esc(b.requesterPhone)}</a>` : ''}${b.meetLink ? `<br><a href="${esc(b.meetLink)}" target="_blank" rel="noopener">Join the onboarding call</a>` : ''}</div>`;
     } else if (b.status === 'accepted') {
       action = b.meetLink
         ? `<p><a class="btn small" href="${esc(b.meetLink)}" target="_blank" rel="noopener">Join onboarding call on Google Meet</a></p>`
@@ -171,7 +179,7 @@
         if (!box?.checked) { toast('Tick the agreement to accept this booking', true); box?.focus(); return; }
         t.disabled = true;
         const { booking } = await api(`/business/bookings/${t.dataset.accept}/accept`, { method: 'POST', body: { agreementAccepted: true } });
-        toast(booking.meetLink ? 'Booking accepted. Onboarding call scheduled.' : 'Booking accepted');
+        toast('Accepted. The PMB team will approve the match and connect you.');
         await load();
       } else if (t.dataset.decline) {
         if (!confirm('Decline this booking request?')) return;

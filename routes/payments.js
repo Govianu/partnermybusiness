@@ -17,7 +17,7 @@ router.post('/split-preview', requireAuth(), (req, res) => {
 router.post('/orders/:bookingId', requireAuth('admin'), async (req, res) => {
   const booking = await Booking.findById(req.params.bookingId).populate('business');
   if (!booking) throw fail('Booking not found', 404);
-  if (booking.status !== 'accepted') throw fail('Only accepted bookings can be charged');
+  if (!['accepted', 'matched'].includes(booking.status)) throw fail('Only accepted or matched bookings can be charged');
   if (!(booking.amount > 0)) throw fail('Set a booking amount first');
 
   const { split, missing, payload } = buildOrderPayload(booking, booking.business?.business?.razorpayAccountId);

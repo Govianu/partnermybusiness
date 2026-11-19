@@ -18,7 +18,27 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
-## AI presenter videos (HeyGen), made on first view and reused
+## Marketplace deals: publish, match, PMB approval, PMB share, matched
+- Listings go live when a seller publishes them; the team inbox (info@partnermybusiness.ai) is emailed and can take one down.
+- Buyer requests go straight to the seller. When the seller accepts it's a match and goes to the PMB team for approval.
+- The PMB team approves with the agreed amount and split, PMB's share is requested (Razorpay payment link if keys are set),
+  and once it's received the deal is matched and both sides get each other's contact details.
+- New `utils/deal.js` (the steps), deal emails in `utils/emails.js`, payment links in `utils/razorpay.js`,
+  approve / decline / share-received in `routes/admin.js` and the PMB dashboard (`public/js/admin.js`).
+- PMB team dashboard limited to Govianu employees (`utils/staff.js`, `STAFF_EMAIL_DOMAINS`); the login page shows the team
+  sign-up only for those emails.
+- Fixed `public/js/auth.js`, which declared `emailParam` twice and so did not run at all (login and sign-up forms).
+- `test/dealFlow.test.js` runs the whole flow through the real routes.
+
+## Higgsfield replaces HeyGen for AI images and presenter videos
+- `utils/higgsfield.js` (new API client: text to image, image to video, request status) replaces `utils/heygen.js`.
+- Each lesson video is now made in two steps: a presenter image (Soul V2) and then a speaking video from it (Kling 3.0 Pro,
+  up to 6 shots with native sound). The image is kept as the poster and shown while the video is made.
+- `scripts/higgsfield-check.js` (`npm run higgsfield:check`) checks the keys; `scripts/heygen-list.js` removed.
+- Settings: `HIGGSFIELD_*` in `.env.example`, `render.yaml` and `render-paid.yaml.example` replace `HEYGEN_*`.
+  No free test mode on Higgsfield, so the monthly cap now defaults to 20 minutes.
+
+## AI presenter videos (HeyGen, since replaced by Higgsfield), made on first view and reused
 - `utils/heygen.js`, `utils/lessonVideos.js`, `utils/lessonScript.js`, `models/LessonVideo.js`, `routes/lessonVideos.js`.
 - `scripts/heygen-list.js` (`npm run heygen:list -- india`) to choose an avatar and voice.
 - Settings in `.env.example` (HEYGEN_*). Off until you add a HeyGen API key.

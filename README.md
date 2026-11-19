@@ -72,7 +72,7 @@ For production, use a paid web service with a persistent disk mounted at `/var/d
 
 Set these values in Render's service settings:
 
-- `ADMIN_INVITE_CODE`: a private code for creating an admin account.
+- `ADMIN_INVITE_CODE`: a private code for creating a PMB team account (Govianu emails only, see `STAFF_EMAIL_DOMAINS`).
 - `BREVO_API_KEY`: a Brevo API key; verify the sender address in Brevo first. The free Render blueprint uses its HTTPS API because Render Free blocks outbound SMTP.
 - `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
 - `TEAM_INBOX`: where new enquiries are sent.
@@ -126,14 +126,29 @@ persistent disk. Videos made earlier with HeyGen keep playing.
 
 | Who | Where | What they do |
 |---|---|---|
-| Business | My spaces, Booking requests, Find & book | List spaces and free slots; accept forwarded requests; book professionals or other spaces |
-| Professional | My offers, Find & book | List services with a price; accept forwarded requests; book spaces for workshops |
+| Business | My spaces, Booking requests, Find & book | Publish spaces and free slots; accept or decline requests; book professionals or other spaces |
+| Professional | My offers, Find & book | Publish services with a price; accept or decline requests; book spaces for workshops |
 | Buyer (event manager, company, individual) | `/buyer.html` | Search, request, follow each request; "Find it for me" |
 | Anyone | `/find.html` | Search and request without an account |
-| PMB team | Admin > Marketplace | Approve listings; forward or decline every request; connect both sides |
+| PMB team (Govianu employees only) | `/admin.html` > Marketplace | Approve matches, collect PMB's share, take listings down |
 
-Flow: listing added > PMB approves > buyer requests > PMB checks and forwards > seller accepts > PMB manager connects both
-and arranges payment. Buyers and sellers never see each other's email or phone.
+Flow (`utils/deal.js`):
+1. **Seller publishes** an opportunity: it is live for buyers straight away, and the team inbox (`TEAM_INBOX`,
+   info@partnermybusiness.ai) gets an email. The team can take a listing down with a note.
+2. **Buyer requests** it: the request goes straight to the seller (the team inbox gets a copy).
+3. **Seller accepts**: buyer and seller match. The team inbox gets "Approve match" and the deal waits in the PMB dashboard.
+4. **PMB approves**, setting the agreed amount, the split and who pays PMB's share. PMB's share is the platform line of
+   the split (25% on the 4-way split). With Razorpay keys set, a Razorpay payment link is created and emailed.
+5. **Share received**: press "Share received" (with Razorpay the link's status is checked; otherwise enter the UTR or
+   reference). It's a match: buyer and seller get each other's email and phone, and the team gets a copy.
+
+Until step 5, buyers and sellers never see each other's email or phone.
+
+### PMB team access
+Only accounts with a Govianu email (`STAFF_EMAIL_DOMAINS`, default `govianu.com`) can open the PMB team dashboard.
+The team sign-up only appears on the login page once a Govianu email is typed, and still needs `ADMIN_INVITE_CODE`.
+Older team accounts with other emails are refused. Govianu employees can keep business, professional or buyer
+dashboards on the same email and switch between them.
 
 ## Go live on Render (Blueprint)
 

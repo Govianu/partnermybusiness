@@ -1,5 +1,6 @@
 /* Marketplace UI shared by the public "Find" page and every dashboard.
-   Partnermybusiness is the third party: requests go to the PMB team first, contact details stay private. */
+   Partnermybusiness is the third party: listings go live when published, requests go to the seller, and when the seller
+   accepts, the PMB team approves the match and collects its share before contact details are shared. */
 (function () {
   const UNITS = [['slot', 'per slot'], ['hour', 'per hour'], ['day', 'per day'], ['session', 'per session'], ['event', 'per event'], ['project', 'per project'], ['month', 'per month']];
   const dialog = id => {
@@ -76,7 +77,7 @@
     d.innerHTML = `<form method="dialog" class="gdialog-body" novalidate>
       <h2>Request to book</h2>
       <p class="meta"><strong>${esc(l.title)}</strong>, ${esc(l.seller)}. ${esc(l.priceText)}</p>
-      <p class="mk-note">Partnermybusiness checks every request, then passes it on and connects you. Your contact details stay private.</p>
+      <p class="mk-note">Your request goes to the seller. When they accept, the PMB team approves the match and connects you. Your contact details stay private until then.</p>
       <div class="field"><label for="rqPurpose">What is it for?</label><input id="rqPurpose" maxlength="160" placeholder="${l.kind === 'space' ? 'Product launch for 60 guests' : 'Birthday dinner for 12'}"></div>
       <div class="row">
         <div class="field"><label for="rqDate">Date</label><input id="rqDate" type="date"></div>
@@ -108,7 +109,7 @@
       try {
         const r = await api('/market/requests', { method: 'POST', body });
         d.querySelector('.gdialog-body').innerHTML = `<h2>Request sent</h2>
-          <p>Our team will check it and pass it to the seller, usually within one working day. We’ve emailed you a confirmation.</p>
+          <p>It’s with the seller now. When they accept, our team approves the match and connects you. We’ve emailed you a confirmation.</p>
           ${r.loggedIn ? '<p class="meta">You can follow it under “My requests”.</p>' : '<p class="meta">Want to track all your requests in one place? <a href="/login.html?as=buyer">Create a free buyer account</a> with the same email.</p>'}
           <div class="gdialog-actions"><button type="button" class="btn" data-close>Done</button></div>`;
         onDone && onDone();
@@ -156,8 +157,10 @@
   }
 
   // ---------- Buyer: my requests ----------
-  const STEPS = ['Sent', 'Checked by PMB', 'Seller replied', 'Confirmed'];
-  const stepOf = s => ({ pending_review: 1, requested: 2, accepted: 4, completed: 4, declined: 3, cancelled: 0 }[s] ?? 1);
+  const STEPS = ['Sent to seller', 'Seller accepted', 'Approved by PMB', 'Matched'];
+  const stepOf = s => ({ pending_review: 1, requested: 1, pending_approval: 2, awaiting_payment: 3, matched: 4, accepted: 4, completed: 4, declined: 2, cancelled: 0 }[s] ?? 1);
+  const contactHtml = (label, c, meetLink) => c ? `<div class="contact-box"><strong>It’s a match. ${esc(label)}:</strong> ${esc(c.name)}${c.email ? `, <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}${c.phone ? `, <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : ''}${meetLink ? `<br><a href="${esc(meetLink)}" target="_blank" rel="noopener">Join the onboarding call</a>` : ''}</div>` : '';
+  const shareHtml = s => s ? `<div class="contact-box"><strong>One step left:</strong> pay the Partnermybusiness share of ${inr(s.amount)} to confirm the match.${s.payUrl ? ` <a class="btn small" href="${esc(s.payUrl)}" target="_blank" rel="noopener">Pay ${inr(s.amount)}</a>` : ' Your PMB manager will send the payment details.'}</div>` : '';
   async function renderMyRequests(el) {
     el.innerHTML = '<p class="meta">Loading…</p>';
     let rows;
@@ -165,12 +168,16 @@
     el.innerHTML = rows.length ? `<div class="list">${rows.map(r => {
       const n = stepOf(r.status), bad = r.status === 'declined' || r.status === 'cancelled';
       return `<div class="item">
-        <div class="item-top"><span class="item-title">${esc(r.listing?.title || r.what)}</span><span class="pill ${bad ? 'declined' : r.status === 'accepted' ? 'accepted' : 'pending'}">${esc(r.statusLabel)}</span></div>
+        <div class="item-top"><span class="item-title">${esc(r.listing?.title || r.what)}</span><span class="pill ${bad ? 'declined' : ['accepted', 'matched'].includes(r.status) ? 'accepted' : 'pending'}">${esc(r.statusLabel)}</span></div>
         <div class="meta">${esc(r.what)}${r.date ? `, ${fmtDate(r.date)}` : ''}${r.people ? `, ${r.people} people` : ''}${r.listing ? `. ${esc(r.listing.seller)}` : ''}</div>
-        ${r.status === 'cancelled' ? '' : `<ol class="mk-steps">${STEPS.map((s, i) => `<li class="${i < n ? (bad && i === n - 1 ? 'bad' : 'done') : ''}">${esc(i === 2 && r.status === 'declined' ? 'Not available' : s)}</li>`).join('')}</ol>`}
+        ${r.status === 'cancelled' ? '' : `<ol class="mk-steps">${STEPS.map((s, i) => `<li class="${i < n ? (bad && i === n - 1 ? 'bad' : 'done') : ''}">${esc(i === 1 && r.status === 'declined' ? 'Not available' : s)}</li>`).join('')}</ol>`}
         ${r.note ? `<p class="item-body"><strong>From our team:</strong> ${esc(r.note)}</p>` : ''}
+        ${r.status === 'pending_approval' ? '<p class="item-body meta">The seller accepted. Our team is approving the match now.</p>' : ''}
+        ${r.status === 'awaiting_payment' && !r.share ? '<p class="item-body meta">Approved by our team. The match is confirmed as soon as the PMB share is received.</p>' : ''}
+        ${shareHtml(r.share)}
+        ${contactHtml('Seller', r.seller, r.meetLink)}
         ${r.status === 'accepted' ? '<p class="item-body meta">Your PMB manager will contact you to confirm the details and payment.</p>' : ''}
-        ${['pending_review', 'requested'].includes(r.status) ? `<button class="btn ghost small" type="button" data-cancel-req="${esc(r.id)}">Cancel request</button>` : ''}
+        ${r.canCancel ? `<button class="btn ghost small" type="button" data-cancel-req="${esc(r.id)}">Cancel request</button>` : ''}
       </div>`; }).join('')}</div>`
       : '<div class="list"><div class="empty"><strong>No requests yet</strong>Find a space or professional and send a request. You’ll be able to follow it here.</div></div>';
     el.onclick = async e => {
@@ -183,7 +190,7 @@
   }
 
   // ---------- Seller: my listings ----------
-  const LISTING_STATUS = { pending_review: ['Being checked by PMB', 'pending'], live: ['Live', 'approved'], paused: ['Paused', 'pending'], rejected: ['Needs a change', 'declined'] };
+  const LISTING_STATUS = { pending_review: ['Being checked by PMB', 'pending'], live: ['Live', 'approved'], paused: ['Paused', 'pending'], rejected: ['Taken down by PMB: edit to republish', 'declined'] };
   async function renderMyListings(el, { role, suggestions = [], area = '' }) {
     const isSpace = role === 'business';
     el.innerHTML = '<p class="meta">Loading…</p>';
@@ -191,7 +198,7 @@
     try { rows = (await api('/market/my/listings')).listings; } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; return; }
     el.innerHTML = `<div class="section-title"><h2>${isSpace ? 'Your spaces and free slots' : 'What you offer'}</h2>
         <button class="btn" type="button" data-new-listing>${isSpace ? 'Add a space' : 'Add a service'}</button></div>
-      <p class="meta" style="margin-top:-.4rem">Our team checks each listing before buyers can see it. Buyers never see your phone or email; we connect you.</p>
+      <p class="meta" style="margin-top:-.4rem">Listings are published for buyers straight away. Buyers never see your phone or email until the PMB team confirms a match.</p>
       ${rows.length ? `<div class="mk-grid">${rows.map(l => {
         const [label, cls] = LISTING_STATUS[l.status] || [l.status, 'pending'];
         return `<div class="mk-own">${card(l, { canRequest: false })}
@@ -236,7 +243,7 @@
       ${isSpace ? `<div class="field"><label for="lsArea">Area</label><input id="lsArea" maxlength="120" value="${esc(l.area || area)}"></div>` : ''}
       <div class="field"><label for="lsTags">Keywords <span class="hint">(comma separated, helps buyers find you)</span></label><input id="lsTags" maxlength="300" value="${esc((l.tags || []).join(', '))}"></div>
       <p class="error-box" role="alert"></p>
-      <div class="gdialog-actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" data-save>${listing ? 'Save and send for review' : 'Send for review'}</button></div>
+      <div class="gdialog-actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" data-save>${listing ? 'Save and publish' : 'Publish'}</button></div>
     </form>`;
     const v = id => d.querySelector('#' + id)?.value.trim();
     d.onclick = async e => {
@@ -249,26 +256,31 @@
       const body = { title: v('lsTitle'), description: v('lsDesc'), price: v('lsPrice'), priceUnit: v('lsUnit'), availability: v('lsAvail'), area: v('lsArea'), capacity: isSpace ? v('lsCap') : '', tags: v('lsTags') };
       try {
         await api(listing ? `/market/my/listings/${listing.id}` : '/market/my/listings', { method: listing ? 'PATCH' : 'POST', body });
-        d.close(); toast('Sent to our team for review. It goes live once approved.'); onSaved && onSaved();
+        d.close(); toast('Published. Buyers can see it now, and our team has been told.'); onSaved && onSaved();
       } catch (ex) { d.querySelector('.error-box').textContent = ex.message; save.disabled = false; }
     };
     d.showModal();
   }
 
-  // ---------- Seller: requests forwarded by PMB (professionals; businesses use Booking requests) ----------
+  // ---------- Seller: requests from buyers (professionals; businesses use Booking requests) ----------
   async function renderIncoming(el, { onChange } = {}) {
     el.innerHTML = '<p class="meta">Loading…</p>';
     let rows;
     try { rows = (await api('/market/my/incoming')).requests; } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; return; }
     el.innerHTML = rows.length ? `<div class="list">${rows.map(r => `<div class="item">
-        <div class="item-top"><span class="item-title">${esc(r.what)}</span><span class="pill ${r.status === 'accepted' ? 'accepted' : r.status === 'declined' ? 'declined' : 'requested'}">${esc(r.statusLabel)}</span></div>
+        <div class="item-top"><span class="item-title">${esc(r.what)}</span><span class="pill ${['accepted', 'matched'].includes(r.status) ? 'accepted' : ['declined', 'cancelled'].includes(r.status) ? 'declined' : 'requested'}">${esc(r.statusLabel)}</span></div>
         <div class="meta">${esc(r.listingTitle)}. From ${esc(r.from)}${r.date ? `, ${fmtDate(r.date)}` : ''}${r.people ? `, ${r.people} people` : ''}${r.budget ? `, budget ${inr(r.budget)}` : ''}</div>
         ${r.message ? `<p class="item-body">${esc(r.message)}</p>` : ''}
         ${r.status === 'requested' ? `<label class="check" style="margin-top:.6rem"><input type="checkbox" data-agree-req="${esc(r.id)}"> I agree to do this under the PMB partner terms.</label>
           <div class="accept-row"><button class="btn" type="button" data-accept-req="${esc(r.id)}">Accept</button><button class="btn warn small" type="button" data-decline-req="${esc(r.id)}">Decline</button></div>` : ''}
         ${r.status === 'accepted' ? '<p class="item-body meta">Your PMB manager will connect you with the buyer.</p>' : ''}
+        ${r.status === 'pending_approval' ? '<p class="item-body meta">You accepted: it’s a match. Our team is approving it now.</p>' : ''}
+        ${r.status === 'awaiting_payment' && !r.share ? '<p class="item-body meta">Approved by our team. The match is confirmed as soon as the PMB share is received.</p>' : ''}
+        ${r.note ? `<p class="item-body"><strong>From our team:</strong> ${esc(r.note)}</p>` : ''}
+        ${shareHtml(r.share)}
+        ${contactHtml('Buyer', r.buyer, r.meetLink)}
       </div>`).join('')}</div>`
-      : '<div class="list"><div class="empty"><strong>No requests yet</strong>Requests appear here after our team has checked them.</div></div>';
+      : '<div class="list"><div class="empty"><strong>No requests yet</strong>Requests from buyers appear here as soon as they’re sent.</div></div>';
     el.onclick = async e => {
       const a = e.target.closest('[data-accept-req]'), dcl = e.target.closest('[data-decline-req]');
       if (!a && !dcl) return;
@@ -276,7 +288,7 @@
       if (a && !el.querySelector(`[data-agree-req="${id}"]`).checked) { toast('Tick the agreement to accept', true); return; }
       try {
         await api(`/market/my/incoming/${id}/${a ? 'accept' : 'decline'}`, { method: 'POST', body: { agreementAccepted: Boolean(a) } });
-        toast(a ? 'Accepted. Your PMB manager will connect you.' : 'Declined'); renderIncoming(el, { onChange }); onChange && onChange();
+        toast(a ? 'Accepted. Our team will approve the match and connect you.' : 'Declined'); renderIncoming(el, { onChange }); onChange && onChange();
       } catch (ex) { toast(ex.message, true); }
     };
     return rows;

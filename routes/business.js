@@ -5,11 +5,10 @@ const Lead = require('../models/Lead');
 const Media = require('../models/Media');
 const { requireAuth } = require('../middleware/auth');
 const { computeSplit } = require('../utils/split');
-const { createMeeting, meetConfigured } = require('../utils/meet');
+const { meetConfigured } = require('../utils/meet');
+const deal = require('../utils/deal');
 const { generateOpportunities } = require('../utils/ai');
 const { fail, str } = require('../utils/http');
-const { sendMail } = require('../utils/mailer');
-const { bookingAccepted } = require('../utils/emails');
 const { industryFor } = require('../utils/industry');
 const { uploadMiddleware } = require('../utils/mediaUpload');
 const { createMediaUpload, deleteOwnedMedia } = require('../utils/mediaController');
@@ -23,16 +22,19 @@ router.get('/dashboard', async (req, res) => {
     Booking.find({ business: req.user._id }).sort({ createdAt: -1 }).limit(100),
     Media.find({ owner: req.user._id }).sort({ createdAt: -1 })
   ]);
-  // PMB is the third party: sellers only see requests our team has checked, and never the buyer's contact details
+  // PMB is the third party: sellers see the buyer's contact details only once it's a match (PMB approved, share received)
   const visible = bookings.filter(b => b.status !== 'pending_review' && b.status !== 'cancelled');
   const withSplit = visible.map(b => {
     const row = { ...b.toJSON(), split: computeSplit(b.amount, b.splitModel, b.partnerShare) };
-    delete row.requesterEmail; delete row.requesterPhone; delete row.timeline; delete row.termsAcceptedAt;
-    row.requesterName = `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${String(b.buyerType).toLowerCase()}` : ''}`;
+    const matched = b.status === 'matched';
+    if (!matched) { delete row.requesterEmail; delete row.requesterPhone; delete row.meetLink; }
+    delete row.timeline; delete row.termsAcceptedAt; delete row.payment; delete row.approvedBy;
+    row.share = b.status === 'awaiting_payment' && b.sharePayer !== 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null;
+    if (!matched) row.requesterName = `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${String(b.buyerType).toLowerCase()}` : ''}`;
     return row;
   });
   const yourShare = withSplit
-    .filter(b => b.status === 'accepted' || b.status === 'completed')
+    .filter(b => ['accepted', 'matched', 'completed'].includes(b.status))
     .reduce((sum, b) => sum + (b.split.lines.find(l => l.party === 'business')?.amountInr || 0), 0);
 
   res.json({
@@ -42,7 +44,7 @@ router.get('/dashboard', async (req, res) => {
     industry: industryFor(req.user),
     stats: {
       pending: visible.filter(b => b.status === 'requested').length,
-      accepted: visible.filter(b => b.status === 'accepted').length,
+      accepted: visible.filter(b => ['accepted', 'matched'].includes(b.status)).length,
       yourShare,
       potentialMonthly: opportunities.reduce((s, o) => s + (o.estMonthly || 0), 0)
     },
@@ -86,46 +88,21 @@ router.patch('/opportunities/:id', async (req, res) => {
   res.json({ opportunity: op });
 });
 
+// Accepting makes it a match: it goes to the PMB team for approval, then PMB's share, then both sides are connected (utils/deal.js)
 router.post('/bookings/:id/accept', async (req, res) => {
   if (req.body?.agreementAccepted !== true) throw fail('Tick the partner agreement to accept this booking');
   const booking = await Booking.findOne({ _id: req.params.id, business: req.user._id });
   if (!booking) throw fail('Booking not found', 404);
-  if (booking.status !== 'requested') throw fail(`This booking is already ${booking.status}`);
-
-  booking.status = 'accepted';
-  booking.agreementAccepted = true;
-  booking.agreementAcceptedAt = new Date();
-
-  try {
-    const meet = await createMeeting({
-      summary: `PMB onboarding: ${booking.eventType} at ${req.user.business?.businessName || req.user.name}`,
-      description: `Booking ${booking._id}\nRequested by ${booking.requesterName}\nGuests: ${booking.guests || '-'}\nAmount: ₹${booking.amount}`,
-      attendees: [req.user.email, booking.requesterEmail]
-    });
-    booking.meetLink = meet.link;
-    booking.meetEventId = meet.eventId;
-  } catch (err) {
-    console.error('Meet creation failed:', err.message);
-  }
-
-  await booking.save();
-  await Lead.updateOne(
-    { relatedBooking: booking._id },
-    { $set: { stage: 'signed' }, $push: { history: { stage: 'signed', note: 'Business accepted with digital agreement', proofUrl: `booking:${booking._id}`, by: req.user._id } } }
-  );
+  if (booking.status !== 'requested') throw fail(`This booking is already ${String(booking.status).replace(/_/g, ' ')}`);
+  await deal.sellerAccepted({ booking, seller: req.user });
   const split = computeSplit(booking.amount, booking.splitModel, booking.partnerShare);
-  const share = split.lines.find(l => l.party === 'business')?.amountInr;
-  for (const mail of bookingAccepted({ business: req.user, booking, share })) await sendMail(mail);
   res.json({ booking: { ...booking.toJSON(), split } });
 });
 
 router.post('/bookings/:id/decline', async (req, res) => {
-  const booking = await Booking.findOneAndUpdate(
-    { _id: req.params.id, business: req.user._id, status: 'requested' },
-    { status: 'declined' },
-    { new: true }
-  );
+  const booking = await Booking.findOne({ _id: req.params.id, business: req.user._id, status: 'requested' });
   if (!booking) throw fail('Booking not found or already handled', 404);
+  await deal.sellerDeclined({ booking, seller: req.user });
   res.json({ booking });
 });
 

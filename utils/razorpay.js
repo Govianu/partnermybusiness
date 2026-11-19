@@ -52,4 +52,32 @@ async function createOrder(payload) {
 
 const razorpayConfigured = () => !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 
-module.exports = { buildOrderPayload, createOrder, razorpayConfigured };
+async function razorpay(path, options = {}) {
+  const auth = Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64');
+  const res = await fetch(`https://api.razorpay.com/v1${path}`, {
+    ...options,
+    headers: { authorization: `Basic ${auth}`, 'content-type': 'application/json' }
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error?.description || 'Razorpay error'), { status: 502, expose: true });
+  return data;
+}
+
+// A Razorpay payment link for PMB's share of a matched deal. Razorpay emails it to the payer too.
+// Docs: https://razorpay.com/docs/api/payments/payment-links/create-standard/
+function createPaymentLink({ amountInr, reference, description, customer, notes }) {
+  return razorpay('/payment_links', {
+    method: 'POST',
+    body: JSON.stringify({
+      amount: Math.round(Number(amountInr) * 100), currency: 'INR', accept_partial: false,
+      reference_id: String(reference).slice(0, 40), description: String(description).slice(0, 2048),
+      customer: { name: customer.name, email: customer.email, ...(customer.phone ? { contact: customer.phone } : {}) },
+      notify: { email: true, sms: Boolean(customer.phone) }, reminder_enable: true, notes
+    })
+  });
+}
+
+// { status: 'created' | 'partially_paid' | 'paid' | 'expired' | 'cancelled', payments: [...] }
+const getPaymentLink = id => razorpay(`/payment_links/${encodeURIComponent(id)}`);
+
+module.exports = { buildOrderPayload, createOrder, razorpayConfigured, createPaymentLink, getPaymentLink };

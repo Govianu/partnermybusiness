@@ -4,9 +4,12 @@ module.exports = createModel('Booking', {
   required: ['business', 'requesterName', 'eventType'],
   enums: {
     splitModel: ['four_way', 'infra_first'],
-    // pending_review: with the PMB team (we're the third party); requested: forwarded to the seller
-    status: ['pending_review', 'requested', 'accepted', 'declined', 'completed', 'cancelled'],
-    'payment.status': ['none', 'created', 'paid']
+    // Marketplace deal: requested (with the seller) -> pending_approval (seller accepted: a match, waiting for the PMB team)
+    //   -> awaiting_payment (PMB approved, waiting for PMB's share) -> matched (share received, both sides connected)
+    // pending_review and accepted are from the earlier flow and stay valid for older records.
+    status: ['pending_review', 'requested', 'pending_approval', 'awaiting_payment', 'matched', 'accepted', 'declined', 'completed', 'cancelled'],
+    'payment.status': ['none', 'created', 'paid'],
+    sharePayer: ['buyer', 'seller']
   },
   defaults: {
     amount: 0,

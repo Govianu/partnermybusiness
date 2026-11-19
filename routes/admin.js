@@ -11,6 +11,8 @@ const { uniqueHandle } = require('../utils/handle');
 const { resolveMapsUrl } = require('../utils/maps');
 const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { fail, str } = require('../utils/http');
+const deal = require('../utils/deal');
+const { pmbShareOf } = deal;
 
 router.use(requireAuth('admin'));
 
@@ -21,7 +23,7 @@ router.get('/overview', async (req, res) => {
     User.countDocuments({ status: 'pending' }),
     Media.countDocuments({ status: 'pending' }),
     Lead.aggregate([{ $group: { _id: '$stage', n: { $sum: 1 } } }]),
-    Booking.countDocuments({ status: 'requested' }),
+    Booking.countDocuments({ status: 'pending_approval' }),
     User.countDocuments({ status: 'imported', createdAt: { $gte: startOfDay } }),
     Gig.countDocuments({ status: 'proposed' })
   ]);
@@ -228,7 +230,11 @@ router.get('/market', async (req, res) => {
     requestRows.push({ id: b._id, status: b.status, statusLabel: STATUS_LABEL[b.status] || b.status, what: b.eventType, date: b.eventDate, people: b.guests,
       budget: b.amount, message: b.message, listingTitle: l?.title || 'Direct booking link', price: l ? require('../utils/emails').priceText(l) : '',
       buyer: { name: b.requesterName, email: b.requesterEmail, phone: b.requesterPhone, type: b.buyerType || '' },
-      seller: { name: s?.business?.businessName || s?.name || '', email: s?.email || '', handle: s?.handle || '' }, createdAt: b.createdAt });
+      seller: { name: s?.business?.businessName || s?.name || '', email: s?.email || '', phone: s?.phone || '', handle: s?.handle || '' }, createdAt: b.createdAt,
+      splitModel: b.splitModel || 'four_way', partnerShare: b.partnerShare ?? 50, pmbShare: b.pmbShare ?? null, sharePayer: b.sharePayer || 'seller',
+      suggestedShare: b.amount > 0 ? pmbShareOf(b.amount, b.splitModel, b.partnerShare).share : null,
+      payment: b.payment ? { status: b.payment.status, linkUrl: b.payment.linkUrl || null, reference: b.payment.reference || null } : null,
+      timeline: (b.timeline || []).slice(-6) });
   }
   res.json({ listings: listingRows, requests: requestRows });
 });
@@ -237,8 +243,9 @@ router.post('/market/listings/:id/review', async (req, res) => {
   const Listing = require('../models/Listing');
   const { sendMail } = require('../utils/mailer');
   const { listingReviewed } = require('../utils/emails');
-  const decision = req.body?.decision;
-  if (!['approve', 'reject'].includes(decision)) throw fail('Choose approve or reject');
+  // Listings are live as soon as sellers publish them; the team can take one down (with a note) or put it back
+  const decision = { takedown: 'reject', restore: 'approve' }[req.body?.decision] || req.body?.decision;
+  if (!['approve', 'reject'].includes(decision)) throw fail('Choose publish or take down');
   const note = str(req.body?.note).slice(0, 500);
   if (decision === 'reject' && !note) throw fail('Add a note so the seller knows what to change');
   const l = await Listing.findById(req.params.id);
@@ -271,6 +278,27 @@ router.post('/market/requests/:id/review', async (req, res) => {
   if (decision === 'forward' && sellerUser?.email) await sendMail(marketRequestForSeller({ seller: sellerUser, booking: b, listing: l }));
   if (b.requesterEmail) await sendMail(marketDecision({ booking: b, listing: l, outcome: decision === 'forward' ? 'forwarded' : 'declined', note }));
   res.json({ ok: true, status: b.status });
+});
+
+// ---------- Deals: seller accepted (a match) -> PMB approves -> PMB share received -> matched ----------
+async function dealBooking(id) {
+  const b = await Booking.findById(id);
+  if (!b) throw fail('Request not found', 404);
+  return b;
+}
+router.post('/market/requests/:id/approve', async (req, res) => {
+  const b = req.body || {};
+  const booking = await deal.approve({ booking: await dealBooking(req.params.id), admin: req.user, amount: b.amount, splitModel: b.splitModel,
+    partnerShare: b.partnerShare, sharePayer: b.sharePayer, note: str(b.note).slice(0, 500) });
+  res.json({ ok: true, status: booking.status, pmbShare: booking.pmbShare, payUrl: booking.payment?.linkUrl || null });
+});
+router.post('/market/requests/:id/decline-match', async (req, res) => {
+  const booking = await deal.declineMatch({ booking: await dealBooking(req.params.id), admin: req.user, note: str(req.body?.note).slice(0, 500) });
+  res.json({ ok: true, status: booking.status });
+});
+router.post('/market/requests/:id/share-received', async (req, res) => {
+  const booking = await deal.shareReceived({ booking: await dealBooking(req.params.id), admin: req.user, reference: str(req.body?.reference) });
+  res.json({ ok: true, status: booking.status });
 });
 
 // ---------- Bookings ----------

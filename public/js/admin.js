@@ -16,7 +16,7 @@
       <div class="stat"><div class="v">${o.importedToday}/${o.importTarget}</div><div class="k">imported today</div></div>
       <div class="stat"><div class="v">${o.pendingProfiles}</div><div class="k">profiles to review</div></div>
       <div class="stat"><div class="v">${o.pendingMedia}</div><div class="k">uploads to validate</div></div>
-      <div class="stat"><div class="v">${o.requestedBookings}</div><div class="k">bookings awaiting venue</div></div>
+      <div class="stat"><div class="v">${o.requestedBookings}</div><div class="k">matches to approve</div></div>
       <div class="stat"><div class="v">${o.proposedWorkshops}</div><div class="k">workshops to approve</div></div>
       <div class="stat"><div class="v">${(o.users.business || 0)} / ${(o.users.associate || 0)}</div><div class="k">businesses / associates</div></div>`;
     document.getElementById('pipeline').innerHTML = stages
@@ -242,44 +242,91 @@
     } catch (err) { toast(err.message, true); }
   });
 
-  // ---------- Marketplace: PMB checks every request and listing ----------
+  // ---------- Marketplace: matches to approve, PMB share to collect, listings to watch ----------
   let marketData = { requests: [], listings: [] };
-  const mpill = (status, label) => `<span class="pill ${status === 'pending_review' ? 'pending' : ['accepted', 'live', 'completed'].includes(status) ? 'approved' : ['declined', 'rejected', 'cancelled'].includes(status) ? 'declined' : 'requested'}">${esc(label)}</span>`;
+  const PILL_CLASS = { pending_review: 'pending', pending_approval: 'pending', awaiting_payment: 'requested', requested: 'requested',
+    matched: 'approved', accepted: 'approved', live: 'approved', completed: 'approved', declined: 'declined', rejected: 'declined', cancelled: 'declined', paused: 'pending' };
+  const mpill = (status, label) => `<span class="pill ${PILL_CLASS[status] || 'requested'}">${esc(label)}</span>`;
+  // Most urgent first: matches to approve, shares to collect, old-flow reviews, then the rest
+  const URGENCY = { pending_approval: 0, awaiting_payment: 1, pending_review: 2, requested: 3 };
+  const urgency = r => URGENCY[r.status] ?? 9;
+
+  function dealActions(r) {
+    if (r.status === 'pending_approval') {
+      return `<div class="deal-box">
+        <p class="meta"><strong>Matched: the seller accepted.</strong> Approve to request PMB’s share. Contact details are shared only after the share is received.</p>
+        <div class="row">
+          <div class="field"><label for="amt-${esc(r.id)}">Agreed amount (₹)</label><input id="amt-${esc(r.id)}" type="number" min="1" value="${r.budget || ''}" data-deal-amount="${esc(r.id)}"></div>
+          <div class="field"><label for="mdl-${esc(r.id)}">Split</label><select id="mdl-${esc(r.id)}" data-deal-model="${esc(r.id)}">
+            <option value="four_way" ${r.splitModel === 'four_way' ? 'selected' : ''}>4-way (PMB 25%)</option>
+            <option value="infra_first" ${r.splitModel === 'infra_first' ? 'selected' : ''}>Infrastructure first</option></select></div>
+          <div class="field"><label for="pay-${esc(r.id)}">PMB share paid by</label><select id="pay-${esc(r.id)}" data-deal-payer="${esc(r.id)}">
+            <option value="seller" ${r.sharePayer !== 'buyer' ? 'selected' : ''}>Seller</option><option value="buyer" ${r.sharePayer === 'buyer' ? 'selected' : ''}>Buyer</option></select></div>
+        </div>
+        <p class="meta" data-deal-preview="${esc(r.id)}">${r.suggestedShare != null ? `PMB share: ${inr(r.suggestedShare)}` : 'Enter the amount to see PMB’s share.'}</p>
+        <div class="accept-row">
+          <input placeholder="Note for buyer and seller (needed to decline)" data-mnote="${esc(r.id)}" style="max-width:380px">
+          <button class="btn small" type="button" data-deal="approve" data-id="${esc(r.id)}">Approve and request PMB share</button>
+          <button class="btn warn small" type="button" data-deal="decline-match" data-id="${esc(r.id)}">Decline</button></div>
+      </div>`;
+    }
+    if (r.status === 'awaiting_payment') {
+      return `<div class="deal-box">
+        <p class="meta"><strong>Approved. Waiting for PMB share of ${inr(r.pmbShare)}</strong> from the ${esc(r.sharePayer)} (agreed amount ${inr(r.budget)}).
+          ${r.payment?.linkUrl ? `Razorpay link: <a href="${esc(r.payment.linkUrl)}" target="_blank" rel="noopener">${esc(r.payment.linkUrl)}</a>. Checked automatically when you press the button.` : 'No Razorpay link: collect it directly and enter the reference.'}</p>
+        <div class="accept-row">
+          <input placeholder="Payment reference (UTR / payment ID)" data-mref="${esc(r.id)}" style="max-width:300px">
+          <button class="btn small" type="button" data-deal="share-received" data-id="${esc(r.id)}">Share received: confirm match</button>
+          <input placeholder="Note (needed to decline)" data-mnote="${esc(r.id)}" style="max-width:220px">
+          <button class="btn warn small" type="button" data-deal="decline-match" data-id="${esc(r.id)}">Decline</button></div>
+      </div>`;
+    }
+    if (r.status === 'matched') {
+      return `<p class="meta"><strong>Matched.</strong> PMB share ${inr(r.pmbShare)} received${r.payment?.reference ? ` (ref ${esc(r.payment.reference)})` : ''}. Both sides have each other’s details.</p>`;
+    }
+    if (r.status === 'pending_review') {  // requests from before listings went straight to sellers
+      return `<div class="accept-row">
+          <input placeholder="Note for the buyer (needed to decline)" data-mnote="${esc(r.id)}" style="max-width:380px">
+          <button class="btn small" type="button" data-mreq="${esc(r.id)}" data-decision="forward">Forward to seller</button>
+          <button class="btn warn small" type="button" data-mreq="${esc(r.id)}" data-decision="decline">Decline</button></div>`;
+    }
+    if (r.status === 'requested') return '<p class="meta">With the seller. When they accept, it comes back here for approval.</p>';
+    return '';
+  }
+
   async function loadMarket() {
     marketData = await api('/admin/market');
-    const waitingReq = marketData.requests.filter(r => r.status === 'pending_review');
-    const waitingList = marketData.listings.filter(l => l.status === 'pending_review');
-    setCount('market', waitingReq.length + waitingList.length);
+    const toApprove = marketData.requests.filter(r => r.status === 'pending_approval' || r.status === 'pending_review');
+    const toCollect = marketData.requests.filter(r => r.status === 'awaiting_payment');
+    setCount('market', toApprove.length + toCollect.length);
     const reqEl = document.getElementById('marketRequests');
-    const order = r => (r.status === 'pending_review' ? 0 : 1);
-    const reqs = marketData.requests.slice().sort((a, b) => order(a) - order(b));
-    reqEl.innerHTML = reqs.length ? `<p class="meta">${waitingReq.length} waiting for review</p><div class="list">${reqs.map(r => `<div class="item">
+    const reqs = marketData.requests.slice().sort((a, b) => urgency(a) - urgency(b));
+    reqEl.innerHTML = reqs.length ? `<p class="meta">${toApprove.length} to approve, ${toCollect.length} waiting for PMB share, ${marketData.requests.filter(r => r.status === 'matched').length} matched</p><div class="list">${reqs.map(r => `<div class="item">
         <div class="item-top"><span class="item-title">${esc(r.what)}</span>${mpill(r.status, r.statusLabel)}</div>
-        <div class="meta"><strong>${esc(r.listingTitle)}</strong>${r.price ? `, ${esc(r.price)}` : ''}${r.date ? `, ${fmtDate(r.date)}` : ''}${r.people ? `, ${r.people} people` : ''}${r.budget ? `, budget ${inr(r.budget)}` : ''}</div>
+        <div class="meta"><strong>${esc(r.listingTitle)}</strong>${r.price ? `, ${esc(r.price)}` : ''}${r.date ? `, ${fmtDate(r.date)}` : ''}${r.people ? `, ${r.people} people` : ''}${r.budget ? `, ${r.status === 'pending_approval' || r.status === 'requested' ? 'budget' : 'amount'} ${inr(r.budget)}` : ''}</div>
         <div class="two-col" style="margin-top:.6rem;gap:.8rem">
           <div class="meta"><strong>Buyer</strong><br>${esc(r.buyer.name)}${r.buyer.type ? ` (${esc(r.buyer.type)})` : ''}<br>${esc(r.buyer.email || '')}${r.buyer.phone ? `<br>${esc(r.buyer.phone)}` : ''}</div>
-          <div class="meta"><strong>Seller</strong><br>${esc(r.seller.name)}<br>${esc(r.seller.email || '')}${r.seller.handle ? `<br><code class="handle">${handleHtml(r.seller.handle)}</code>` : ''}</div>
+          <div class="meta"><strong>Seller</strong><br>${esc(r.seller.name)}<br>${esc(r.seller.email || '')}${r.seller.phone ? `<br>${esc(r.seller.phone)}` : ''}${r.seller.handle ? `<br><code class="handle">${handleHtml(r.seller.handle)}</code>` : ''}</div>
         </div>
         ${r.message ? `<p class="item-body">${esc(r.message)}</p>` : ''}
-        ${r.status === 'pending_review' ? `<div class="accept-row">
-          <input placeholder="Note for the buyer (needed to decline)" data-mnote="${esc(r.id)}" style="max-width:380px">
-          <button class="btn small" type="button" data-mreq="${esc(r.id)}" data-decision="forward">Check and forward to seller</button>
-          <button class="btn warn small" type="button" data-mreq="${esc(r.id)}" data-decision="decline">Decline</button></div>` : ''}
-      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No requests yet</strong>Requests from the Find page and booking links appear here first.</div></div>';
+        ${dealActions(r)}
+      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No requests yet</strong>Buyer requests appear here. When a seller accepts one, it waits here for your approval.</div></div>';
 
     const listEl = document.getElementById('marketListings');
-    const lists = marketData.listings.slice().sort((a, b) => order(a) - order(b));
-    const LST = { pending_review: 'Waiting for review', live: 'Live', paused: 'Paused', rejected: 'Needs a change' };
-    listEl.innerHTML = lists.length ? `<p class="meta">${waitingList.length} waiting for review</p><div class="list">${lists.map(l => `<div class="item">
+    const LST = { pending_review: 'Waiting for review', live: 'Live', paused: 'Paused by seller', rejected: 'Taken down' };
+    const lorder = l => ({ pending_review: 0, live: 1, paused: 2, rejected: 3 }[l.status] ?? 4);
+    const lists = marketData.listings.slice().sort((a, b) => lorder(a) - lorder(b));
+    listEl.innerHTML = lists.length ? `<p class="meta">${lists.filter(l => l.status === 'live').length} live. Sellers publish straight away; take a listing down if anything is wrong.</p><div class="list">${lists.map(l => `<div class="item">
         <div class="item-top"><span class="item-title">${esc(l.title)}</span>${mpill(l.status, LST[l.status] || l.status)}</div>
         <div class="meta">${l.kind === 'space' ? 'Space' : 'Professional service'}, ${esc(l.ownerName)} (${esc(l.ownerEmail)}). ${esc(l.priceText)}${l.capacity ? `, up to ${l.capacity} people` : ''}${l.availability ? `, ${esc(l.availability)}` : ''}${l.area ? `, ${esc(l.area)}` : ''}</div>
         ${l.description ? `<p class="item-body">${esc(l.description)}</p>` : ''}
         ${l.reviewNote ? `<p class="meta">Last note: ${esc(l.reviewNote)}</p>` : ''}
-        ${l.status === 'pending_review' ? `<div class="accept-row">
-          <input placeholder="Note for the seller (needed to reject)" data-lnote="${esc(l.id)}" style="max-width:380px">
-          <button class="btn small" type="button" data-mlist="${esc(l.id)}" data-decision="approve">Approve and publish</button>
-          <button class="btn warn small" type="button" data-mlist="${esc(l.id)}" data-decision="reject">Ask for a change</button></div>` : ''}
-      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No listings yet</strong>Spaces from businesses and services from professionals appear here first.</div></div>';
+        ${['live', 'paused', 'pending_review'].includes(l.status) ? `<div class="accept-row">
+          <input placeholder="Note for the seller (needed to take down)" data-lnote="${esc(l.id)}" style="max-width:380px">
+          ${l.status === 'pending_review' ? `<button class="btn small" type="button" data-mlist="${esc(l.id)}" data-decision="restore">Publish</button>` : ''}
+          <button class="btn warn small" type="button" data-mlist="${esc(l.id)}" data-decision="takedown">Take down</button></div>` : ''}
+        ${l.status === 'rejected' ? `<div class="accept-row"><button class="btn ghost small" type="button" data-mlist="${esc(l.id)}" data-decision="restore">Put back live</button></div>` : ''}
+      </div>`).join('')}</div>` : '<div class="list"><div class="empty"><strong>No listings yet</strong>Spaces from businesses and services from professionals appear here as soon as they’re published.</div></div>';
   }
   document.querySelector('#view-market .view-tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-mtab]'); if (!b) return;
@@ -287,14 +334,43 @@
     document.getElementById('marketRequests').hidden = b.dataset.mtab !== 'requests';
     document.getElementById('marketListings').hidden = b.dataset.mtab !== 'listings';
   });
+  // Live PMB share preview while the amount or split changes
+  document.getElementById('view-market').addEventListener('input', async e => {
+    const id = e.target.dataset.dealAmount || e.target.dataset.dealModel;
+    if (!id) return;
+    const amount = Number(document.querySelector(`[data-deal-amount="${id}"]`).value);
+    const out = document.querySelector(`[data-deal-preview="${id}"]`);
+    if (!(amount > 0)) { out.textContent = 'Enter the amount to see PMB’s share.'; return; }
+    try {
+      const s = await api('/payments/split-preview', { method: 'POST', body: { amount, model: document.querySelector(`[data-deal-model="${id}"]`).value } });
+      out.textContent = `PMB share: ${inr(s.lines.find(x => x.party === 'platform')?.amountInr || 0)}`;
+    } catch (ex) { out.textContent = ex.message; }
+  });
   document.getElementById('view-market').addEventListener('click', async e => {
+    const d = e.target.closest('[data-deal]');
+    if (d) {
+      const id = d.dataset.id, action = d.dataset.deal;
+      const val = sel => document.querySelector(sel)?.value || '';
+      const body = action === 'approve'
+        ? { amount: Number(val(`[data-deal-amount="${id}"]`)), splitModel: val(`[data-deal-model="${id}"]`), sharePayer: val(`[data-deal-payer="${id}"]`), note: val(`[data-mnote="${id}"]`) }
+        : action === 'share-received' ? { reference: val(`[data-mref="${id}"]`) } : { note: val(`[data-mnote="${id}"]`) };
+      if (action === 'decline-match' && !confirm('Decline this match? The buyer and seller are both told.')) return;
+      d.disabled = true;
+      try {
+        const r = await api(`/admin/market/requests/${encodeURIComponent(id)}/${action}`, { method: 'POST', body });
+        toast(action === 'approve' ? (r.status === 'matched' ? 'Approved and matched' : `Approved. PMB share of ${inr(r.pmbShare)} requested${r.payUrl ? ' with a Razorpay link' : ''}`)
+          : action === 'share-received' ? 'Share received. It’s a match: both sides have been emailed.' : 'Match declined');
+        loadMarket();
+      } catch (ex) { toast(ex.message, true); d.disabled = false; }
+      return;
+    }
     const r = e.target.closest('[data-mreq]'), l = e.target.closest('[data-mlist]');
     if (!r && !l) return;
     const id = (r || l).dataset.mreq || (r || l).dataset.mlist;
     const note = document.querySelector(r ? `[data-mnote="${id}"]` : `[data-lnote="${id}"]`)?.value || '';
     try {
       await api(r ? `/admin/market/requests/${encodeURIComponent(id)}/review` : `/admin/market/listings/${encodeURIComponent(id)}/review`, { method: 'POST', body: { decision: (r || l).dataset.decision, note } });
-      toast(r ? ((r.dataset.decision === 'forward') ? 'Forwarded to the seller' : 'Request declined') : (l.dataset.decision === 'approve' ? 'Listing is live' : 'Seller asked for a change'));
+      toast(r ? ((r.dataset.decision === 'forward') ? 'Forwarded to the seller' : 'Request declined') : (l.dataset.decision === 'restore' ? 'Listing is live' : 'Listing taken down; the seller has been told'));
       loadMarket();
     } catch (ex) { toast(ex.message, true); }
   });

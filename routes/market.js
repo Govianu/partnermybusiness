@@ -1,6 +1,8 @@
 // Marketplace: businesses list spaces and free slots, professionals list services, buyers request them.
-// Partnermybusiness is the third party: every listing and every request is checked by the PMB team first,
-// and buyers and sellers never see each other's contact details. The PMB manager connects them.
+// Partnermybusiness is the third party. Listings go live as soon as a seller publishes them (the team is emailed and
+// can take one down). A buyer's request goes to the seller; when the seller accepts, the match goes to the PMB team
+// for approval, and once PMB's share is received it's a match and both sides get each other's contact details.
+// The deal steps live in utils/deal.js.
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -14,6 +16,7 @@ const emails = require('../utils/emails');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
+const deal = require('../utils/deal');
 
 const UNITS = ['hour', 'slot', 'day', 'session', 'event', 'project', 'month'];
 const BUYER_TYPES = { event_manager: 'Event manager', company: 'Company', individual: 'Individual', business: 'Business', professional: 'Professional' };
@@ -99,15 +102,16 @@ router.post('/requests', rateLimit(10, 60 * 60 * 1000), async (req, res) => {
     eventType: what, eventDate: b.date ? new Date(b.date) : undefined,
     guests: Number(b.people) || undefined, amount: Math.max(0, Number(b.budget) || 0),
     message: str(b.message).slice(0, 1500), leadGenName: buyerType === 'Event manager' ? (me?.buyer?.company || str(b.company)) : '',
-    status: 'pending_review', source: 'marketplace',
+    status: 'requested', source: 'marketplace',
     termsVersion: me ? undefined : TERMS_VERSION, termsAcceptedAt: me ? undefined : new Date().toISOString(),
-    timeline: [{ status: 'pending_review', at: new Date().toISOString(), note: 'Request sent to the PMB team' }]
+    timeline: [{ status: 'requested', at: new Date().toISOString(), note: 'Request sent to the seller' }]
   });
   await Lead.create({
     name, company: me?.buyer?.company || str(b.company), email, phone, source: 'marketplace', relatedUser: seller._id, relatedBooking: booking._id,
     stage: 'new', notes: `${listing.title}: ${what}`, history: [{ stage: 'new', note: `Marketplace request for ${listing.title}`, at: new Date().toISOString() }]
   });
   await sendMail(emails.marketRequestReceived({ booking, listing }));
+  if (seller.email) await sendMail(emails.marketRequestForSeller({ seller, booking, listing }));
   await sendMail(emails.marketRequestTeam({ booking, listing, seller }));
   res.status(201).json({ ok: true, bookingId: booking._id, loggedIn: Boolean(me) });
 });
@@ -129,8 +133,12 @@ router.post('/concierge', rateLimit(6, 60 * 60 * 1000), async (req, res) => {
 
 // ---------- Buyer side (any logged-in account can buy) ----------
 const STATUS_LABEL = {
-  pending_review: 'Being checked by PMB', requested: 'Sent to the seller', accepted: 'Accepted', declined: 'Not available', completed: 'Completed', cancelled: 'Cancelled'
+  pending_review: 'Being checked by PMB', requested: 'Sent to the seller', pending_approval: 'Accepted, PMB approving',
+  awaiting_payment: 'Approved, waiting for PMB share', matched: 'Matched', accepted: 'Accepted', declined: 'Not available', completed: 'Completed', cancelled: 'Cancelled'
 };
+const CAN_CANCEL = ['pending_review', 'requested', 'pending_approval'];
+// The other side's contact details: only once it's a match
+const contactOf = u => (u ? { name: u.business?.businessName || u.name, email: u.email || '', phone: u.phone || '' } : null);
 router.get('/my/requests', requireAuth(), async (req, res) => {
   const rows = (await Booking.find({ buyer: req.user._id })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   const out = [];
@@ -138,7 +146,10 @@ router.get('/my/requests', requireAuth(), async (req, res) => {
     const l = b.listing ? await Listing.findById(b.listing) : null;
     const owner = l ? await User.findById(l.owner) : null;
     out.push({ id: b._id, status: b.status, statusLabel: STATUS_LABEL[b.status] || b.status, what: b.eventType, date: b.eventDate, people: b.guests,
-      budget: b.amount, createdAt: b.createdAt, listing: l ? publicListing(l, owner) : null, note: b.buyerNote || '' });
+      budget: b.amount, createdAt: b.createdAt, listing: l ? publicListing(l, owner) : null, note: b.buyerNote || '',
+      share: b.status === 'awaiting_payment' && b.sharePayer === 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null,
+      seller: b.status === 'matched' ? contactOf(await User.findById(b.business)) : null, meetLink: b.status === 'matched' ? b.meetLink || null : null,
+      canCancel: CAN_CANCEL.includes(b.status) });
   }
   res.json({ requests: out });
 });
@@ -146,7 +157,7 @@ router.get('/my/requests', requireAuth(), async (req, res) => {
 router.post('/my/requests/:id/cancel', requireAuth(), async (req, res) => {
   const b = await Booking.findById(req.params.id);
   if (!b || String(b.buyer) !== String(req.user._id)) throw fail('Request not found', 404);
-  if (!['pending_review', 'requested'].includes(b.status)) throw fail('This request can’t be cancelled now. Contact your PMB manager.');
+  if (!CAN_CANCEL.includes(b.status)) throw fail('This request can’t be cancelled now. Contact your PMB manager.');
   b.status = 'cancelled';
   b.timeline = [...(b.timeline || []), { status: 'cancelled', at: new Date().toISOString(), note: 'Cancelled by the buyer' }];
   await b.save();
@@ -179,7 +190,8 @@ router.get('/my/listings', seller, async (req, res) => {
 
 router.post('/my/listings', seller, rateLimit(20, 60 * 60 * 1000), async (req, res) => {
   const fields = listingFields(req.body || {}, req.user);
-  const listing = await Listing.create({ ...fields, owner: req.user._id, kind: req.user.role === 'business' ? 'space' : 'service', status: 'pending_review' });
+  // Published straight away for buyers; the PMB team is emailed and can take it down
+  const listing = await Listing.create({ ...fields, owner: req.user._id, kind: req.user.role === 'business' ? 'space' : 'service', status: 'live', publishedAt: new Date().toISOString() });
   await sendMail(emails.listingSubmitted({ listing, seller: req.user }));
   res.status(201).json({ listing: publicListing(listing, req.user) });
 });
@@ -193,8 +205,9 @@ router.patch('/my/listings/:id', seller, async (req, res) => {
   else if (action === 'remove') { l.status = 'removed'; }
   else {
     Object.assign(l, listingFields(req.body || {}, req.user));
-    l.status = 'pending_review'; l.reviewNote = '';   // changed listings are checked again
-    await sendMail(emails.listingSubmitted({ listing: l, seller: req.user }));
+    if (l.status !== 'paused') l.status = 'live';   // edits publish straight away (including after a take-down); the team is told
+    l.reviewNote = '';
+    await sendMail(emails.listingSubmitted({ listing: l, seller: req.user, changed: true }));
   }
   await l.save();
   res.json({ listing: publicListing(l, req.user) });
@@ -209,7 +222,10 @@ router.get('/my/incoming', seller, async (req, res) => {
     const l = b.listing ? await Listing.findById(b.listing) : null;
     out.push({ id: b._id, status: b.status, statusLabel: STATUS_LABEL[b.status] || b.status, what: b.eventType, date: b.eventDate, people: b.guests,
       budget: b.amount, message: b.message, from: `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${b.buyerType.toLowerCase()}` : ''}`,
-      listingTitle: l?.title || '', createdAt: b.createdAt });
+      listingTitle: l?.title || '', createdAt: b.createdAt, note: b.buyerNote || '',
+      share: b.status === 'awaiting_payment' && b.sharePayer !== 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null,
+      buyer: b.status === 'matched' ? { name: b.requesterName, email: b.requesterEmail || '', phone: b.requesterPhone || '' } : null,
+      meetLink: b.status === 'matched' ? b.meetLink || null : null });
   }
   res.json({ requests: out });
 });
@@ -221,12 +237,9 @@ router.post('/my/incoming/:id/:decision', seller, async (req, res) => {
   if (!b || String(b.business) !== String(req.user._id)) throw fail('Request not found', 404);
   if (b.status !== 'requested') throw fail(`This request is already ${STATUS_LABEL[b.status]?.toLowerCase() || b.status}`);
   if (decision === 'accept' && req.body?.agreementAccepted !== true) throw fail('Tick the partner agreement to accept this request');
-  b.status = decision === 'accept' ? 'accepted' : 'declined';
-  if (decision === 'accept') { b.agreementAccepted = true; b.agreementAcceptedAt = new Date().toISOString(); }
-  b.timeline = [...(b.timeline || []), { status: b.status, at: new Date().toISOString(), note: decision === 'accept' ? 'Accepted by the seller' : 'Declined by the seller' }];
-  await b.save();
-  const l = b.listing ? await Listing.findById(b.listing) : null;
-  if (b.requesterEmail) await sendMail(emails.marketDecision({ booking: b, listing: l, outcome: decision === 'accept' ? 'accepted' : 'declined' }));
+  // Accepting is a match: it goes to the PMB team for approval
+  if (decision === 'accept') await deal.sellerAccepted({ booking: b, seller: req.user });
+  else await deal.sellerDeclined({ booking: b, seller: req.user });
   res.json({ ok: true, status: b.status });
 });
 

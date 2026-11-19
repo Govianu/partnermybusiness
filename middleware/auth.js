@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { isStaffEmail } = require('../utils/staff');
 
 const COOKIE = 'pmb_token';
 
@@ -28,6 +29,10 @@ function requireAuth(...roles) {
     }
     const user = await User.findById(payload.id);
     if (!user) return res.status(401).json({ error: 'Account not found' });
+    // The PMB team dashboard is only for Govianu employees, even if an older team account has another email
+    if (user.role === 'admin' && !isStaffEmail(user.email)) {
+      return res.status(403).json({ error: 'The PMB team area is only for Govianu employees' });
+    }
     if (roles.length && !roles.includes(user.role)) {
       return res.status(403).json({ error: 'This area is for a different account type' });
     }

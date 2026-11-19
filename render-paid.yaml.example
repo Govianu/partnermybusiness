@@ -20,6 +20,8 @@ services:
         generateValue: true
       - key: ADMIN_INVITE_CODE
         sync: false
+      - key: STAFF_EMAIL_DOMAINS
+        value: govianu.com
       - key: APP_URL
         sync: false
       - key: SMTP_HOST

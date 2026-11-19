@@ -229,6 +229,13 @@ textarea { min-height: 96px; resize: vertical; }
 .split div b { display: block; font-family: var(--display); font-size: 1.05rem; }
 .split .mine { background: var(--marigold-soft); }
 .accept-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-top: .6rem; }
+/* PMB team: approve a match and collect PMB's share */
+.deal-box { margin-top: .8rem; padding: .9rem 1rem; border: 1.5px dashed var(--line); border-radius: 10px; background: var(--paper); }
+.deal-box .row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: .6rem; }
+.deal-box .field { margin-bottom: .4rem; }
+.pill.pending_approval, .pill.awaiting_payment { background: var(--marigold-soft); color: #9A5F07; }
+.pill.matched { background: var(--ok-soft); color: var(--ok); }
+.contact-box { margin-top: .7rem; padding: .7rem .9rem; border-radius: 10px; background: var(--ok-soft); font-size: .9rem; }
 
 .empty { text-align: left; padding: 2rem 1.3rem; color: var(--muted); }
 .empty strong { display: block; color: var(--ink); font-family: var(--display); font-size: 1.1rem; margin-bottom: .3rem; }

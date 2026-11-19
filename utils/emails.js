@@ -197,19 +197,19 @@ const requestRows = (b, l) => [
 function marketRequestReceived({ booking, listing }) {
   const body = p(`Hi ${esc(firstName(booking.requesterName))}, we’ve received your request for <strong>${esc(listing?.title || booking.eventType)}</strong>.`)
     + table(requestRows(booking, listing))
-    + p('Our team checks every request first, then passes it to the seller. You’ll hear from us within one working day. We stay in the middle the whole way, so you don’t need to share your contact details with anyone.')
+    + p('It has gone to the seller. Once they accept, our team approves the match and connects you both. We stay in the middle the whole way, so your contact details stay private until the match is confirmed.')
     + button(`${APP_URL()}/login.html#login`, 'Track my request');
   return { to: booking.requesterEmail, subject: `Request received: ${listing?.title || booking.eventType}`, html: layout('Request received', body), text: `We received your request for ${listing?.title || booking.eventType}.` };
 }
 
 // To the PMB team: a new request to check and forward
 function marketRequestTeam({ booking, listing, seller }) {
-  const body = p('A new marketplace request is waiting for review.') + table([
+  const body = p('A buyer sent a request on the marketplace. It has gone to the seller; you’ll get another email to approve it if they accept.') + table([
     ...requestRows(booking, listing),
     ['Buyer', `${booking.requesterName}${booking.buyerType ? ` (${booking.buyerType})` : ''}`], ['Buyer email', booking.requesterEmail], ['Buyer phone', booking.requesterPhone],
     ['Seller', seller ? `${seller.business?.businessName || seller.name} (${seller.handle || seller.email})` : ''], ['Listed price', priceText(listing)]
-  ]) + button(`${APP_URL()}/admin.html#market`, 'Review in the admin dashboard');
-  return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `Review request: ${listing?.title || booking.eventType}`, html: layout('New request to review', body), text: `New request for ${listing?.title || booking.eventType}.` };
+  ]) + button(`${APP_URL()}/admin.html#market`, 'Open the PMB team dashboard');
+  return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `New request: ${listing?.title || booking.eventType}`, html: layout('New marketplace request', body), text: `New request for ${listing?.title || booking.eventType}.` };
 }
 
 // To the buyer, when PMB forwards, the seller accepts, or the request is declined
@@ -228,23 +228,24 @@ function marketDecision({ booking, listing, outcome, note }) {
 
 // To the seller, when PMB forwards a request (no buyer contact details: PMB connects both sides)
 function marketRequestForSeller({ seller, booking, listing }) {
-  const body = p(`You have a new request for <strong>${esc(listing?.title || booking.eventType)}</strong>, checked by our team.`)
+  const body = p(`You have a new request for <strong>${esc(listing?.title || booking.eventType)}</strong>.`)
     + table([...requestRows(booking, listing), ['From', firstName(booking.requesterName) + (booking.buyerType ? `, ${booking.buyerType}` : '')]])
-    + p('Review it and accept or decline in your dashboard. Once you accept, your PMB manager connects you with the buyer.')
+    + p('Accept or decline it in your dashboard. Once you accept, our team approves the match and connects you with the buyer.')
     + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23bookings'}`, 'Review and accept');
   return { to: seller.email, subject: `New request: ${listing?.title || booking.eventType}`, html: layout('New booking request', body), text: `New request for ${listing?.title || booking.eventType}.` };
 }
 
-// To the team when a seller adds a listing, and to the seller when it's reviewed
-function listingSubmitted({ listing, seller }) {
-  const body = p(`${esc(seller.business?.businessName || seller.name)} added a new listing.`) + table([
+// To the team when a seller publishes or changes a listing (it is live straight away), and to the seller if it's taken down
+function listingSubmitted({ listing, seller, changed = false }) {
+  const body = p(`${esc(seller.business?.businessName || seller.name)} ${changed ? 'changed' : 'published'} an opportunity. It is live for buyers now; take it down from the PMB team dashboard if anything is wrong.`) + table([
     ['Listing', listing.title], ['Type', listing.kind === 'space' ? 'Space or free slot' : 'Professional service'], ['Price', priceText(listing)],
-    ['Available', listing.availability], ['Area', listing.area], ['Details', listing.description]
-  ]) + button(`${APP_URL()}/admin.html#market`, 'Review the listing');
-  return { to: TEAM_INBOX(), subject: `Review listing: ${listing.title}`, html: layout('New listing to review', body), text: `New listing: ${listing.title}` };
+    ['Available', listing.availability], ['Area', listing.area], ['Details', listing.description],
+    ['Seller', `${seller.name}${seller.email ? ` (${seller.email})` : ''}${seller.phone ? `, ${seller.phone}` : ''}`]
+  ]) + button(`${APP_URL()}/admin.html#market`, 'Open the PMB team dashboard');
+  return { to: TEAM_INBOX(), replyTo: seller.email || undefined, subject: `${changed ? 'Opportunity changed' : 'New opportunity published'}: ${listing.title}`, html: layout(changed ? 'Opportunity changed' : 'New opportunity published', body), text: `${changed ? 'Changed' : 'New'} opportunity: ${listing.title}` };
 }
 function listingReviewed({ listing, seller, approved, note }) {
-  const body = p(`Hi ${esc(firstName(seller.name))}, your listing <strong>${esc(listing.title)}</strong> ${approved ? 'is now live. Buyers can find it and send requests.' : 'needs a change before it can go live.'}`)
+  const body = p(`Hi ${esc(firstName(seller.name))}, your listing <strong>${esc(listing.title)}</strong> ${approved ? 'is now live. Buyers can find it and send requests.' : 'has been taken off the marketplace for now. Edit it to publish it again.'}`)
     + (note ? p(`Note from our team: ${esc(note)}`) : '')
     + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23spaces'}`, 'Open my listings');
   return { to: seller.email, subject: approved ? `Live: ${listing.title}` : `Change needed: ${listing.title}`, html: layout(approved ? 'Your listing is live' : 'Your listing needs a change', body), text: listing.title };
@@ -260,3 +261,87 @@ function marketConcierge({ who, need }) {
 }
 
 Object.assign(module.exports, { priceText, marketRequestReceived, marketRequestTeam, marketDecision, marketRequestForSeller, listingSubmitted, listingReviewed, marketConcierge });
+
+// ---------- Deal flow: match -> PMB approval -> PMB share received -> matched ----------
+const sellerName = s => s?.business?.businessName || s?.name || 'The seller';
+const dealRef = b => `PMB-${String(b._id).slice(0, 8).toUpperCase()}`;
+const dealRows = (b, l, seller) => [
+  ...requestRows(b, l),
+  ['Buyer', `${b.requesterName}${b.buyerType ? ` (${b.buyerType})` : ''}`], ['Buyer email', b.requesterEmail], ['Buyer phone', b.requesterPhone],
+  ['Seller', seller ? `${sellerName(seller)} (${seller.email || seller.handle || ''})` : ''], ['Seller phone', seller?.phone], ['Listed price', priceText(l)]
+];
+
+// To the team: the seller accepted, so buyer and seller match. Needs PMB approval.
+function dealForApproval({ booking, listing, seller }) {
+  const body = p('<strong>A buyer and a seller have matched.</strong> The seller accepted the request under the partner terms. Approve it, set the final amount and request PMB’s share.')
+    + table(dealRows(booking, listing, seller)) + button(`${APP_URL()}/admin.html#market`, 'Approve in the PMB team dashboard');
+  return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `Approve match: ${listing?.title || booking.eventType}`, html: layout('Match waiting for approval', body), text: `Match waiting for approval: ${listing?.title || booking.eventType}.` };
+}
+
+// To buyer and seller as the deal moves on (contact details are not shared until it is matched)
+const DEAL_COPY = {
+  pending_approval: {
+    buyer: what => [`good news: the seller has accepted your request for ${what}.`, 'Our team is approving the match now. We’ll email you the next step, usually within one working day.'],
+    seller: what => [`you accepted the request for ${what}.`, 'Our team is approving the match now. We’ll email you the next step.'],
+    subject: 'Accepted, PMB approving'
+  },
+  awaiting_payment: {
+    buyer: what => [`the PMB team has approved your match for ${what}.`, 'As soon as the Partnermybusiness share is received, we confirm the match and share contact details.'],
+    seller: what => [`the PMB team has approved your match for ${what}.`, 'As soon as the Partnermybusiness share is received, we confirm the match and share contact details.'],
+    subject: 'Match approved'
+  },
+  declined: {
+    buyer: what => [`your request for ${what} couldn’t go ahead this time.`, 'Reply to this email or use “Find it for me” in your dashboard, and we’ll suggest alternatives.'],
+    seller: what => [`the match for ${what} won’t go ahead.`, 'Your listing stays live for other buyers.'],
+    subject: 'Match update'
+  }
+};
+function dealUpdate({ booking, listing, seller, stage, note, only }) {
+  const copy = DEAL_COPY[stage];
+  const what = esc(listing?.title || booking.eventType);
+  const mails = [];
+  for (const who of ['buyer', 'seller']) {
+    if (only && only !== who) continue;
+    const to = who === 'buyer' ? booking.requesterEmail : seller?.email;
+    if (!to) continue;
+    const name = who === 'buyer' ? booking.requesterName : seller.name;
+    const next = who === 'buyer' ? `${APP_URL()}/login.html#login` : `${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23bookings'}`;
+    const [first, second] = copy[who](what);
+    mails.push({ to, subject: `${copy.subject}: ${listing?.title || booking.eventType}`,
+      html: layout(copy.subject, p(`Hi ${esc(firstName(name))}, ${first}`) + (note ? p(`Note from our team: ${esc(note)}`) : '') + p(second) + button(next, 'Open my dashboard')),
+      text: `${first} ${second}` });
+  }
+  return mails;
+}
+
+// To whoever pays PMB's share
+function shareRequest({ booking, listing, seller, payLink }) {
+  const toBuyer = booking.sharePayer === 'buyer';
+  const to = toBuyer ? booking.requesterEmail : seller?.email;
+  if (!to) return null;
+  const name = toBuyer ? booking.requesterName : seller.name;
+  const body = p(`Hi ${esc(firstName(name))}, your match for <strong>${esc(listing?.title || booking.eventType)}</strong> has been approved by the PMB team.`)
+    + table([['Agreed amount', inr(booking.amount)], ['Partnermybusiness share', inr(booking.pmbShare)], ['Reference', dealRef(booking)]])
+    + (payLink ? p('Pay the Partnermybusiness share using the secure Razorpay link below. The match is confirmed and contact details are shared as soon as it is received.') + button(payLink, `Pay ${inr(booking.pmbShare)}`)
+      : p('Your PMB manager will share the payment details. The match is confirmed and contact details are shared as soon as the share is received.'));
+  return { to, replyTo: TEAM_INBOX(), subject: `Pay the PMB share to confirm: ${listing?.title || booking.eventType}`, html: layout('Match approved: one step left', body), text: `Pay the Partnermybusiness share of ${inr(booking.pmbShare)} to confirm your match.${payLink ? ` ${payLink}` : ''}` };
+}
+
+// To buyer, seller and team: share received, it's a match. Each side now gets the other's contact details.
+function matchConfirmed({ booking, listing, seller }) {
+  const what = listing?.title || booking.eventType;
+  const meet = booking.meetLink ? button(booking.meetLink, 'Join the onboarding call') : '';
+  const deal = [['Booking', what], ['What for', booking.eventType], ['Date', booking.eventDate ? fmtDate(booking.eventDate) : ''], ['People', booking.guests], ['Agreed amount', booking.amount ? inr(booking.amount) : '']];
+  return [
+    booking.requesterEmail && { to: booking.requesterEmail, subject: `It’s a match: ${what}`,
+      html: layout('It’s a match', p(`Hi ${esc(firstName(booking.requesterName))}, your booking is confirmed. Here are the seller’s details so you can plan together.`)
+        + table([...deal, ['Seller', sellerName(seller)], ['Email', seller?.email], ['Phone', seller?.phone]]) + meet), text: `It's a match: ${what}.` },
+    seller?.email && { to: seller.email, subject: `It’s a match: ${what}`,
+      html: layout('It’s a match', p(`Hi ${esc(firstName(seller.name))}, the booking is confirmed. Here are the buyer’s details so you can plan together.`)
+        + table([...deal, ['Buyer', `${booking.requesterName}${booking.buyerType ? ` (${booking.buyerType})` : ''}`], ['Email', booking.requesterEmail], ['Phone', booking.requesterPhone]]) + meet), text: `It's a match: ${what}.` },
+    { to: TEAM_INBOX(), subject: `Matched: ${what}`, html: layout('Matched', p('PMB’s share was received and the match is confirmed. Both sides have each other’s details.')
+      + table([...dealRows(booking, listing, seller), ['Agreed amount', booking.amount ? inr(booking.amount) : ''], ['PMB share', inr(booking.pmbShare)], ['Payment reference', booking.payment?.reference]])), text: `Matched: ${what}.` }
+  ].filter(Boolean);
+}
+
+Object.assign(module.exports, { dealForApproval, dealUpdate, shareRequest, matchConfirmed, dealRef });
