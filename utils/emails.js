@@ -49,24 +49,25 @@ const table = rows => `<table role="presentation" cellpadding="0" cellspacing="0
 ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:7px 10px 7px 0;color:#47537C;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:7px 0;color:#0F1B3D;vertical-align:top">${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}
 </table>`;
 
-function emailOtp({ name, email, code, role, category, sectorId, businessName = '' }) {
+function emailOtp({ name, email, code, role, category, sectorId, businessName = '', link = '' }) {
   const industry = industryFor({ category, sectorId });
   const audience = role === 'business'
     ? `${industry.display} partner`
     : role === 'associate' ? 'professional' : role === 'buyer' ? 'buyer' : 'PMB team';
   const body = p(`Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard${businessName ? ` for <strong>${esc(businessName)}</strong>` : ''}.`)
     + `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`
-    + p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes and can be used once. If you did not request it, you can ignore this email.</span>');
+    + (link ? button(link, businessName ? `Open the ${businessName} dashboard` : 'Open my dashboard') : '')
+    + p(`<span style="font-size:13px;color:#47537C">${link ? 'The button signs you in straight away (it works once, within 24 hours). Or type the code: it expires in 10 minutes.' : 'This code expires in 10 minutes and can be used once.'} If you did not request it, you can ignore this email.</span>`);
   return {
     to: email,
     subject: `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code${businessName ? `: ${businessName}` : ''}`,
     html: layout('Verify your email', body),
-    text: `Your Partnermybusiness verification code is ${code}. It expires in 10 minutes.`
+    text: `Your Partnermybusiness verification code is ${code}. It expires in 10 minutes.${link ? ` Or open your dashboard directly: ${link}` : ''}`
   };
 }
 
 // 1. To the person who enquired: confirmation in their own business type's words + dashboard code
-function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, profileId }) {
+function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, profileId, link }) {
   const first = firstName(name);
   const industry = industryFor({ category, sectorId });
   const kw = industry.keywords;
@@ -95,9 +96,10 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
       : `Your ${esc(noun)} dashboard is ready. ${what} Verify your email with this code to open it:`);
     body += `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`;
     // Opens the code box for this exact dashboard (the email may already have other dashboards)
-    const signIn = `${APP_URL()}/login.html?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
+    // One tap signs in to this exact dashboard; without a link, open the code box for it
+    const signIn = link || `${APP_URL()}/login.html?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
     body += button(signIn, biz && !industry.isProfessional ? `Open the ${biz} dashboard` : `Open my ${noun} dashboard`);
-    body += p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes. You can request another code from the login page.</span>');
+    body += p(`<span style="font-size:13px;color:#47537C">${link ? 'The button signs you in straight away (it works once, within 24 hours). On another device, type the code instead: it expires in 10 minutes.' : 'This code expires in 10 minutes. You can request another code from the login page.'}</span>`);
   } else {
     body += p('A member of our partnerships team will contact you within two working days to talk about your territory.');
   }
@@ -109,7 +111,7 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
     to: email,
     subject,
     html: layout(title, body),
-    text: `Hi ${first}, ${opening.replace(/&amp;/g, '&')} ${hasDashboard ? `Your verification code is ${code}. It expires in 10 minutes. Sign in at ${APP_URL()}/login.html#login` : 'Our team will contact you within two working days.'}`
+    text: `Hi ${first}, ${opening.replace(/&amp;/g, '&')} ${hasDashboard ? `Your verification code is ${code}. It expires in 10 minutes. ${link ? `Open your dashboard directly: ${link}` : `Sign in at ${APP_URL()}/login.html#login`}` : 'Our team will contact you within two working days.'}`
   };
 }
 

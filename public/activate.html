@@ -30,8 +30,8 @@
   </section>
 
   <section class="card" id="badPane" hidden>
-    <h1>This link has expired</h1>
-    <p class="muted">Request a one-time email code to open your dashboard.</p>
+    <h1>This link has expired or was already used</h1>
+    <p class="muted">Each sign-in link works once. Get a new email code to open your dashboard.</p>
     <form id="newForm" novalidate>
       <p class="err" id="newErr" role="alert"></p>
       <p class="ok" id="newOk" role="status"></p>
@@ -50,14 +50,23 @@
   }
   function show(id) { $('loading').hidden = true; $('setPane').hidden = id !== 'set'; $('badPane').hidden = id !== 'bad'; }
 
+  // The button in a sign-up or sign-in email: sign in to that dashboard straight away
   call('/api/auth/link/' + encodeURIComponent(token)).then(function (r) {
     if (!r.httpOk) return show('bad');
     var first = String(r.name || '').split(' ')[0];
     $('hello').textContent = first ? 'Welcome, ' + first : 'Welcome';
     $('intro').textContent = 'This secure one-time link will verify your email and open your dashboard. You will sign in with email codes from now on.';
     $('email').value = r.email || '';
-    show('set');
-    $('setBtn').focus();
+    $('newEmail').value = r.email || '';
+    $('loading').textContent = 'Opening your dashboard…';
+    return call('/api/auth/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token }) })
+      .then(function (a) {
+        if (a.httpOk) { location.replace(a.redirect); return; }
+        if (a.error && /expired|used/.test(a.error)) return show('bad');
+        show('set');                     // something else went wrong: offer the button to try again
+        $('setErr').textContent = a.error || '';
+        $('setBtn').focus();
+      });
   }).catch(function () { show('bad'); });
 
   $('setForm').addEventListener('submit', function (e) {
@@ -82,8 +91,9 @@
     call('/api/auth/request-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) })
       .then(function (r) {
         if (!r.httpOk) { $('newErr').textContent = r.error || 'Couldn’t send right now.'; return; }
-        $('newOk').textContent = 'If that email has a dashboard, a sign-in code is on its way.';
+        $('newOk').textContent = 'If that email has a dashboard, a sign-in code is on its way. Opening the code box…';
         if (r.devOtp) $('newOk').textContent += ' Local test code: ' + r.devOtp;
+        setTimeout(function () { location.href = '/login.html?email=' + encodeURIComponent(email) + '&step=code#login'; }, r.devOtp ? 4000 : 1200);
       });
   });
 })();

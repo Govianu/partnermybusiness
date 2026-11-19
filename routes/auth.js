@@ -35,10 +35,11 @@ const profilesFor = email => User.find({ email }).sort({ createdAt: 1 });
 function newestSignIn(profiles) {
   return profiles.slice().sort((a, b) => String(b.lastLoginAt || b.createdAt || '').localeCompare(String(a.lastLoginAt || a.createdAt || '')))[0];
 }
-// The code email says which dashboard it opens
-const otpMail = (user, code) => emailOtp({
+// The code email says which dashboard it opens, and its button signs in to that dashboard in one tap
+const otpMail = async (user, code) => emailOtp({
   name: user.name, email: user.email, code, role: user.role, category: user.category, sectorId: user.sectorId,
-  businessName: user.role === 'business' ? user.business?.businessName : ''
+  businessName: user.role === 'business' ? user.business?.businessName : '',
+  link: await issueLink(user, 'signin')
 });
 
 // staffDomains: the login page shows the PMB team sign-up only for these email domains
@@ -73,7 +74,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   if (existingUser) {
     if (!existingUser.emailVerifiedAt) {
       const code = await issueOtp(existingUser);
-      const result = await sendMail(otpMail(existingUser, code));
+      const result = await sendMail(await otpMail(existingUser, code));
       if (result.error || (!result.sent && process.env.NODE_ENV === 'production' && !mailConfigured())) {
         throw fail('We could not send your verification code. Please try again later.', 503);
       }
@@ -143,7 +144,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   }
 
   const code = await issueOtp(user);
-  const mailResult = await sendMail(otpMail(user, code));
+  const mailResult = await sendMail(await otpMail(user, code));
   if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
 
   res.status(201).json({
@@ -167,7 +168,7 @@ router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
     }
     const code = await issueOtp(user);
-    const result = await sendMail(otpMail(user, code));
+    const result = await sendMail(await otpMail(user, code));
     if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
     if (!mailConfigured() && process.env.NODE_ENV !== 'production') devOtp = code;
   }
@@ -237,7 +238,9 @@ router.get('/link/:token', async (req, res) => {
 router.post('/activate', async (req, res) => {
   const user = await findByToken(User, req.body?.token);
   if (!user) throw fail('This link has expired or was already used. Request a new one below.', 410);
+  if (user.role === 'admin' && !isStaffEmail(user.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
   user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
+  user.lastLoginAt = new Date().toISOString();
   clearOtp(user);
   user.linkTokenHash = null;
   user.linkTokenExpires = null;

@@ -49,7 +49,7 @@ test('a second business on the same email gets its own dashboard, and its code o
 
   const welcome = sent.filter(m => m.to === EMAIL && /smoor/.test(m.html)).at(-1);
   assert.match(welcome.html, /Open the smoor dashboard/);
-  assert.match(welcome.html, new RegExp(`profileId=${second.body.profileId}`));
+  assert.match(welcome.html, /activate\.html\?token=[a-f0-9]{64}/, 'button signs in to this dashboard');
 
   // The smoor code opens smoor, even though coffe katte is older and has its own live code
   const smoor = await call('POST', '/auth/verify-otp', { email: EMAIL, code: codeIn(welcome) });
@@ -89,4 +89,28 @@ test('the sign-up form allows a new business on an email that has one, but not t
   const again = await call('POST', '/auth/signup', body('Smoor'));
   assert.equal(again.status, 409);
   assert.match(again.body.error, /smoor/);
+});
+
+test('the email button signs in to its own dashboard in one step, once', async () => {
+  const linkIn = m => /href="([^"]*activate\.html\?token=[a-f0-9]{64})"/.exec(m.html)?.[1]?.replace(/&amp;/g, '&');
+  sent.length = 0;
+  const r = await call('POST', '/enquiry', { role: 'host', name: 'Divyaj', email: 'one.tap@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
+  assert.equal(r.status, 201);
+  const welcome = sent.find(m => m.to === 'one.tap@example.com');
+  const link = linkIn(welcome);
+  assert.ok(link, 'welcome email has a one-tap sign-in button');
+  assert.match(welcome.html, /Open the smoor dashboard/);
+  const token = new URL(link).searchParams.get('token');
+
+  const opened = await call('POST', '/auth/activate', { token });
+  assert.equal(opened.status, 200);
+  assert.equal(opened.body.user.business.businessName, 'smoor');
+  assert.ok(opened.cookie.startsWith('pmb_token='), 'signed in');
+  assert.equal((await call('POST', '/auth/activate', { token })).status, 410, 'works once');
+
+  // Code emails from the login page carry a button too, for the dashboard they name
+  sent.length = 0;
+  await call('POST', '/auth/request-otp', { email: 'one.tap@example.com' });
+  const again = await call('POST', '/auth/activate', { token: new URL(linkIn(sent[0])).searchParams.get('token') });
+  assert.equal(again.body.user.business.businessName, 'smoor');
 });

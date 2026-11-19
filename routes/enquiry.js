@@ -10,6 +10,7 @@ const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { sendMail, mailConfigured } = require('../utils/mailer');
 const { enquiryWelcome, teamEnquiry } = require('../utils/emails');
 const { issueOtp } = require('../utils/otp');
+const { issueLink } = require('../utils/links');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -66,6 +67,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   let user = null;
   let existingAccount = false;
   let emailCode = null;
+  let signInLink = null;
   if (accountRole) {
     const emailProfiles = await User.find({ email });
     user = emailProfiles.find(profile => {
@@ -102,6 +104,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
       }
     }
     emailCode = await issueOtp(user);
+    signInLink = await issueLink(user, 'signin');   // the email's button signs in to this exact dashboard
   }
 
   const enquiry = await Enquiry.create({
@@ -123,7 +126,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
       name, email, roleName: ROLE_NAMES[role], code: emailCode,
       hasDashboard: !!accountRole, existingAccount, category: user?.category,
       sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : '',
-      profileId: user?._id || null
+      profileId: user?._id || null, link: signInLink
     })),
     sendMail(teamEnquiry({ ...enquiry, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
   ]);
