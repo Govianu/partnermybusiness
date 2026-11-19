@@ -45,7 +45,9 @@ function toast(msg, isError = false) {
 // Opens a dashboard only for its own kind of account. Otherwise go to the login page, remembering where this
 // link was going (e.g. admin.html#leads from a team email), so the right account lands on the right tab.
 async function guard(role) {
-  const backTo = `/login.html?next=${encodeURIComponent(`${role}.html${location.hash}`)}#login`;
+  const backTo = role === 'admin'
+    ? `/team.html?next=${encodeURIComponent(location.hash.slice(1))}`     // the PMB team has its own sign-in
+    : `/login.html?next=${encodeURIComponent(`${role}.html${location.hash}`)}#login`;
   try {
     const { user } = await api('/auth/me');
     if (user.role !== role) { location.href = backTo; return null; }

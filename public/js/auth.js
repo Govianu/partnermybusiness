@@ -4,6 +4,8 @@
   const emailParam = params.get('email') || '';
   const profileIdParam = params.get('profileId') || '';
   const switchMode = params.get('switch') === '1';
+  // Links for the PMB team dashboard go to the team's own sign-in page
+  if (/^admin\.html/.test(next)) { location.replace(`/team.html?next=${encodeURIComponent(next.split('#')[1] || '')}`); return; }
   const goTo = redirect => {
     const safe = /^(business|associate|admin|buyer)\.html(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('.')[0]);
     location.href = safe ? '/' + next : redirect;
@@ -135,7 +137,7 @@
   }
 
   tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
-  document.getElementById('adminToggle').addEventListener('click', () => setRole('admin'));
+  // Govianu emails get a pointer to the PMB team sign-in (team.html)
   const staffSwitch = document.getElementById('adminSwitch');
   const syncStaff = () => {
     const staff = isStaffEmail(form.elements.email.value);

@@ -185,7 +185,9 @@ Until step 5, buyers and sellers never see each other's email or phone.
 
 ### PMB team access
 Only accounts with a Govianu email (`STAFF_EMAIL_DOMAINS`, default `govianu.com`) can open the PMB team dashboard.
-The team sign-up only appears on the login page once a Govianu email is typed, and still needs `ADMIN_INVITE_CODE`.
+The team signs in at **`/team.html`**: enter a @govianu.com email, get a one-time code (and a one-tap button) in that
+inbox, and land on the dashboard. The first sign-in creates that person's team account, since owning the inbox proves
+they work at Govianu. Buttons in team emails open this page on the right tab (Leads, Marketplace, Enquiries).
 Older team accounts with other emails are refused. Govianu employees can keep business, professional or buyer
 dashboards on the same email and switch between them.
 

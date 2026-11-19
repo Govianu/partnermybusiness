@@ -180,6 +180,32 @@ router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   });
 });
 
+// PMB team sign-in (team.html): Govianu emails only. Owning the @govianu.com inbox is the proof, so the first
+// sign-in creates that person's team account; the code (and one-tap button) goes to that inbox.
+router.post('/team/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
+  const email = str(req.body?.email).toLowerCase().slice(0, 200);
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter your Govianu email address');
+  if (!isStaffEmail(email)) throw fail(`The PMB team sign-in is only for Govianu employees. Use your @${staffDomains()[0]} email.`, 403);
+  if (!mailConfigured() && process.env.NODE_ENV === 'production') {
+    throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
+  }
+  let user = (await profilesFor(email)).find(p => p.role === 'admin');
+  if (!user) {
+    const fromEmail = email.split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    user = await User.create({
+      role: 'admin', name: str(req.body?.name).slice(0, 120) || fromEmail || 'PMB team', email,
+      status: 'approved', termsAcceptedAt: new Date().toISOString(), termsVersion: TERMS_VERSION, source: 'team_sign_in'
+    });
+  }
+  const code = await issueOtp(user);
+  const result = await sendMail(await otpMail(user, code));
+  if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
+  res.json({
+    ok: true, email, profileId: user._id,
+    devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
+  });
+});
+
 router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
   const email = str(req.body?.email).toLowerCase().slice(0, 200);
   const code = str(req.body?.code);

@@ -10,7 +10,8 @@ const dashLink = (user, page) => user?._id && user?.email
   ? `${APP_URL()}/login.html?next=${encodeURIComponent(page)}&email=${encodeURIComponent(user.email)}&profileId=${encodeURIComponent(user._id)}`
   : `${APP_URL()}/login.html?next=${encodeURIComponent(page)}`;
 const sellerPage = (seller, tab) => `${seller?.role === 'associate' ? 'associate' : 'business'}.html#${tab}`;
-const teamLink = tab => `${APP_URL()}/login.html?next=${encodeURIComponent(`admin.html#${tab}`)}`;
+// Links in team emails open the PMB team sign-in (Govianu emails only), which lands on the right dashboard tab
+const teamLink = tab => `${APP_URL()}/team.html?next=${encodeURIComponent(tab)}`;
 const { industryFor } = require('./industry');
 const { listOf } = require('./catalog');
 
