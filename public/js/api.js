@@ -42,13 +42,16 @@ function toast(msg, isError = false) {
 }
 
 // Redirects to login (or the right dashboard) unless the user has the expected role
+// Opens a dashboard only for its own kind of account. Otherwise go to the login page, remembering where this
+// link was going (e.g. admin.html#leads from a team email), so the right account lands on the right tab.
 async function guard(role) {
+  const backTo = `/login.html?next=${encodeURIComponent(`${role}.html${location.hash}`)}#login`;
   try {
     const { user } = await api('/auth/me');
-    if (user.role !== role) { location.href = `/${user.role}.html`; return null; }
+    if (user.role !== role) { location.href = backTo; return null; }
     return user;
   } catch {
-    location.href = '/login.html#login';
+    location.href = backTo;
     return null;
   }
 }

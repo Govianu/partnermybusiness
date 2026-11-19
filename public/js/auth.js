@@ -10,13 +10,15 @@
   };
 
   // Keep the requested sign-in flow when an email link names a different account.
+  let wrongAccount = null;   // signed in, but the link is for another kind of dashboard (e.g. the PMB team's)
   try {
     const { user } = await api('/auth/me');
-    const expectedRole = /^(business|associate|admin)\.html/.exec(next)?.[1];
+    const expectedRole = /^(business|associate|admin|buyer)\.html/.exec(next)?.[1];
     const sameRequestedProfile = user.email?.toLowerCase() === emailParam.toLowerCase()
       && (!profileIdParam || String(user._id) === profileIdParam)
       && (!expectedRole || user.role === expectedRole);
-    if ((!emailParam && !switchMode) || (emailParam && sameRequestedProfile)) {
+    if (!emailParam && !switchMode && expectedRole && user.role !== expectedRole) wrongAccount = { user, expectedRole };
+    else if ((!emailParam && !switchMode) || (emailParam && sameRequestedProfile)) {
       goTo(`/${user.role}.html`);
       return;
     }
@@ -175,5 +177,22 @@
   if (location.hash === '#login' || next) {
     document.getElementById('signupPane').hidden = true;
     document.getElementById('loginPane').hidden = false;
+  }
+
+  // Say why the link didn't open: it's for another dashboard than the one signed in
+  if (wrongAccount) {
+    const LABEL = { admin: 'PMB team', business: 'business', associate: 'professional', buyer: 'buyer' };
+    const { user, expectedRole } = wrongAccount;
+    const note = document.createElement('div');
+    note.className = 'panel';
+    note.setAttribute('role', 'status');
+    note.style.marginBottom = '1rem';
+    note.innerHTML = expectedRole === 'admin'
+      ? `<p><strong>This link opens the PMB team dashboard.</strong> It is only for Govianu employees.</p>
+         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with your @${esc((staffDomains[0] || 'govianu.com'))} email to open it, or <a href="/${esc(user.role)}.html">go back to your own dashboard</a>.</p>`
+      : `<p><strong>This link opens a ${esc(LABEL[expectedRole])} dashboard.</strong></p>
+         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with the account the link was meant for, or <a href="/${esc(user.role)}.html">go back to your own dashboard</a>.</p>`;
+    const pane = document.getElementById('loginPane');
+    pane.insertBefore(note, pane.querySelector('#loginForm'));
   }
 })();

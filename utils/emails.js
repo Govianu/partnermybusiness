@@ -2,6 +2,9 @@
 const APP_URL = () => (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 const TEAM_INBOX = () => process.env.TEAM_INBOX || 'info@partnermybusiness.ai';
 const PHONE = '+91 81039 90990';
+// Links in team emails open the PMB team dashboard on the right tab, through the login page so a Govianu sign-in
+// lands there (and anyone else is told the link is for the PMB team)
+const teamLink = tab => `${APP_URL()}/login.html?next=${encodeURIComponent(`admin.html#${tab}`)}`;
 const { industryFor } = require('./industry');
 const { listOf } = require('./catalog');
 
@@ -110,7 +113,7 @@ function teamEnquiry(e) {
     ['Offer', e.offer], ['Territory', e.territory], ['Notes', e.message], ['Dashboard plan', e.plan],
     ['Terms accepted', `Yes, version ${e.termsVersion}, ${new Date(e.termsAcceptedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST`],
     ['Dashboard', e.handle ? `${e.handle} (verification code sent${e.existingAccount ? ', existing account' : ''})` : 'Not applicable']
-  ]) + button(`${APP_URL()}/login.html`, 'Open the admin dashboard');
+  ]) + button(teamLink('enquiries'), 'Open in the PMB team dashboard');
   return {
     to: TEAM_INBOX(),
     replyTo: e.email || undefined,
@@ -173,7 +176,7 @@ function ctaRequest({ user, industry, label, topic, note, preferred }) {
     ['Request', label], ['About', topic], ['Name', user.name], ['Business', company], ['Type', industry.display],
     ['Email', user.email], ['Phone', user.phone], ['Area', user.location], ['Best time to call', preferred], ['Note', note],
     ['Skills', (user.skills || user.associate?.skills || []).join(', ')], ['Handle', user.handle]
-  ]) + button(`${APP_URL()}/login.html`, 'Open the admin dashboard');
+  ]) + button(teamLink('leads'), 'Open in the PMB team dashboard');
   return {
     to: TEAM_INBOX(),
     replyTo: user.email || undefined,
@@ -208,7 +211,7 @@ function marketRequestTeam({ booking, listing, seller }) {
     ...requestRows(booking, listing),
     ['Buyer', `${booking.requesterName}${booking.buyerType ? ` (${booking.buyerType})` : ''}`], ['Buyer email', booking.requesterEmail], ['Buyer phone', booking.requesterPhone],
     ['Seller', seller ? `${seller.business?.businessName || seller.name} (${seller.handle || seller.email})` : ''], ['Listed price', priceText(listing)]
-  ]) + button(`${APP_URL()}/admin.html#market`, 'Open the PMB team dashboard');
+  ]) + button(teamLink('market'), 'Open the PMB team dashboard');
   return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `New request: ${listing?.title || booking.eventType}`, html: layout('New marketplace request', body), text: `New request for ${listing?.title || booking.eventType}.` };
 }
 
@@ -241,7 +244,7 @@ function listingSubmitted({ listing, seller, changed = false }) {
     ['Listing', listing.title], ['Type', listing.kind === 'space' ? 'Space or free slot' : 'Professional service'], ['Price', priceText(listing)],
     ['Available', listing.availability], ['Area', listing.area], ['Details', listing.description],
     ['Seller', `${seller.name}${seller.email ? ` (${seller.email})` : ''}${seller.phone ? `, ${seller.phone}` : ''}`]
-  ]) + button(`${APP_URL()}/admin.html#market`, 'Open the PMB team dashboard');
+  ]) + button(teamLink('market'), 'Open the PMB team dashboard');
   return { to: TEAM_INBOX(), replyTo: seller.email || undefined, subject: `${changed ? 'Opportunity changed' : 'New opportunity published'}: ${listing.title}`, html: layout(changed ? 'Opportunity changed' : 'New opportunity published', body), text: `${changed ? 'Changed' : 'New'} opportunity: ${listing.title}` };
 }
 function listingReviewed({ listing, seller, approved, note }) {
@@ -274,7 +277,7 @@ const dealRows = (b, l, seller) => [
 // To the team: the seller accepted, so buyer and seller match. Needs PMB approval.
 function dealForApproval({ booking, listing, seller }) {
   const body = p('<strong>A buyer and a seller have matched.</strong> The seller accepted the request under the partner terms. Approve it, set the final amount and request PMB’s share.')
-    + table(dealRows(booking, listing, seller)) + button(`${APP_URL()}/admin.html#market`, 'Approve in the PMB team dashboard');
+    + table(dealRows(booking, listing, seller)) + button(teamLink('market'), 'Approve in the PMB team dashboard');
   return { to: TEAM_INBOX(), replyTo: booking.requesterEmail || undefined, subject: `Approve match: ${listing?.title || booking.eventType}`, html: layout('Match waiting for approval', body), text: `Match waiting for approval: ${listing?.title || booking.eventType}.` };
 }
 
