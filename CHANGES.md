@@ -18,6 +18,11 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
+## Hosting on a VPS instead of Render
+- Removed `render.yaml` and `render-paid.yaml.example`, and Render-specific notes in the code and docs.
+- Added `ecosystem.config.js` (PM2) and `deploy/nginx.conf.example`; README has the VPS steps.
+- Email links now use `APP_URL` only (set it to the live HTTPS address).
+
 ## Marketplace deals: publish, match, PMB approval, PMB share, matched
 - Listings go live when a seller publishes them; the team inbox (info@partnermybusiness.ai) is emailed and can take one down.
 - Buyer requests go straight to the seller. When the seller accepts it's a match and goes to the PMB team for approval.

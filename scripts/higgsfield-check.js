@@ -4,7 +4,7 @@ require('dotenv').config();
 const higgsfield = require('../utils/higgsfield');
 
 (async () => {
-  if (!higgsfield.configured()) { console.error('Set HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET in .env first.'); process.exit(1); }
+  if (!higgsfield.configured()) { console.error('Set HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET in .env first.'); process.exitCode = 1; return; }
   const prompt = process.argv.slice(2).join(' ') ||
     `Photorealistic medium shot of ${process.env.HIGGSFIELD_PRESENTER || 'a friendly, confident Indian woman in her thirties wearing smart-casual clothes'}, ` +
     'standing inside a welcoming Indian restaurant, facing the camera with a warm smile. Natural daylight. No text.';
@@ -20,4 +20,4 @@ const higgsfield = require('../utils/higgsfield');
     return;
   }
   console.log('\nStill working after 3 minutes; your keys work. Check the request in the Higgsfield console.');
-})().catch(err => { console.error(`\nHiggsfield error: ${err.message}`); process.exit(1); });
+})().catch(err => { console.error(`\nHiggsfield error: ${err.message}`); process.exitCode = 1; return; });

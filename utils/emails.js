@@ -1,5 +1,5 @@
 // Email templates. Inline styles only, because email apps ignore <style> blocks.
-const APP_URL = () => (process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000').replace(/\/$/, '');
+const APP_URL = () => (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 const TEAM_INBOX = () => process.env.TEAM_INBOX || 'info@partnermybusiness.ai';
 const PHONE = '+91 81039 90990';
 const { industryFor } = require('./industry');

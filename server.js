@@ -11,7 +11,7 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-app.set('trust proxy', 1); // correct client IPs behind Render/Railway/Nginx (used for rate limits and the terms record)
+app.set('trust proxy', 1); // correct client IPs behind Nginx (used for rate limits and the terms record)
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 

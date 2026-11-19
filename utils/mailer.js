@@ -1,5 +1,5 @@
 // Sends email in one of two ways:
-//  1. Brevo email API over HTTPS (BREVO_API_KEY). Works on hosts that block email ports, such as Render's free plan.
+//  1. Brevo email API over HTTPS (BREVO_API_KEY). Works even on hosts that block outbound email ports.
 //  2. Any SMTP provider (SMTP_HOST/SMTP_USER/SMTP_PASS): Zoho, Google Workspace, Brevo SMTP, SendGrid...
 // With neither set, emails are saved to data/outbox/ and printed to the console, so the flow can be tested locally.
 const fs = require('fs');
@@ -86,7 +86,7 @@ async function verifyMail() {
   }
   if (!smtpConfigured()) return console.log('[mail] Email not set: emails go to data/outbox/ (see .env.example)');
   try { await getTransporter().verify(); console.log('[mail] SMTP connection OK'); }
-  catch (err) { console.error('[mail] SMTP connection failed:', err.message, '(on Render\'s free plan email ports are blocked: use BREVO_API_KEY instead)'); }
+  catch (err) { console.error('[mail] SMTP connection failed:', err.message, '(if your host blocks email ports, use BREVO_API_KEY instead)'); }
 }
 
 module.exports = { sendMail, mailConfigured, verifyMail };

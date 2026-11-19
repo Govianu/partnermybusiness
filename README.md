@@ -39,7 +39,7 @@ For local testing, set `APP_URL=http://localhost:3000` and remove `NODE_ENV=prod
 - Associates can maintain a professional bio, skillset and availability, and upload intro videos, portfolio photos, PDF slides and course materials.
 - Uploads are actual files stored on disk, privately served to the owner and PMB reviewers, and shown in dashboard galleries. New items enter the PMB review queue.
 - Supported uploads: JPG/PNG/WebP/GIF images (10 MB), MP4/WebM videos (100 MB), and PDF menus/slides/course files (25 MB). Each account has a 300 MB quota; the site-wide limit is 800 MB.
-- Local files are stored under `data/uploads/` by default. On Render, mount a persistent disk and set both `DATA_DIR` and `UPLOAD_DIR` on that mount, such as `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`; otherwise account data or uploaded files may be lost when the service restarts or redeploys.
+- Local files are stored under `data/uploads/` by default. On the VPS, set `DATA_DIR` and `UPLOAD_DIR` to a folder outside the code, such as `DATA_DIR=/var/lib/partnermybusiness` and `UPLOAD_DIR=/var/lib/partnermybusiness/uploads`, and back it up.
 - Both dashboards keep quick actions visible for common tasks.
 
 ## Booking emails
@@ -64,22 +64,44 @@ OTP attempt and request limits currently use in-memory rate limiting. Run a sing
 
 Run the focused upload and OTP tests with `node --test`.
 
-## Deploying on Render
+## Deploying on a VPS
 
-The root `render.yaml` is configured for a free public test. It has no persistent disk and may sleep when idle; accounts, enquiries, uploads and lesson videos can be lost when it restarts or redeploys. Use it only as a temporary preview.
+The app is one Node.js process (Node 18 or newer) that keeps its data in `DATA_DIR`. Run it with PM2 behind Nginx.
 
-For production, use a paid web service with a persistent disk mounted at `/var/data`, then set `DATA_DIR=/var/data` and `UPLOAD_DIR=/var/data/uploads`. Review Render's current service and disk charges before upgrading.
+1. On the server (Ubuntu shown), install Node 20, Nginx, PM2 and Certbot:
+   ```sh
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt install -y nodejs nginx certbot python3-certbot-nginx git
+   sudo npm install -g pm2
+   ```
+2. Get the code and install it:
+   ```sh
+   sudo mkdir -p /var/www /var/lib/partnermybusiness && sudo chown $USER /var/www /var/lib/partnermybusiness
+   git clone https://github.com/Govianu/partnermybusiness.git /var/www/partnermybusiness
+   cd /var/www/partnermybusiness && npm ci --omit=dev
+   ```
+3. Create `/var/www/partnermybusiness/.env` from `.env.example`. Set at least `NODE_ENV=production`, a long random
+   `JWT_SECRET`, `ADMIN_INVITE_CODE`, `APP_URL=https://partnermybusiness.ai`,
+   `DATA_DIR=/var/lib/partnermybusiness`, `UPLOAD_DIR=/var/lib/partnermybusiness/uploads`, the email settings
+   (`BREVO_API_KEY` or `SMTP_*`, `MAIL_FROM`, `TEAM_INBOX`) and, for AI lesson videos, `HIGGSFIELD_API_KEY_ID` and
+   `HIGGSFIELD_API_KEY_SECRET`. The `.env` file stays on the server; never commit it.
+4. Start it and keep it running after reboots:
+   ```sh
+   pm2 start ecosystem.config.js && pm2 save && pm2 startup
+   ```
+5. Nginx: copy `deploy/nginx.conf.example` to `/etc/nginx/sites-available/partnermybusiness`, set your domain,
+   enable it, then add HTTPS:
+   ```sh
+   sudo ln -s /etc/nginx/sites-available/partnermybusiness /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+   sudo certbot --nginx -d partnermybusiness.ai -d www.partnermybusiness.ai
+   ```
+6. To deploy an update: `cd /var/www/partnermybusiness && git pull && npm ci --omit=dev && pm2 reload partnermybusiness`.
 
-Set these values in Render's service settings:
-
-- `ADMIN_INVITE_CODE`: a private code for creating a PMB team account (Govianu emails only, see `STAFF_EMAIL_DOMAINS`).
-- `BREVO_API_KEY`: a Brevo API key; verify the sender address in Brevo first. The free Render blueprint uses its HTTPS API because Render Free blocks outbound SMTP.
-- `MAIL_FROM`: the verified sender name/address, such as `Partnermybusiness.ai <info@partnermybusiness.ai>`.
-- `TEAM_INBOX`: where new enquiries are sent.
-
-The Blueprint generates `JWT_SECRET`; email links use Render's public URL automatically. For a custom domain, set `APP_URL` to that HTTPS address. On paid hosting, SMTP is also an option if the host allows outbound email ports. To enable AI presenter videos, add `HIGGSFIELD_API_KEY_ID` and `HIGGSFIELD_API_KEY_SECRET`, and keep `HIGGSFIELD_MONTHLY_MINUTES` low until a first video is checked.
-
-Do not publish secrets in GitHub or commit `.env`. Netlify and GitHub Pages only host static assets and cannot run this app's APIs, authentication, email, dashboards or uploads.
+Check `pm2 logs partnermybusiness` for the email provider's connection status and `[lesson-video]` lines.
+Back up `DATA_DIR` regularly: it holds accounts, bookings, uploads and lesson videos. Many VPS providers block outbound
+port 25; use port 465/587 SMTP or `BREVO_API_KEY`. Rate limits are kept in memory, so run a single instance (as the PM2
+config does). Netlify and GitHub Pages only host static files and cannot run this app.
 
 ## Dashboards: business-type specific, with skills and video lessons
 
@@ -150,14 +172,3 @@ The team sign-up only appears on the login page once a Govianu email is typed, a
 Older team accounts with other emails are refused. Govianu employees can keep business, professional or buyer
 dashboards on the same email and switch between them.
 
-## Go live on Render (Blueprint)
-
-`render.yaml` is the FREE test setup (email via the Brevo API, no disk: data resets on restart).
-`render-paid.yaml.example` is the real-launch setup (Starter + 1 GB disk); rename it to `render.yaml` when you upgrade.
-
-1. Put this folder in a private GitHub repository (without `.env` and `data/`).
-2. In Render, choose **New > Blueprint** and connect the repository; Render reads `render.yaml`.
-3. For the free preview, provide `ADMIN_INVITE_CODE`, `APP_URL`, and a Brevo API key. Data on this plan is temporary.
-4. For production, use `render-paid.yaml.example` as `render.yaml`, attach the configured persistent disk, and set a verified Brevo key or the Zoho `SMTP_PASS`.
-5. After deploy, check the logs for the email provider's connection status, sign up your team with the invite code, and test an enquiry.
-6. To use a custom domain, add it in Render, follow the displayed DNS instructions (do not change MX records), then set `APP_URL` to the HTTPS domain.
