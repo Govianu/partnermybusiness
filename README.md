@@ -66,7 +66,7 @@ Run the focused upload and OTP tests with `node --test`.
 
 ## Deploying on a VPS
 
-The app is one Node.js process (Node 20 or newer). There is no build step: `npm ci --omit=dev` then start it. that keeps its data in `DATA_DIR`. Run it with PM2 behind Nginx.
+The app is one Node.js process (Node 20 or newer) that keeps its data in `DATA_DIR`. There is no build step: install with `npm ci --omit=dev`, then run it with PM2 behind Nginx.
 
 1. On the server (Ubuntu shown), install Node 20, Nginx, PM2 and Certbot:
    ```sh
