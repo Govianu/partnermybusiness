@@ -44,7 +44,7 @@ function emailOtp({ name, email, code, role, category, sectorId }) {
   const industry = industryFor({ category, sectorId });
   const audience = role === 'business'
     ? `${industry.display} partner`
-    : role === 'associate' ? 'professional' : 'team';
+    : role === 'associate' ? 'professional' : role === 'buyer' ? 'buyer' : 'PMB team';
   const body = p(`Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard.`)
     + `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`
     + p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes and can be used once. If you did not request it, you can ignore this email.</span>');
