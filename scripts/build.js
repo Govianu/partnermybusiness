@@ -65,8 +65,9 @@ ${END}
 const htaccess = path.join(OUT, '.htaccess');
 let existing = fs.existsSync(htaccess) ? fs.readFileSync(htaccess, 'utf8') : '';
 const start = existing.indexOf(BEGIN), stop = existing.indexOf(END);
-if (start !== -1 && stop !== -1) existing = existing.slice(0, start) + existing.slice(stop + END.length).replace(/^\r?\n/, '');
-fs.writeFileSync(htaccess, block + (existing.trim() ? '\n' + existing : ''));
+if (start !== -1 && stop !== -1) existing = existing.slice(0, start) + existing.slice(stop + END.length);
+existing = existing.trim();
+fs.writeFileSync(htaccess, block + (existing ? '\n' + existing + '\n' : ''));
 files += 1;
 
 console.log(`Built ${files} files into ${OUT}`);
