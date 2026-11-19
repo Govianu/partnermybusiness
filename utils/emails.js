@@ -4,6 +4,12 @@ const TEAM_INBOX = () => process.env.TEAM_INBOX || 'info@partnermybusiness.ai';
 const PHONE = '+91 81039 90990';
 // Links in team emails open the PMB team dashboard on the right tab, through the login page so a Govianu sign-in
 // lands there (and anyone else is told the link is for the PMB team)
+// A link into one person's dashboard. An email can hold several dashboards (e.g. two businesses), so the link
+// names which one; the login page switches to it, or asks for a code for it.
+const dashLink = (user, page) => user?._id && user?.email
+  ? `${APP_URL()}/login.html?next=${encodeURIComponent(page)}&email=${encodeURIComponent(user.email)}&profileId=${encodeURIComponent(user._id)}`
+  : `${APP_URL()}/login.html?next=${encodeURIComponent(page)}`;
+const sellerPage = (seller, tab) => `${seller?.role === 'associate' ? 'associate' : 'business'}.html#${tab}`;
 const teamLink = tab => `${APP_URL()}/login.html?next=${encodeURIComponent(`admin.html#${tab}`)}`;
 const { industryFor } = require('./industry');
 const { listOf } = require('./catalog');
@@ -43,24 +49,24 @@ const table = rows => `<table role="presentation" cellpadding="0" cellspacing="0
 ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:7px 10px 7px 0;color:#47537C;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:7px 0;color:#0F1B3D;vertical-align:top">${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}
 </table>`;
 
-function emailOtp({ name, email, code, role, category, sectorId }) {
+function emailOtp({ name, email, code, role, category, sectorId, businessName = '' }) {
   const industry = industryFor({ category, sectorId });
   const audience = role === 'business'
     ? `${industry.display} partner`
     : role === 'associate' ? 'professional' : role === 'buyer' ? 'buyer' : 'PMB team';
-  const body = p(`Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard.`)
+  const body = p(`Hi ${esc(firstName(name))}, use this code to verify your email and open your ${esc(audience)} dashboard${businessName ? ` for <strong>${esc(businessName)}</strong>` : ''}.`)
     + `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`
     + p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes and can be used once. If you did not request it, you can ignore this email.</span>');
   return {
     to: email,
-    subject: `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code`,
+    subject: `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code${businessName ? `: ${businessName}` : ''}`,
     html: layout('Verify your email', body),
     text: `Your Partnermybusiness verification code is ${code}. It expires in 10 minutes.`
   };
 }
 
 // 1. To the person who enquired: confirmation in their own business type's words + dashboard code
-function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName }) {
+function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, profileId }) {
   const first = firstName(name);
   const industry = industryFor({ category, sectorId });
   const kw = industry.keywords;
@@ -88,7 +94,9 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
       ? `Use the code below to sign in to your ${esc(noun)} dashboard. ${what}`
       : `Your ${esc(noun)} dashboard is ready. ${what} Verify your email with this code to open it:`);
     body += `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`;
-    body += button(`${APP_URL()}/login.html#login`, `Open my ${noun} dashboard`);
+    // Opens the code box for this exact dashboard (the email may already have other dashboards)
+    const signIn = `${APP_URL()}/login.html?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
+    body += button(signIn, biz && !industry.isProfessional ? `Open the ${biz} dashboard` : `Open my ${noun} dashboard`);
     body += p('<span style="font-size:13px;color:#47537C">This code expires in 10 minutes. You can request another code from the login page.</span>');
   } else {
     body += p('A member of our partnerships team will contact you within two working days to talk about your territory.');
@@ -140,7 +148,7 @@ function bookingRequested({ business, booking }) {
     ['Date', fmtDate(booking.eventDate)], ['Guests', booking.guests], ['Budget', booking.amount ? inr(booking.amount) : ''],
     ['Message', booking.message]
   ]) + p('Review the revenue split and the partner terms, then accept or decline from your dashboard.')
-    + button(`${APP_URL()}/login.html?next=business.html%23bookings`, 'Review and accept');
+    + button(dashLink(business, 'business.html#bookings'), 'Review and accept');
   return { to: business.email, subject: `New ${industry.bookingLabel} request: ${booking.eventType}`, html: layout('New booking request', body), text: `New ${industry.bookingLabel} request: ${booking.eventType}` };
 }
 
@@ -161,7 +169,7 @@ function bookingAccepted({ business, booking, share }) {
       to: business.email,
       subject: `${industry.display} booking accepted: ${booking.eventType}`,
       html: layout('Booking accepted', p('You accepted this booking under the Partnermybusiness partner terms.') + table([...rows, ['Booking value', booking.amount ? inr(booking.amount) : ''], ['Your share', share != null ? inr(share) : '']]) + meet
-        + button(`${APP_URL()}/login.html?next=business.html%23bookings`, 'View in your dashboard')),
+        + button(dashLink(business, 'business.html#bookings'), 'View in your dashboard')),
       text: `You accepted ${booking.eventType}.`
     }
   ].filter(Boolean);
@@ -234,7 +242,7 @@ function marketRequestForSeller({ seller, booking, listing }) {
   const body = p(`You have a new request for <strong>${esc(listing?.title || booking.eventType)}</strong>.`)
     + table([...requestRows(booking, listing), ['From', firstName(booking.requesterName) + (booking.buyerType ? `, ${booking.buyerType}` : '')]])
     + p('Accept or decline it in your dashboard. Once you accept, our team approves the match and connects you with the buyer.')
-    + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23bookings'}`, 'Review and accept');
+    + button(dashLink(seller, sellerPage(seller, seller.role === 'associate' ? 'offers' : 'bookings')), 'Review and accept');
   return { to: seller.email, subject: `New request: ${listing?.title || booking.eventType}`, html: layout('New booking request', body), text: `New request for ${listing?.title || booking.eventType}.` };
 }
 
@@ -250,7 +258,7 @@ function listingSubmitted({ listing, seller, changed = false }) {
 function listingReviewed({ listing, seller, approved, note }) {
   const body = p(`Hi ${esc(firstName(seller.name))}, your listing <strong>${esc(listing.title)}</strong> ${approved ? 'is now live. Buyers can find it and send requests.' : 'has been taken off the marketplace for now. Edit it to publish it again.'}`)
     + (note ? p(`Note from our team: ${esc(note)}`) : '')
-    + button(`${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23spaces'}`, 'Open my listings');
+    + button(dashLink(seller, sellerPage(seller, seller.role === 'associate' ? 'offers' : 'spaces')), 'Open my listings');
   return { to: seller.email, subject: approved ? `Live: ${listing.title}` : `Change needed: ${listing.title}`, html: layout(approved ? 'Your listing is live' : 'Your listing needs a change', body), text: listing.title };
 }
 
@@ -308,7 +316,7 @@ function dealUpdate({ booking, listing, seller, stage, note, only }) {
     const to = who === 'buyer' ? booking.requesterEmail : seller?.email;
     if (!to) continue;
     const name = who === 'buyer' ? booking.requesterName : seller.name;
-    const next = who === 'buyer' ? `${APP_URL()}/login.html#login` : `${APP_URL()}/login.html?next=${seller.role === 'associate' ? 'associate.html%23offers' : 'business.html%23bookings'}`;
+    const next = who === 'buyer' ? `${APP_URL()}/login.html#login` : dashLink(seller, sellerPage(seller, seller.role === 'associate' ? 'offers' : 'bookings'));
     const [first, second] = copy[who](what);
     mails.push({ to, subject: `${copy.subject}: ${listing?.title || booking.eventType}`,
       html: layout(copy.subject, p(`Hi ${esc(firstName(name))}, ${first}`) + (note ? p(`Note from our team: ${esc(note)}`) : '') + p(second) + button(next, 'Open my dashboard')),

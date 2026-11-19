@@ -17,13 +17,29 @@ const { isStaffEmail, staffDomains } = require('../utils/staff');
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
 
+const BUYER_LABEL = { event_manager: 'event manager', company: 'company', individual: 'individual' };
 function profileSummary(user) {
   const industry = industryFor(user);
   const title = user.role === 'business'
     ? `${user.business?.businessName || user.name} — ${industry.display} business`
-    : user.role === 'associate' ? `${user.name} — ${industry.display} professional` : `${user.name} — PMB team`;
-  return { id: user._id, role: user.role, label: title };
+    : user.role === 'associate' ? `${user.name} — ${industry.display} professional`
+    : user.role === 'buyer' ? `${user.buyer?.company || user.name} — buyer (${BUYER_LABEL[user.buyer?.type] || 'individual'})`
+    : `${user.name} — PMB team`;
+  return { id: user._id, role: user.role, label: title, handle: user.handle || '', status: user.status };
 }
+
+// One email can hold several dashboards: different businesses, a professional profile, a buyer account.
+// These pick which one a sign-in code is for, and find the dashboard a code belongs to.
+const sameName = v => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const profilesFor = email => User.find({ email }).sort({ createdAt: 1 });
+function newestSignIn(profiles) {
+  return profiles.slice().sort((a, b) => String(b.lastLoginAt || b.createdAt || '').localeCompare(String(a.lastLoginAt || a.createdAt || '')))[0];
+}
+// The code email says which dashboard it opens
+const otpMail = (user, code) => emailOtp({
+  name: user.name, email: user.email, code, role: user.role, category: user.category, sectorId: user.sectorId,
+  businessName: user.role === 'business' ? user.business?.businessName : ''
+});
 
 // staffDomains: the login page shows the PMB team sign-up only for these email domains
 router.get('/options', (req, res) => res.json({ businessCategories: BUSINESS_CATEGORIES, associateSkills: ASSOCIATE_SKILLS, staffDomains: staffDomains() }));
@@ -49,22 +65,26 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   if (!mailConfigured() && process.env.NODE_ENV === 'production') {
     throw fail('Email verification is not configured. Please contact support.', 503);
   }
-  const existingUser = await User.findOne({ email });
+  // The same email may add another dashboard (e.g. a second business). Only the same one twice is refused.
+  const existingUser = (await profilesFor(email)).find(p => p.role === role && (
+    role === 'business' ? sameName(p.business?.businessName) === sameName(b.businessName)
+      : role === 'associate' ? p.category === (ASSOCIATE_SKILLS.includes(b.skill) ? b.skill : 'other')
+      : true));
   if (existingUser) {
     if (!existingUser.emailVerifiedAt) {
       const code = await issueOtp(existingUser);
-      const result = await sendMail(emailOtp({
-        name: existingUser.name, email, code, role: existingUser.role, category: existingUser.category, sectorId: existingUser.sectorId
-      }));
+      const result = await sendMail(otpMail(existingUser, code));
       if (result.error || (!result.sent && process.env.NODE_ENV === 'production' && !mailConfigured())) {
         throw fail('We could not send your verification code. Please try again later.', 503);
       }
       return res.status(200).json({
-        ok: true, verificationRequired: true, email,
+        ok: true, verificationRequired: true, email, profileId: existingUser._id,
         devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
       });
     }
-    throw fail('An account with this email already exists. Log in with an email code instead.', 409);
+    throw fail(role === 'business'
+      ? `You already have a dashboard for ${existingUser.business?.businessName || 'this business'}. Log in with an email code instead.`
+      : 'You already have this kind of dashboard with this email. Log in with an email code instead.', 409);
   }
 
   const doc = {
@@ -123,11 +143,11 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   }
 
   const code = await issueOtp(user);
-  const mailResult = await sendMail(emailOtp({ name: user.name, email, code, role, category: user.category, sectorId: user.sectorId }));
+  const mailResult = await sendMail(otpMail(user, code));
   if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
 
   res.status(201).json({
-    ok: true, verificationRequired: true, email,
+    ok: true, verificationRequired: true, email, profileId: user._id,
     devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
   });
 });
@@ -139,16 +159,15 @@ router.post('/login', async (req, res) => {
 router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const email = str(req.body?.email).toLowerCase().slice(0, 200);
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
-  const user = await User.findOne({ email });
+  const profiles = await profilesFor(email);
+  const user = profiles.find(p => String(p._id) === str(req.body?.profileId)) || newestSignIn(profiles);
   let devOtp;
   if (user) {
     if (!mailConfigured() && process.env.NODE_ENV === 'production') {
       throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
     }
     const code = await issueOtp(user);
-    const result = await sendMail(emailOtp({
-      name: user.name, email, code, role: user.role, category: user.category, sectorId: user.sectorId
-    }));
+    const result = await sendMail(otpMail(user, code));
     if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
     if (!mailConfigured() && process.env.NODE_ENV !== 'production') devOtp = code;
   }
@@ -164,20 +183,17 @@ router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
   const email = str(req.body?.email).toLowerCase().slice(0, 200);
   const code = str(req.body?.code);
   if (!/^\S+@\S+\.\S+$/.test(email)) throw fail('Enter a valid email address');
-  const user = await User.findOne({ email });
-  if (!user || !otpIsActive(user)) {
-    if (user?.emailOtpHash) {
-      clearOtp(user);
-      await user.save();
-    }
-    throw fail('That code has expired or is incorrect. Request a new code.', 401);
-  }
-  if (!otpMatches(user, code)) {
-    recordOtpFailure(user);
-    await user.save();
+  // Each dashboard on this email holds its own code; the code entered decides which one opens
+  const profiles = await profilesFor(email);
+  for (const p of profiles) if (p.emailOtpHash && !otpIsActive(p)) { clearOtp(p); await p.save(); }
+  const waiting = profiles.filter(p => otpIsActive(p));
+  const user = waiting.find(p => otpMatches(p, code));
+  if (!user) {
+    for (const p of waiting) { recordOtpFailure(p); await p.save(); }
     throw fail('That code has expired or is incorrect. Request a new code.', 401);
   }
   user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
+  user.lastLoginAt = new Date().toISOString();
   clearOtp(user);
   await user.save();
   if (user.role === 'admin' && !isStaffEmail(user.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
@@ -186,14 +202,17 @@ router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
 });
 
 router.get('/profiles', requireAuth(), async (req, res) => {
-  const profiles = await User.find({ email: req.user.email }).sort({ createdAt: 1 });
-  res.json({ profiles: profiles.map(profileSummary) });
+  const profiles = (await profilesFor(req.user.email))
+    .filter(p => p.role !== 'admin' || isStaffEmail(p.email));
+  res.json({ current: req.user._id, profiles: profiles.map(profileSummary) });
 });
 
 router.post('/switch-profile', requireAuth(), async (req, res) => {
   const profile = await User.findById(str(req.body?.profileId));
   if (!profile || profile.email !== req.user.email) throw fail('Dashboard not found', 404);
   if (profile.role === 'admin' && !isStaffEmail(profile.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
+  profile.lastLoginAt = new Date().toISOString();
+  await profile.save();
   issueToken(res, profile);
   res.json({ user: profile, redirect: `/${profile.role}.html` });
 });

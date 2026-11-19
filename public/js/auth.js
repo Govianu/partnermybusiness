@@ -11,18 +11,31 @@
 
   // Keep the requested sign-in flow when an email link names a different account.
   let wrongAccount = null;   // signed in, but the link is for another kind of dashboard (e.g. the PMB team's)
+  let signedIn = null;
   try {
     const { user } = await api('/auth/me');
+    signedIn = user;
     const expectedRole = /^(business|associate|admin|buyer)\.html/.exec(next)?.[1];
-    const sameRequestedProfile = user.email?.toLowerCase() === emailParam.toLowerCase()
+    const sameEmail = user.email?.toLowerCase() === emailParam.toLowerCase();
+    const sameRequestedProfile = sameEmail
       && (!profileIdParam || String(user._id) === profileIdParam)
       && (!expectedRole || user.role === expectedRole);
+    // An email can hold several dashboards: a link for another one of yours switches straight to it
+    if (sameEmail && profileIdParam && String(user._id) !== profileIdParam) {
+      try {
+        const { redirect } = await api('/auth/switch-profile', { method: 'POST', body: { profileId: profileIdParam } });
+        goTo(redirect);
+        return;
+      } catch { /* not one of this email's dashboards: fall through to signing in */ }
+    }
     if (!emailParam && !switchMode && expectedRole && user.role !== expectedRole) wrongAccount = { user, expectedRole };
     else if ((!emailParam && !switchMode) || (emailParam && sameRequestedProfile)) {
       goTo(`/${user.role}.html`);
       return;
     }
   } catch { /* not logged in */ }
+  // Which dashboard a requested code is for (when the email has more than one)
+  let codeFor = profileIdParam;
 
   const form = document.getElementById('signupForm');
   const roleInput = form.querySelector('input[name="role"]');
@@ -137,11 +150,14 @@
   onSubmit(form, async data => {
     if (!form.querySelector('[name="termsAccepted"]').checked) throw new Error('Please agree to the Terms and Conditions to create your profile');
     const result = await api('/auth/signup', { method: 'POST', body: { ...data, termsAccepted: true } });
+    codeFor = result.profileId || '';
     showOtpForm(result.email, result.devOtp, 'We sent a verification code. Check your inbox and spam folder.');
   });
 
   onSubmit(loginForm, async data => {
-    const result = await api('/auth/request-otp', { method: 'POST', body: data });
+    // A link for one dashboard keeps asking for that dashboard's code; a typed-in other email doesn't
+    if (codeFor && String(data.email || '').trim().toLowerCase() !== emailParam.toLowerCase()) codeFor = '';
+    const result = await api('/auth/request-otp', { method: 'POST', body: { ...data, profileId: codeFor || undefined } });
     showOtpForm(data.email, result.devOtp, result.message || 'Check your inbox and spam folder.');
   });
 
@@ -154,7 +170,7 @@
     otpMessage.textContent = '';
     try {
       const email = otpForm.elements.email.value;
-      const result = await api('/auth/request-otp', { method: 'POST', body: { email } });
+      const result = await api('/auth/request-otp', { method: 'POST', body: { email, profileId: codeFor || undefined } });
       otpMessage.textContent = result.message || 'If that email has a dashboard, a new code is on its way.';
       if (result.devOtp) otpMessage.textContent += ` Local test code: ${result.devOtp}`;
     } catch (err) {
@@ -174,6 +190,41 @@
   const asRole = new URLSearchParams(location.search).get('as');
   setRole(['associate', 'buyer'].includes(asRole) ? asRole : 'business');
   if (emailParam) document.getElementById('loginEmail').value = emailParam;
+  // From a welcome email that already holds the code: go straight to the code box
+  if (emailParam && params.get('step') === 'code') {
+    showOtpForm(emailParam, null, 'Enter the 6-digit code from your email. It expires 10 minutes after it was sent; if it has, press “Send a new code”.');
+  }
+  // Switch dashboard: every dashboard on this email, one click each
+  if (switchMode && signedIn) {
+    try {
+      const { profiles, current } = await api('/auth/profiles');
+      const box = document.createElement('div');
+      box.className = 'panel';
+      box.style.marginBottom = '1rem';
+      box.innerHTML = `<h3 style="margin:0 0 .3rem">Your dashboards</h3>
+        <p class="meta" style="margin:0 0 .8rem">Signed in as ${esc(signedIn.email)}. Choose which one to open.</p>
+        <div style="display:grid;gap:.5rem">${profiles.map(pf => `<button type="button" class="btn ${String(pf.id) === String(current) ? '' : 'ghost'} wide" data-profile="${esc(pf.id)}" style="justify-content:space-between">
+          <span>${esc(pf.label)}</span>${String(pf.id) === String(current) ? '<small>open now</small>' : ''}</button>`).join('')}</div>
+        <p class="meta" style="margin:.8rem 0 0">Another business on the same email? <button class="link-btn" type="button" data-go-add>Add it</button>. To use a different email, sign in below.</p>`;
+      const pane = document.getElementById('loginPane');
+      pane.insertBefore(box, pane.querySelector('#loginForm'));
+      box.addEventListener('click', async e => {
+        const pick = e.target.closest('[data-profile]');
+        if (pick) {
+          pick.disabled = true;
+          try { const { redirect } = await api('/auth/switch-profile', { method: 'POST', body: { profileId: pick.dataset.profile } }); location.href = redirect; }
+          catch (err) { toast(err.message, true); pick.disabled = false; }
+        }
+        if (e.target.closest('[data-go-add]')) {
+          document.getElementById('loginPane').hidden = true;
+          document.getElementById('signupPane').hidden = false;
+          form.elements.email.value = signedIn.email; syncStaff();
+          document.getElementById('name').value = signedIn.name || '';
+          document.getElementById('businessName').focus();
+        }
+      });
+    } catch { /* fall back to the normal sign-in form */ }
+  }
   if (location.hash === '#login' || next) {
     document.getElementById('signupPane').hidden = true;
     document.getElementById('loginPane').hidden = false;

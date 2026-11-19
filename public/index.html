@@ -950,7 +950,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <h3 id="sentHead">Check your inbox</h3>
         <p id="sentText" style="margin:0"></p>
         <div class="cta-row" style="margin-top:1rem">
-          <a class="btn btn-blue" href="/login.html#login">Go to login</a>
+          <a class="btn btn-blue" id="goLogin" href="/login.html#login">Go to login</a>
           <button class="btn btn-line" type="button" id="resendBtn">Resend the email</button>
         </div>
         <p class="hint" id="resendMsg" role="status" style="margin:.75rem 0 0"></p>
@@ -1627,16 +1627,20 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       $("resendBtn").hidden = !r.hasDashboard;
       $("resendBtn").textContent = "Email another code";
       $("resendMsg").textContent = "";
+      /* The sign-in opens the dashboard this enquiry created, even if the email already has others */
+      var signInHref = "/login.html?email=" + encodeURIComponent(r.email) + (r.profileId ? "&profileId=" + encodeURIComponent(r.profileId) : "") + "&step=code#login";
+      $("goLogin").href = r.hasDashboard ? signInHref : "/login.html#login";
       var dev = $("devNote");
       if (r.devOtp){
         dev.textContent = "Local test code: " + r.devOtp + ". ";
         var login = document.createElement("a");
-        login.href = "/login.html?email=" + encodeURIComponent(r.email) + "#login";
+        login.href = signInHref;
         login.textContent = "Open dashboard sign-in";
         dev.appendChild(login);
         dev.hidden = false;
       } else dev.hidden = true;
       $("resendBtn").dataset.email = r.email;
+      $("resendBtn").dataset.profileId = r.profileId || "";
       ["fName","fBiz","fPhone","fEmail","fCity","fMsg","fPlan"].forEach(function(id){ $(id).value = ""; });
       fType.value = ""; setRole("host"); pending = null;
       showPanel($("sent"));
@@ -1649,7 +1653,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
   $("resendBtn").addEventListener("click", function(){
     var btn = this, msg = $("resendMsg");
     btn.disabled = true;
-    postJSON("/api/auth/request-otp", {email: btn.dataset.email}).then(function(r){
+    postJSON("/api/auth/request-otp", {email: btn.dataset.email, profileId: btn.dataset.profileId || undefined}).then(function(r){
       btn.disabled = false;
       msg.textContent = r.httpOk ? "If that email has a dashboard, a new code is on its way." : (r.error || "Couldn\u2019t resend right now. Try again shortly.");
     }).catch(function(){ btn.disabled = false; msg.textContent = "Couldn\u2019t resend right now. Try again shortly."; });

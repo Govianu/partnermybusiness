@@ -122,7 +122,8 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     sendMail(enquiryWelcome({
       name, email, roleName: ROLE_NAMES[role], code: emailCode,
       hasDashboard: !!accountRole, existingAccount, category: user?.category,
-      sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : ''
+      sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : '',
+      profileId: user?._id || null
     })),
     sendMail(teamEnquiry({ ...enquiry, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
   ]);
@@ -134,6 +135,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     email,
     hasDashboard: !!accountRole,
     existingAccount,
+    profileId: user?._id || null,
     emailSent: toPerson.sent,
     // Only while SMTP isn't configured in development, so verification can be tested locally.
     devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' && accountRole ? emailCode : undefined
