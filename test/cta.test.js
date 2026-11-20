@@ -92,3 +92,12 @@ test('the dashboard shows their own CTA with lead ID and agreement', async () =>
   const t2 = /token=([a-f0-9]{64})/.exec(welcome.html)[1];
   assert.equal((await call('POST', '/auth/activate', { token: t2 })).status, 200);
 });
+
+test('earlier sign-ups get lead IDs from the month they joined', async () => {
+  const { backfillLeadIds } = require('../utils/leadId');
+  const old = await User.create({ role: 'business', name: 'Old', email: 'old@example.com', status: 'approved', sectorId: 1, createdAt: '2026-10-05T10:00:00.000Z' });
+  await User.findByIdAndUpdate(old._id, { createdAt: '2026-10-05T10:00:00.000Z' });
+  assert.ok(await backfillLeadIds() >= 1);
+  assert.match((await User.findById(old._id)).leadId, /^PMB-OCT26-\d{2}$/);
+  assert.equal(await backfillLeadIds(), 0, 'only once');
+});

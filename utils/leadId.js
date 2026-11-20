@@ -35,4 +35,18 @@ async function assignLeadId(user, leadFields) {
   return user.leadId;
 }
 
-module.exports = { nextLeadId, assignLeadId, prefixFor };
+// Partners who signed up before lead IDs existed get one, numbered by the month they joined (runs at start-up)
+async function backfillLeadIds() {
+  const users = (await User.find({})).filter(u => ['business', 'associate', 'buyer'].includes(u.role) && !u.leadId)
+    .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  for (const u of users) {
+    u.leadId = await nextLeadId(u.createdAt ? new Date(u.createdAt) : new Date());
+    await u.save();
+    const lead = (await Lead.find({ relatedUser: u._id })).find(l => !l.leadId);
+    if (lead) { lead.leadId = u.leadId; await lead.save(); }
+  }
+  if (users.length) console.log(`[leads] gave lead IDs to ${users.length} earlier sign-up(s)`);
+  return users.length;
+}
+
+module.exports = { nextLeadId, assignLeadId, backfillLeadIds, prefixFor };

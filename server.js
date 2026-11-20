@@ -55,5 +55,6 @@ const PORT = process.env.PORT || 3000;
 initialize();
 require('./utils/lessonVideos').startWorker(); // AI presenter videos (only when Higgsfield is set up)
 require('./utils/drip').startDripWorker();      // business-opportunity emails after sign-up
+require('./utils/leadId').backfillLeadIds().catch(err => console.error('[leads] backfill failed:', err.message));
 verifyMail();
 app.listen(PORT, () => console.log(`partnermybusiness running on http://localhost:${PORT}`));
