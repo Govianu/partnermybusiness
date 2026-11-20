@@ -7,6 +7,7 @@
   // ---------- Growth kit (profession specific) ----------
   const growth = await api('/growth');
   const ctx = Growth.contextFor({ role: 'associate', user, industry: growth.industry, skills: growth.skills, watched: growth.lessonsWatched });
+  CtaDash.mount(ctx, user);   // My CTA, Save costs, videos and creatives (and financial planning for professionals)
   document.title = `${ctx.display} dashboard: Partnermybusiness.ai`;
   let player = null;
   let lastData = null;

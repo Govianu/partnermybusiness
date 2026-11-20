@@ -149,6 +149,15 @@
   form.elements.email.addEventListener('input', syncStaff);
   syncStaff();
   form.addEventListener('input', updateHandle);
+  // The CTA link opens the CTA for what's chosen in the form
+  const ctaLink = document.getElementById('ctaLink');
+  const syncCta = () => {
+    const v = formData(form);
+    const q = new URLSearchParams({ category: roleInput.value === 'associate' ? v.skill || '' : v.category || '',
+      name: roleInput.value === 'business' ? v.businessName || '' : '', area: v.location || '', person: v.name || '' });
+    ctaLink.href = `/cta.html?${q}`;
+  };
+  form.addEventListener('input', syncCta); form.addEventListener('change', syncCta); syncCta();
   form.addEventListener('change', updateHandle);
 
   onSubmit(form, async data => {

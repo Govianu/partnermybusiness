@@ -47,7 +47,7 @@ test('a second business on the same email gets its own dashboard, and its code o
   assert.equal(second.status, 201);
   assert.notEqual(String(first.body.profileId), String(second.body.profileId), 'two dashboards');
 
-  const welcome = sent.filter(m => m.to === EMAIL && /smoor/.test(m.html)).at(-1);
+  const welcome = sent.filter(m => m.to === EMAIL && /smoor/.test(m.html) && !/^Your CTA/.test(m.subject)).at(-1);
   assert.match(welcome.html, /Open the smoor dashboard/);
   assert.match(welcome.html, /activate\.html\?token=[a-f0-9]{64}/, 'button signs in to this dashboard');
 
@@ -57,7 +57,7 @@ test('a second business on the same email gets its own dashboard, and its code o
   assert.equal(smoor.body.user.business.businessName, 'smoor');
 
   // The coffe katte code still opens coffe katte
-  const katteMail = sent.filter(m => m.to === EMAIL && /coffe katte/.test(m.html)).at(-1);
+  const katteMail = sent.filter(m => m.to === EMAIL && /coffe katte/.test(m.html) && !/^Your CTA/.test(m.subject)).at(-1);
   const katte = await call('POST', '/auth/verify-otp', { email: EMAIL, code: codeIn(katteMail) });
   assert.equal(katte.body.user.business.businessName, 'coffe katte');
 

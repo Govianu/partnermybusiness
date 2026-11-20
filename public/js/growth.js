@@ -561,7 +561,9 @@
     launch_idea: ['Help me launch this', 'Your PMB manager will plan this idea with you and find the right partners.', 'Send to my manager', 'Sent. Your PMB manager will plan it with you.'],
     find_partner: ['Find me a partner', 'Tell us who you’d like to work with. We’ll introduce you.', 'Request an introduction', 'Request sent. We’ll suggest partners soon.'],
     find_work: ['Find me paid work', 'We’ll match your skills with partner businesses near you.', 'Find me work', 'Request sent. We’ll match you with partner businesses.'],
-    run_workshop: ['Help me run a workshop', 'We’ll find a partner venue and help you price it.', 'Send to my manager', 'Sent. Your PMB manager will help you set it up.']
+    run_workshop: ['Help me run a workshop', 'We’ll find a partner venue and help you price it.', 'Send to my manager', 'Sent. Your PMB manager will help you set it up.'],
+    save_costs: ['Get my savings plan', 'Your PMB manager will look at your top 5 monthly expenses and find partners to bring them down.', 'Send to my manager', 'Sent. Your PMB manager will call you about your savings plan.'],
+    financial_plan: ['Plan my finances', 'We’ll plan steady work with you and help you apply to a bank for a line of credit.', 'Send to my manager', 'Sent. Your PMB manager will call you to plan it.']
   };
 
   function openCtaDialog(ctx, { action = 'growth_call', topic = '' } = {}) {

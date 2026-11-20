@@ -12,6 +12,8 @@ const { enquiryWelcome, teamEnquiry } = require('../utils/emails');
 const { issueOtp } = require('../utils/otp');
 const { issueLink } = require('../utils/links');
 const drip = require('../utils/drip');
+const { assignLeadId, nextLeadId } = require('../utils/leadId');
+const { sendCtaEmail } = require('../utils/cta');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -117,8 +119,11 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     user: user?._id || null
   });
 
+  // One lead ID (e.g. PMB-NOV26-01) for this person's account, CRM lead and emails
+  const leadId = user ? (user.leadId || await assignLeadId(user)) : await nextLeadId();
+  enquiry.leadId = leadId;
   await Lead.create({
-    name, company: fields.business, email, phone, source: 'enquiry', relatedUser: user?._id || null,
+    leadId, name, company: fields.business, email, phone, source: 'enquiry', relatedUser: user?._id || null,
     notes: [ROLE_NAMES[role], fields.businessType, fields.location].filter(Boolean).join(', '),
     stage: 'new',
     history: [{ stage: 'new', note: `Website enquiry, terms ${TERMS_VERSION} accepted`, at: termsAcceptedAt }]
@@ -131,8 +136,10 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
       sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : '',
       profileId: user?._id || null, link: signInLink
     })),
-    sendMail(teamEnquiry({ ...enquiry, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
+    sendMail(teamEnquiry({ ...enquiry, leadId, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
   ]);
+  // Their CTA (feasibility, revenue, cost saving, terms), with their lead ID
+  if (user) await sendCtaEmail(user);
   enquiry.emailStatus = { person: toPerson.sent ? 'sent' : (toPerson.error ? 'failed' : 'outbox'), team: toTeam.sent ? 'sent' : (toTeam.error ? 'failed' : 'outbox') };
   await enquiry.save();
 

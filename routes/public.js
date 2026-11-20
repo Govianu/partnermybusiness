@@ -89,4 +89,59 @@ router.post('/unsubscribe', async (req, res) => {
   res.type('html').send(page('Emails stopped', '<h1>Done. You won’t get these emails any more.</h1><p class="muted">Changed your mind? Reply to any of our emails or call +91 81039 90990.</p>'));
 });
 
+// ---------- The CTA before signing up, and each business type's research for the homepage ----------
+const { ctaFor, renderCta } = require('../utils/cta');
+const { playbookFor } = require('../utils/playbook');
+const { sectorFor } = require('../utils/catalog');
+// Preview of the CTA for the business type chosen in a form (nothing personal is stored)
+router.get('/cta-preview', (req, res) => {
+  const sectorId = Number(req.query.sector) || (sectorFor({ category: str(req.query.category) })?.id) || null;
+  if (!sectorId) throw fail('Choose your type of business first', 400);
+  const c = ctaFor({ sectorId, name: str(req.query.name).slice(0, 120), area: str(req.query.area).split(',')[0].slice(0, 80),
+    user: { name: str(req.query.person).slice(0, 120) } });
+  if (!c) throw fail('Unknown business type', 404);
+  res.json({ business: c.business, type: c.type, html: renderCta(c, { preview: true }) });
+});
+// Videos, creatives and research for one business type (shown when it is picked on the homepage)
+router.get('/playbook/:sectorId', (req, res) => {
+  const pb = playbookFor(Number(req.params.sectorId));
+  if (!pb) throw fail('Unknown business type', 404);
+  res.set('Cache-Control', 'public, max-age=3600');
+  const { costSavingFor } = require('../utils/costSaving');
+  const sv = costSavingFor(pb.sector.id);
+  res.json({ type: pb.type, idle: pb.idle, hook: pb.hook, opportunities: pb.opportunities, partners: pb.partners,
+    videos: pb.videos.slice(0, 3), images: pb.images.slice(0, 10),
+    savings: { label: sv.label, topCosts: sv.topCosts, levers: sv.levers, example: sv.example } });
+});
+
+// ---------- Creatives from the team's Google Drive, fetched once and kept on this server ----------
+const fsm = require('fs');
+const pathm = require('path');
+const { knownIds } = require('../utils/playbook');
+const { DATA_DIR } = require('../utils/jsonModel');
+const MEDIA_DIR = pathm.join(DATA_DIR, 'media-cache');
+const fetching = new Map();
+router.get('/media/:id', async (req, res) => {
+  const id = String(req.params.id);
+  if (!knownIds.has(id)) throw fail('Not found', 404);
+  const width = [600, 1000, 1200].includes(Number(req.query.w)) ? Number(req.query.w) : 600;
+  const file = pathm.join(MEDIA_DIR, `${id}-w${width}.png`);
+  if (!fsm.existsSync(file)) {
+    // One download per image even if many people open it at once
+    if (!fetching.has(file)) {
+      fetching.set(file, (async () => {
+        const r = await fetch(`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${width}`, { redirect: 'follow' });
+        const type = r.headers.get('content-type') || '';
+        if (!r.ok || !/^image\//.test(type)) throw new Error(`Drive returned ${r.status} ${type}`);
+        fsm.mkdirSync(MEDIA_DIR, { recursive: true });
+        fsm.writeFileSync(file, Buffer.from(await r.arrayBuffer()));
+      })().finally(() => setTimeout(() => fetching.delete(file), 1000)));
+    }
+    try { await fetching.get(file); }
+    catch (err) { console.error('[media] could not fetch', id, err.message); throw fail('Image not available right now', 502); }
+  }
+  res.set('Cache-Control', 'public, max-age=604800');
+  res.type('png').sendFile(file);
+});
+
 module.exports = router;

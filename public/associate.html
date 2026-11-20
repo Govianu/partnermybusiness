@@ -27,6 +27,9 @@
     <nav class="nav" aria-label="Dashboard">
       <a href="#overview" data-view="overview">Overview</a>
       <a href="#learn" data-view="learn">Learn &amp; earn</a>
+      <a href="#savings" data-view="savings">Save costs</a>
+      <a href="#finance" data-view="finance">Financial planning</a>
+      <a href="#cta" data-view="cta">My CTA</a>
       <a href="#offers" data-view="offers">My offers</a>
       <a href="#gigs" data-view="gigs">Shifts near you</a>
       <a href="#workshops" data-view="workshops">Run a workshop</a>
@@ -77,6 +80,7 @@
         <div><h1 id="learnTitle">Learn &amp; earn</h1><p id="learnIntro">Short lessons on how to earn from your skills.</p></div>
         <button class="btn ghost" type="button" id="changeSkills">Change skills</button>
       </div>
+      <div id="mediaBox" class="media-box" hidden></div>
       <div class="learn">
         <div id="player"></div>
         <div><h3 style="margin-top:0">Your playlist</h3><div id="playlist"></div></div>
@@ -115,6 +119,21 @@
       </div>
     </section>
 
+    <section id="view-cta" hidden>
+      <div class="view-head"><div><h1>My CTA</h1><p>Your feasibility, revenue opportunities, cost saving and the terms you agreed to, in one place.</p></div></div>
+      <div id="myCta"></div>
+    </section>
+
+    <section id="view-savings" hidden>
+      <div class="view-head"><div><h1>Save costs</h1><p>Five ways to cut your top costs through Partnermybusiness partners.</p></div></div>
+      <div id="savingsBox"></div>
+    </section>
+
+    <section id="view-finance" hidden>
+      <div class="view-head"><div><h1>Financial planning</h1><p>Steady work from us, and help getting a line of credit from a bank.</p></div></div>
+      <div id="financeBox"></div>
+    </section>
+
     <section id="view-profile" hidden>
       <div class="view-head"><div><h1>Skills & profile</h1><p>Help PMB match you with the right shifts, workshops and partner businesses.</p></div></div>
       <form class="panel" id="associateProfileForm">
@@ -139,6 +158,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/lesson-videos.js"></script>
 <script src="/js/growth.js"></script>
+<script src="/js/cta-dash.js"></script>
 <script src="/js/market.js"></script>
 <script src="/js/associate.js"></script>
 </body>

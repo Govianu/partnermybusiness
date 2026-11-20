@@ -95,7 +95,7 @@
       ? d.leads.map(l => {
           const last = l.history[l.history.length - 1] || {};
           return `<tr>
-            <td><strong>${esc(l.name)}</strong>${l.company ? `<div class="meta">${esc(l.company)}</div>` : ''}<div class="meta">${esc(l.phone || '')} ${esc(l.email || '')}</div>
+            <td>${l.leadId ? `<code class="handle">${esc(l.leadId)}</code><br>` : ''}<strong>${esc(l.name)}</strong>${l.company ? `<div class="meta">${esc(l.company)}</div>` : ''}<div class="meta">${esc(l.phone || '')} ${esc(l.email || '')}</div>
               ${l.relatedUser?.handle ? `<code class="handle">${handleHtml(l.relatedUser.handle)}</code>` : ''}</td>
             <td>${esc(l.source)}</td>
             <td>${pill(l.stage)}</td>

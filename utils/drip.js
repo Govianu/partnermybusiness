@@ -1,20 +1,21 @@
-// Business-opportunity emails after sign-up: five emails, a few days apart, each about one way this exact
-// business type or profession can earn (from utils/catalog.json). People forget dashboards; these bring them back.
-//
-//   1. Services they could add          2. Products they could sell       3. Who they could team up with
-//   4. Space and quiet hours            5. "Shall we set this up?" with a call to action
+// Opportunity emails after sign-up: ten emails, a few days apart, alternating the two verticals for this exact
+// business type or profession: five ways to earn more and five ways to save. People forget dashboards; these
+// bring them back.
 //
 // Every email has a one-tap button into their dashboard, replies go to the team inbox, and a one-click
 // unsubscribe (also as a List-Unsubscribe header, which Gmail and Yahoo expect from regular senders).
 // Settings: DRIP_INTERVAL_DAYS (default 3), DRIP_ENABLED (default on), DRIP_MAX_PER_RUN (default 40).
 const crypto = require('crypto');
 const User = require('../models/User');
-const { sectorById, sectorFor, listOf, plural, withArticle } = require('./catalog');
+const { sectorById, sectorFor } = require('./catalog');
 const { sendMail } = require('./mailer');
 const { issueLink } = require('./links');
-const { layout, p, button, esc, inr, firstName, APP_URL, TEAM_INBOX, PHONE } = require('./emails');
+const { layout, p, button, esc, firstName, APP_URL, TEAM_INBOX, PHONE } = require('./emails');
+const { playbookFor, imageFor } = require('./playbook');
+const { costSavingFor } = require('./costSaving');
+const { assess } = require('./cta');
 
-const STEPS = 5;
+const STEPS = 10;
 const DAY = 24 * 60 * 60 * 1000;
 const intervalMs = () => (Number(process.env.DRIP_INTERVAL_DAYS) || 3) * DAY;
 const enabled = () => !/^(0|false|no|off)$/i.test(process.env.DRIP_ENABLED || '');
@@ -37,65 +38,54 @@ function enroll(user, startAt = Date.now()) {
 }
 
 // ---------- The emails ----------
+// Ten emails, alternating the two verticals: revenue (odd steps) and cost saving (even steps).
+//   1 revenue: opportunity 1 (with the type's 30-second hook)   2 saving: lever 1 (with a worked example)
+//   3 revenue: opportunity 2                                    4 saving: lever 2
+//   ...                                                         10 saving: lever 5, then "shall we set this up?"
+// Revenue emails use the team's research for this exact type (utils/playbook.js) and its creative where one exists.
 const li = items => `<ul style="margin:0 0 14px;padding-left:20px;font-size:15px;line-height:1.7;color:#0F1B3D">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
-const lower = s => String(s || '').charAt(0).toLowerCase() + String(s || '').slice(1);
+const lower = s => (/^[A-Z]{2}/.test(s) ? s : String(s || '').charAt(0).toLowerCase() + String(s || '').slice(1));
+const muted = t => `<span style="font-size:13px;color:#47537C">${t}</span>`;
+const image = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" width="504" style="display:block;width:100%;max-width:504px;height:auto;border-radius:12px;border:1px solid #D5DCEC;margin:4px 0 16px">`;
+
+function revenueEmail(user, k, pb) {
+  const isPro = pb.sector.t === 'p';
+  const name = isPro ? 'you' : (user.business?.businessName || `your ${pb.sector.noun}`);
+  const all = pb.opportunities.concat(pb.moreOpportunities);
+  const opp = all[(k - 1) % all.length];
+  const a = assess(opp);
+  const creative = imageFor(pb, opp);
+  return {
+    subject: k === 1 && pb.hook ? `${pb.hook.replace(/\.$/, '')}: ${opp.toLowerCase()} for ${name}` : `${opp} ${isPro ? 'for you' : `at ${name}`}?`,
+    title: `${opp}`,
+    body: (k === 1 ? p(`${isPro ? 'Your skills and spare hours' : `What sits idle at ${esc(name)} today`}: <strong>${esc(pb.idle)}</strong>. Here’s one way to put ${isPro ? 'them' : 'it'} to work.`) : '')
+      + (creative ? image(creative.url.replace(/w=\d+$/, 'w=1000'), `${opp}: how it works`) : '')
+      + p(`<strong>Opportunity ${k} of 5: ${esc(opp)}.</strong> We bring the partners for it (${esc(pb.partners)}), set up the terms in your CTA, and handle bookings and billing.`)
+      + li([`Investment to start: ${a.investment}`, `Time to first revenue: ${a.time}`, `Feasibility: ${a.feasibility}`])
+      + p(muted('Desk assessment from our research. Your PMB manager confirms it with you before anything starts.')),
+    cta: 'Show me how this works'
+  };
+}
+
+function savingEmail(user, k, savings) {
+  const lever = savings.levers[(k - 1) % savings.levers.length];
+  const last = k === 5;
+  return {
+    subject: /^(\d|up to)/i.test(lever.saving) ? `Save ${lower(lever.saving)}: ${lower(lever.title)}` : `${lever.title}: ${lower(lever.saving)}`,
+    title: `Cut costs: ${lever.title}`,
+    body: p(`Earning more is half of it. The other half is spending less. Here’s cost-saving idea ${k} of 5 for ${esc(lower(savings.label))}:`)
+      + p(`<strong>${esc(lever.title)}.</strong> ${esc(lever.how)}`)
+      + li([`Typical saving: ${lever.saving}`])
+      + (k === 1 ? p(`<strong>For example:</strong> ${esc(savings.example)} ${muted('Illustrative.')}`) : '')
+      + p(`Partnership is collaboration, not competition: we match you with partners on both sides so everyone’s costs come down. Send us your top 5 monthly expenses and we’ll work out your real numbers.`)
+      + (last ? p(`That’s the last of these emails. The quickest way to start is one pilot: press the button and we’ll call you to pick it. Or reply, or call ${PHONE}.`) : ''),
+    cta: last ? 'Help me launch one' : 'Get my savings plan'
+  };
+}
 
 function contentFor(user, step, sector) {
-  const isPro = sector.t === 'p';
-  const noun = sector.noun;
-  const nouns = plural(noun);
-  const name = isPro ? '' : (user.business?.businessName || '');
-  const you = isPro ? `you, as ${withArticle(noun)}` : (name || `your ${noun}`);
-  const [products = 0, services = 0, partnering = 0] = sector.f || [];
-  const illustrative = '<span style="font-size:13px;color:#47537C">Illustrative figure from our research for ' + esc(nouns) + '. Your manager checks what fits you.</span>';
-
-  switch (step) {
-    case 1: return {
-      subject: isPro ? `Services ${nouns} are adding with Partnermybusiness` : `${sector.s.length} services ${nouns} like ${name || 'yours'} are adding`,
-      title: isPro ? 'More ways to earn from your skills' : `New services for ${name || `your ${noun}`}`,
-      body: p(`Here are services ${nouns} on Partnermybusiness are adding, without changing how they work today:`)
-        + li(sector.s)
-        + p(`Done well, services like these could be worth up to <strong>${inr(services)} a month</strong>. ${illustrative}`)
-        + p(`We find the customers and partners, and handle bookings and billing. ${isPro ? 'You do the work you’re good at.' : 'You keep running your business.'}`),
-      cta: 'Show me how this works'
-    };
-    case 2: return {
-      subject: isPro ? `What you could sell alongside your work as ${withArticle(noun)}` : `What ${name || `your ${noun}`} could sell at the counter`,
-      title: 'Products your customers would buy',
-      body: p(`${isPro ? 'Alongside your work' : 'Where your customers already wait or pay'}, these sell well for ${nouns}:`)
-        + li(sector.p)
-        + p(`We bring the brands and the stock, agree the margins upfront, and all billing runs through our central desk, so you always see the same statement we do.`)
-        + p(`Products could add up to <strong>${inr(products)} a month</strong>. ${illustrative}`),
-      cta: 'Show me the products'
-    };
-    case 3: return {
-      subject: `Who could team up with ${isPro ? `you as ${withArticle(noun)}` : (name || `your ${noun}`)}`,
-      title: 'Partners ready to work with you',
-      body: p(`Collaboration, not competition. These are the partners most likely to work with ${esc(you)}:`)
-        + li(sector.c)
-        + p(`<strong>For example:</strong> ${esc(sector.e)}`)
-        + p(`We introduce you, agree the split in writing before anything starts, and stay in the middle the whole way. Partnerships like this could be worth up to <strong>${inr(partnering)} a month</strong>. ${illustrative}`),
-      cta: 'Find me a partner'
-    };
-    case 4: return {
-      subject: isPro ? `Where ${nouns} are running sessions` : `Your quiet hours are worth more, ${firstName(user.name)}`,
-      title: isPro ? 'Spaces you can work from' : 'Your quiet hours and spare space',
-      body: (isPro
-        ? p(`You don’t need your own premises. ${nouns.charAt(0).toUpperCase() + nouns.slice(1)} on our network work from:`)
-        : p(`Most ${nouns} have space and time that sits idle. Yours could be earning:`))
-        + li(String(sector.a || '').split(',').map(x => x.trim()).filter(Boolean))
-        + p(`Ways we set it up: ${esc(listOf((sector.m || []).map(lower)))}. Every arrangement shares net profit, never gross, and is agreed with you case by case.`),
-      cta: isPro ? 'Find me a space' : 'Help me use my quiet hours'
-    };
-    default: return {
-      subject: `Shall we set this up for ${isPro ? 'you' : (name || `your ${noun}`)}?`,
-      title: 'Let’s get your first collaboration live',
-      body: p(`Over the last few emails we’ve shared ${sector.s.length + sector.p.length} ideas for ${esc(you)}, from ${esc(lower(sector.s[0]))} to ${esc(lower(sector.p[0]))}.`)
-        + p(`The quickest way to start is one pilot. Press the button below and we’ll call you to pick the one that fits, agree the terms in writing, and set it up with you.`)
-        + p(`Or just reply to this email, or call us on ${PHONE}.`),
-      cta: 'Help me launch one'
-    };
-  }
+  const pb = playbookFor(user._id ? user : { ...user, sectorId: sector.id });
+  return step % 2 === 1 ? revenueEmail(user, (step + 1) / 2, pb) : savingEmail(user, step / 2, costSavingFor(user._id ? user : sector.id));
 }
 
 async function emailFor(user, step) {
@@ -103,14 +93,14 @@ async function emailFor(user, step) {
   if (!sector) return null;
   const c = contentFor(user, step, sector);
   const page = user.role === 'associate' ? 'associate.html' : 'business.html';
-  const link = (await issueLink(user, 'signin')).replace('activate.html?', `activate.html?next=${encodeURIComponent(page + '#learn')}&`);
+  const link = (await issueLink(user, 'signin')).replace('activate.html?', `activate.html?next=${encodeURIComponent(page + (step % 2 ? '#learn' : '#savings'))}&`);
   const manager = user.assignedManager ? await User.findById(user.assignedManager) : null;
   const from = manager ? `${esc(manager.name)}, your Partnermybusiness manager` : 'The Partnermybusiness team';
   const unsub = unsubscribeUrl(user);
   const html = layout(c.title,
     p(`Hi ${esc(firstName(user.name))},`) + c.body + button(link, c.cta)
     + p(`${from}<br><span style="font-size:13px;color:#47537C">Reply to this email any time. It comes straight to our team.</span>`)
-    + `<p style="margin:18px 0 0;font-size:12px;color:#8A93B2">Email ${step} of ${STEPS} about growing with Partnermybusiness. <a href="${esc(unsub)}" style="color:#8A93B2">Stop these emails</a></p>`);
+    + `<p style="margin:18px 0 0;font-size:12px;color:#8A93B2">Email ${step} of ${STEPS} about earning more and saving with Partnermybusiness. <a href="${esc(unsub)}" style="color:#8A93B2">Stop these emails</a></p>`);
   return {
     to: user.email, replyTo: TEAM_INBOX(), subject: c.subject, html,
     text: `Hi ${firstName(user.name)}, ${c.title}. Open your dashboard: ${link} . Stop these emails: ${unsub}`,

@@ -7,13 +7,15 @@ const { uniqueHandle } = require('../utils/handle');
 const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
-const { issueLink, findByToken } = require('../utils/links');
+const { issueLink, findByToken, spendLink } = require('../utils/links');
 const { sendMail, mailConfigured } = require('../utils/mailer');
 const { emailOtp, loginLink } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
 const { isStaffEmail, staffDomains } = require('../utils/staff');
 const drip = require('../utils/drip');
+const { assignLeadId } = require('../utils/leadId');
+const { sendCtaEmail } = require('../utils/cta');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
@@ -138,6 +140,14 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
 
   const user = await User.create(doc);
   if (drip.enroll(user)) await user.save();   // business-opportunity emails over the next days (utils/drip.js)
+  // Every registration is a lead in the PMB team dashboard, with its own ID (e.g. PMB-NOV26-01)
+  if (role !== 'admin') {
+    await assignLeadId(user, {
+      name: user.name, company: user.business?.businessName || user.buyer?.company || '', email, phone: user.phone || '',
+      source: 'signup', stage: 'new', notes: [role === 'associate' ? 'Professional' : role === 'buyer' ? 'Buyer' : 'Business', user.category, user.location].filter(Boolean).join(', '),
+      history: [{ stage: 'new', note: 'Signed up on the website', at: new Date().toISOString() }]
+    });
+  }
   // Seed the opportunity feed in the background so signup stays fast
   if (role === 'business') {
     generateOpportunities({ name: user.business.businessName, category: user.category, sectorId: user.sectorId, location: user.location })
@@ -148,6 +158,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   const code = await issueOtp(user);
   const mailResult = await sendMail(await otpMail(user, code));
   if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
+  await sendCtaEmail(user);   // their CTA with lead ID: feasibility, revenue, cost saving and terms
 
   res.status(201).json({
     ok: true, verificationRequired: true, email, profileId: user._id,
@@ -270,8 +281,7 @@ router.post('/activate', async (req, res) => {
   user.emailVerifiedAt = user.emailVerifiedAt || new Date().toISOString();
   user.lastLoginAt = new Date().toISOString();
   clearOtp(user);
-  user.linkTokenHash = null;
-  user.linkTokenExpires = null;
+  spendLink(user, req.body.token);   // this link stops working; other emails' buttons still do
   user.linkTokenPurpose = null;
   await user.save();
   issueToken(res, user);

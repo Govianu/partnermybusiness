@@ -220,3 +220,28 @@
 @media (max-width: 760px) { .people { grid-template-columns: 1fr; } }
 .people-avatar { font-size: .85rem; }
 .people-example { max-width: none; }
+
+/* My CTA, Save costs, media and financial planning (public/js/cta-dash.js) */
+.cta-status { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.cta-doc { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 1.1rem; overflow-x: auto; }
+.save-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .9rem; margin-bottom: 1rem; }
+.save-card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 1rem 1.1rem; display: grid; gap: .35rem; align-content: start; }
+.save-card h3 { margin: 0; font-size: 1.02rem; }
+.save-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+.save-card strong { color: var(--ok); font-size: .92rem; }
+.save-n { width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+.save-example { margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 12px; background: var(--ok-soft); }
+.save-example > span:first-child { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-right: .5rem; color: var(--ok); }
+.media-box { margin-bottom: 1.5rem; }
+.media-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1rem; align-items: start; }
+.media-video { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 14px; overflow: hidden; background: #000; }
+.media-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.media-slides { display: flex; gap: .6rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: .4rem; }
+.media-slides a { flex: 0 0 auto; scroll-snap-align: start; }
+.media-slides img { height: 210px; width: auto; border-radius: 12px; border: 1.5px solid var(--line); display: block; }
+.fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.fin-out { margin-top: 1rem; padding: .8rem 1rem; border-radius: 12px; background: var(--ok-soft); }
+.fin-out div { display: grid; gap: .1rem; }
+.fin-out b { font-size: 1.5rem; color: var(--ok); font-variant-numeric: tabular-nums; }
+.fin-steps { margin: 0 0 1rem; padding-left: 1.2rem; line-height: 1.7; }
+@media (max-width: 760px) { .media-row { grid-template-columns: 1fr; } .media-slides img { height: 170px; } }

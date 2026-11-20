@@ -119,7 +119,7 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
 // 2. To the PMB team inbox: full enquiry + proof of terms acceptance
 function teamEnquiry(e) {
   const body = p('A new enquiry arrived from the website.') + table([
-    ['Enquiry type', e.roleName], ['Name', e.name], ['Business or brand', e.business], ['Email', e.email],
+    ['Lead ID', e.leadId], ['Enquiry type', e.roleName], ['Name', e.name], ['Business or brand', e.business], ['Email', e.email],
     ['Phone or WhatsApp', e.phone], ['Business or profession', e.businessType], ['Location', e.location],
     ['Offer', e.offer], ['Territory', e.territory], ['Notes', e.message], ['Dashboard plan', e.plan],
     ['Terms accepted', `Yes, version ${e.termsVersion}, ${new Date(e.termsAcceptedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST`],
@@ -128,7 +128,7 @@ function teamEnquiry(e) {
   return {
     to: TEAM_INBOX(),
     replyTo: e.email || undefined,
-    subject: `Partnermybusiness enquiry: ${e.roleName}${e.business ? ', ' + e.business : ''}`,
+    subject: `${e.leadId ? `[${e.leadId}] ` : ''}Partnermybusiness enquiry: ${e.roleName}${e.business ? ', ' + e.business : ''}`,
     html: layout('New website enquiry', body),
     text: `New enquiry from ${e.name} (${e.email || e.phone}).`
   };
@@ -184,14 +184,14 @@ module.exports = { firstName, emailOtp, enquiryWelcome, teamEnquiry, loginLink, 
 function ctaRequest({ user, industry, label, topic, note, preferred }) {
   const company = user.business?.businessName || '';
   const body = p(`${esc(user.name)} pressed “${esc(label)}” in their ${esc(industry.label)} dashboard.`) + table([
-    ['Request', label], ['About', topic], ['Name', user.name], ['Business', company], ['Type', industry.display],
+    ['Lead ID', user.leadId], ['Request', label], ['About', topic], ['Name', user.name], ['Business', company], ['Type', industry.display],
     ['Email', user.email], ['Phone', user.phone], ['Area', user.location], ['Best time to call', preferred], ['Note', note],
     ['Skills', (user.skills || user.associate?.skills || []).join(', ')], ['Handle', user.handle]
   ]) + button(teamLink('leads'), 'Open in the PMB team dashboard');
   return {
     to: TEAM_INBOX(),
     replyTo: user.email || undefined,
-    subject: `${label}: ${company || user.name} (${industry.label})`,
+    subject: `${user.leadId ? `[${user.leadId}] ` : ''}${label}: ${company || user.name} (${industry.label})`,
     html: layout(label, body),
     text: `${user.name} (${industry.label}) asked: ${label}${topic ? ` - ${topic}` : ''}.`
   };

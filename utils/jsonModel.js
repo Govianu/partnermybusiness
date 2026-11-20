@@ -10,7 +10,7 @@ const DATA_FILE = path.join(DATA_DIR, 'app-data.json');
 const models = {};
 // Never sent to the browser
 const USER_SECRETS = [
-  'passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose',
+  'passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose', 'linkTokens',
   'emailOtpHash', 'emailOtpExpiresAt', 'emailOtpAttempts'
 ];
 let data;

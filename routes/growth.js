@@ -48,6 +48,14 @@ router.get('/community', async (req, res) => {
   });
 });
 
+// This person's own CTA (feasibility, revenue, cost saving, terms they agreed to), the type's media and the
+// cost-saving plan for the dashboard
+router.get('/my-cta', async (req, res) => {
+  const { ctaFor, renderCta } = require('../utils/cta');
+  const c = ctaFor({ user: req.user });
+  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings: c?.savings || null });
+});
+
 router.get('/', async (req, res) => {
   res.json({ industry: industryFor(req.user), skills: req.user.skills || req.user.associate?.skills || [], lessonsWatched: req.user.lessonsWatched || [] });
 });
@@ -79,7 +87,9 @@ const ACTIONS = {
   launch_idea: 'Help me launch an idea',
   find_partner: 'Find me a partner',
   find_work: 'Find me paid work',
-  run_workshop: 'Help me run a workshop'
+  run_workshop: 'Help me run a workshop',
+  save_costs: 'Get my savings plan',
+  financial_plan: 'Plan my finances'
 };
 
 router.post('/cta', rateLimit(6, 60 * 60 * 1000), async (req, res) => {
@@ -93,7 +103,7 @@ router.post('/cta', rateLimit(6, 60 * 60 * 1000), async (req, res) => {
   const company = u.business?.businessName || '';
 
   await Lead.create({
-    name: u.name, company, email: u.email, phone: u.phone, source: 'dashboard', relatedUser: u._id, stage: 'new',
+    leadId: u.leadId || undefined, name: u.name, company, email: u.email, phone: u.phone, source: 'dashboard', relatedUser: u._id, stage: 'new',
     notes: [label, topic, industry.display, note].filter(Boolean).join(' | '),
     history: [{ stage: 'new', note: `${label}${topic ? `: ${topic}` : ''} (from the ${industry.label} dashboard)`, at: new Date().toISOString() }]
   });

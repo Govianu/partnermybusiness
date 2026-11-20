@@ -204,6 +204,14 @@ h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;
 .kind{font-size:.95rem;font-weight:600;color:var(--blue-text);margin-bottom:.35rem}
 .statement.eg{margin:0 0 2rem;max-width:30ch;font-size:clamp(1.3rem,3vw,1.9rem)}
 .dash-h{font-size:1.35rem;margin:2rem 0 .85rem}
+/* The type's 30-second video and creatives from the team's research */
+.pmb-media-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:1rem;align-items:start}
+.pmb-video{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000}
+.pmb-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pmb-slides{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.4rem}
+.pmb-slides a{flex:0 0 auto;scroll-snap-align:start}
+.pmb-slides img{height:220px;width:auto;border-radius:12px;display:block;border:1px solid rgba(0,0,0,.1)}
+@media (max-width:760px){.pmb-media-row{grid-template-columns:1fr}.pmb-slides img{height:170px}}
 .kpi-label .dot{margin-right:.4rem;vertical-align:baseline}
 .kpis5{grid-template-columns:1fr 1fr}
 .kpis5 .kpi{border-right:1px solid var(--line)}
@@ -601,6 +609,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
       <p class="statement eg" id="dashExample"></p>
 
+      <div class="pmb-media" id="dashMedia" hidden></div>
+
       <h3 class="dash-h">Financial projection, each month</h3>
       <div class="kpis kpis5" aria-live="polite">
         <div class="kpi"><span class="kpi-label"><span class="dot" style="--c:var(--space)"></span>Product revenue</span><span class="kpi-val" id="k0"></span></div>
@@ -927,10 +937,12 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       </form>
 
       <div class="terms-step" id="termsStep" hidden tabindex="-1">
-        <h3>Your partnership agreement</h3>
-        <p style="margin:0">This is how we work together. Once you agree, we send your enquiry to our team and email your dashboard link to <strong id="termsEmail"></strong>.</p>
+        <h3>Your CTA</h3>
+        <p style="margin:0">Your CTA brings it all together: what is feasible for you, how you can earn more, how you can save, how money is shared, and the terms. Read it, then agree below. We email your own CTA, with your lead ID, to <strong id="termsEmail"></strong> and keep it in your dashboard.</p>
+        <p style="margin:.75rem 0 0"><a class="btn btn-line" id="viewCta" href="/cta.html" target="_blank" rel="noopener">View your full CTA</a></p>
+        <p style="margin:.75rem 0 0;font-weight:600">In short:</p>
         <ul class="terms-points">
-          <li><strong>Partner in principle.</strong> You join as a partner. Every collaboration then gets its own one-page agreement, with percentages and fees, before anything starts.</li>
+          <li><strong>Partner in principle.</strong> You join as a partner. The CTA is the agreement: there is nothing else to sign. Each opportunity starts only after you approve it in your dashboard.</li>
           <li><strong>Group deals.</strong> You let us include your business when we negotiate bulk supplies, brand placements and orders for many partners. Nothing is ordered without your OK.</li>
           <li><strong>One point of contact and billing.</strong> Orders and payments for collaborations we bring go through Partnermybusiness, and you won’t deal around us with the partners we introduce.</li>
           <li><strong>We share net, not gross.</strong> Taxes, refunds, payment charges and agreed costs come off first. If someone funds equipment, an agreed share repays it first. The profit is then shared as agreed, case by case.</li>
@@ -939,7 +951,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         </ul>
         <p style="margin:0 0 1rem"><a href="/terms.html" target="_blank" rel="noopener">Read the full Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
         <label class="agree"><input type="checkbox" id="agreeBox">
-          <span>I agree to this partnership agreement, the Terms and Conditions and the Privacy Policy, and I’m happy for Partnermybusiness to email and call me about business opportunities.</span></label>
+          <span>I have read and agree to the CTA, the Terms and Conditions and the Privacy Policy, and I’m happy for Partnermybusiness to email and call me about business opportunities.</span></label>
         <p class="err" id="termsErr" role="alert" hidden></p>
         <div class="cta-row">
           <button class="btn btn-blue" type="button" id="agreeBtn" disabled>Agree and continue</button>
@@ -1416,6 +1428,42 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     }
   }
 
+  /* The team's research for this type: its 30-second video, creatives (from Google Drive) and 5 ways to save */
+  var playbookReq = 0;
+  function loadPlaybook(s){
+    var box = $("dashMedia"), mine = ++playbookReq;
+    box.hidden = true; box.textContent = "";
+    fetch("/api/public/playbook/" + s.id).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if (!d || mine !== playbookReq) return;
+      if (d.savings && d.savings.levers){
+        var list = el("ul", "list");
+        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + ". ")); item.appendChild(document.createTextNode(l.how + " (" + l.saving + ")")); list.appendChild(item); });
+        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Five ways we bring them down:"), list, el("p", "hint-line", "Example: " + d.savings.example)]);
+      }
+      var v = d.videos && d.videos[0], imgs = d.images || [];
+      if (!v && !imgs.length) return;
+      if (d.hook) box.appendChild(el("h3", "dash-h", d.hook));
+      var row = el("div", "pmb-media-row");
+      if (v){
+        var frame = document.createElement("iframe");
+        frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
+        var wrap = el("div", "pmb-video"); wrap.appendChild(frame); row.appendChild(wrap);
+      }
+      if (imgs.length){
+        var strip = el("div", "pmb-slides");
+        imgs.forEach(function(i){
+          var a = document.createElement("a"); a.href = "https://drive.google.com/file/d/" + i.id + "/view"; a.target = "_blank"; a.rel = "noopener"; a.title = i.title;
+          var img = document.createElement("img"); img.src = i.thumb; img.alt = i.title; img.loading = "lazy";
+          img.onerror = function(){ a.remove(); };   /* a creative Drive won't serve is left out, not shown broken */
+          a.appendChild(img); strip.appendChild(a);
+        });
+        row.appendChild(strip);
+      }
+      box.appendChild(row);
+      box.hidden = false;
+    }).catch(function(){});
+  }
+
   function openDash(id, move){
     var s = byId(id); if (!s) return;
     current = s;
@@ -1463,6 +1511,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     });
     setBody("bodyModels", [modelList, s.r ? el("p", "regnote", "Rule to check: " + RULES[s.r]) : null]);
 
+    loadPlaybook(s);
     drawLocation();
     refreshNumbers();
     if (move){
@@ -1596,6 +1645,14 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     pending = data;
 
     $("termsEmail").textContent = email;
+    /* "View your full CTA" opens it for the business type and name just entered */
+    var ctaQ = new URLSearchParams();
+    if (data.business_type_id) ctaQ.set("sector", data.business_type_id);
+    if (data.business) ctaQ.set("name", data.business);
+    if (data.location) ctaQ.set("area", data.location.split(",")[0]);
+    ctaQ.set("person", name);
+    $("viewCta").href = "/cta.html?" + ctaQ.toString();
+    $("viewCta").hidden = !data.business_type_id;
     agreeBox.checked = false; agreeBtn.disabled = true; termsErr.hidden = true;
     showPanel(termsStep);
   });

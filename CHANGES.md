@@ -18,6 +18,17 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
+## CTA, cost saving, lead IDs and the team's Drive research
+- The agreement is now the **CTA**, viewed (`/cta.html`) and agreed online, with nothing else to sign.
+- The CTA brings together feasibility, revenue, cost saving, money split and terms; emailed at sign-up with the lead ID
+  and kept in the dashboard (**My CTA**).
+- Lead IDs `PMB-NOV26-01` for every sign-up (account, CRM lead, team emails, CTA, dashboard).
+- Cost saving for every business type (**Save costs** in the dashboard, the CTA, emails).
+- Ten emails alternating revenue and cost saving, using the team's research and creatives.
+- The team's Google Drive research (240 types, videos, creatives) on the homepage and dashboards.
+- Financial planning for professionals.
+- Several one-tap sign-in links can be active at once (welcome and CTA emails both work).
+
 ## Agreement, opportunity emails and a human touch (from the boss's review)
 - Business and profession dropdowns are A to Z everywhere.
 - The homepage's last step is now "Your partnership agreement", with the commercial points; terms version 2026-11-20.1.

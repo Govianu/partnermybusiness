@@ -195,6 +195,24 @@ Until step 5, buyers and sellers never see each other's email or phone.
 - **Dashboard strip:** the overview shows the person's PMB manager (call and WhatsApp), real network numbers
   (hidden below `COMMUNITY_MIN_COUNT`) and an example for their business type. Nothing shown there is invented.
 
+### The CTA, cost saving and the team's research
+- **CTA** (`utils/cta.js`): one document per business or professional that brings it all together: feasibility
+  (what sits idle, verdict), revenue opportunities with investment and time to first revenue, cost saving, how money
+  is shared (25% each to infrastructure partner, owner, lead generator and PMB, on net), and the commercial terms
+  they view and agree to online. Before signing up, `/cta.html` shows it for the chosen business type; at sign-up it
+  is emailed with their lead ID; in the dashboard it is under **My CTA**.
+- **Lead IDs** (`utils/leadId.js`): `PMB-NOV26-01` style, given at sign-up, on the account, the CRM lead, team email
+  subjects, the CTA and the dashboard.
+- **Cost saving** (`utils/costSaving.js`): five ways to save per kind of business (top costs, how, typical saving,
+  worked example), in the dashboard under **Save costs**, in the CTA and in the emails.
+- **Opportunity emails** (`utils/drip.js`): ten emails, three days apart, alternating revenue and cost saving.
+- **Team research from Google Drive** (`utils/playbook.json`, built by `scripts/build-playbook.py` from the
+  "Business.network.revenue" folder): 240 business/professional types matched to the 100 website types, with what
+  sits idle, five opportunities, partners, a 30-second hook, and the type's videos and creatives. Prospect names and
+  contact details are not copied. Creatives are fetched from Drive once and served from `DATA_DIR/media-cache`
+  (`/api/public/media/:id`, research files only); videos play in Drive's player, so keep those files link-shared.
+- **Financial planning** for professionals (dashboard): committed income over 3–12 months and help applying to a bank.
+
 ### PMB team access
 Only accounts with a Govianu email (`STAFF_EMAIL_DOMAINS`, default `govianu.com`) can open the PMB team dashboard.
 The team signs in at **`/team.html`**: enter a @govianu.com email, get a one-time code (and a one-tap button) in that

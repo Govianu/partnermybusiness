@@ -37,7 +37,7 @@ test.before(async () => {
 });
 test.after(() => server?.close());
 
-test('a new café gets five opportunity emails, three days apart, then stops', async () => {
+test('a new café gets ten emails, revenue and cost saving in turn, three days apart, then stops', async () => {
   const r = await call('POST', '/enquiry', { role: 'host', name: 'Divya', email: 'smoor.drip@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
   assert.equal(r.status, 201);
   const user = await User.findOne({ email: 'smoor.drip@example.com' });
@@ -48,21 +48,23 @@ test('a new café gets five opportunity emails, three days apart, then stops', a
   assert.equal((await drip.sendDue({ now: new Date(start + DAY), force: true })).sent, 0, 'nothing before 3 days');
 
   const subjects = [];
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 11; i++) {
     sent.length = 0;
     await drip.sendDue({ now: new Date(start + i * 3 * DAY + 1000), force: true });
     if (sent[0]) subjects.push(sent[0].subject);
     if (i === 1) {
       const m = sent[0];
       assert.equal(m.to, 'smoor.drip@example.com');
-      assert.match(m.html, /Monthly coffee pass/, 'uses the café’s own services');
+      assert.match(m.html, /Paid coworking seats/, 'uses the team research for this café type');
+      assert.match(m.html, /\/api\/public\/media\/[\w-]+\?w=1000/, 'shows the matching creative, served by our own server');
       assert.match(m.html, /activate\.html\?next=business\.html%23learn&amp;token=[a-f0-9]{64}/, 'one-tap button into the dashboard');
       assert.match(m.headers['List-Unsubscribe'], /\/api\/public\/unsubscribe\?u=/);
       assert.equal(m.replyTo, 'info@partnermybusiness.ai');
     }
   }
-  assert.equal(subjects.length, 5, 'exactly five emails');
-  assert.equal(new Set(subjects).size, 5, 'five different emails');
+  assert.equal(subjects.length, 10, 'exactly ten emails');
+  assert.equal(new Set(subjects).size, 10, 'ten different emails');
+  assert.match(subjects[1], /^Save /, 'the second is about cost saving');
   assert.match(subjects[0], /smoor/);
 });
 
