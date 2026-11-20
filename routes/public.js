@@ -109,7 +109,7 @@ router.get('/playbook/:sectorId', (req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
   const { costSavingFor } = require('../utils/costSaving');
   const sv = costSavingFor(pb.sector.id);
-  res.json({ type: pb.type, idle: pb.idle, hook: pb.hook, opportunities: pb.opportunities, partners: pb.partners,
+  res.json({ type: pb.type, idle: pb.idle, hook: pb.hook, opportunities: pb.opportunities.concat(pb.moreOpportunities), partners: pb.partners,
     videos: pb.videos.slice(0, 3), images: pb.images.slice(0, 10),
     savings: { label: sv.label, topCosts: sv.topCosts, levers: sv.levers, example: sv.example } });
 });

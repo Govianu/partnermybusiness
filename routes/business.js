@@ -22,15 +22,14 @@ router.get('/dashboard', async (req, res) => {
     Booking.find({ business: req.user._id }).sort({ createdAt: -1 }).limit(100),
     Media.find({ owner: req.user._id }).sort({ createdAt: -1 })
   ]);
-  // PMB is the third party: sellers see the buyer's contact details only once it's a match (PMB approved, share received)
+  // PMB is the third party: sellers never see the buyer's contact details, even once it's a match
   const visible = bookings.filter(b => b.status !== 'pending_review' && b.status !== 'cancelled');
   const withSplit = visible.map(b => {
     const row = { ...b.toJSON(), split: computeSplit(b.amount, b.splitModel, b.partnerShare) };
-    const matched = b.status === 'matched';
-    if (!matched) { delete row.requesterEmail; delete row.requesterPhone; delete row.meetLink; }
+    delete row.requesterEmail; delete row.requesterPhone; delete row.meetLink;
     delete row.timeline; delete row.termsAcceptedAt; delete row.payment; delete row.approvedBy;
     row.share = b.status === 'awaiting_payment' && b.sharePayer !== 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null;
-    if (!matched) row.requesterName = `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${String(b.buyerType).toLowerCase()}` : ''}`;
+    row.requesterName = `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${String(b.buyerType).toLowerCase()}` : ''}`;
     return row;
   });
   const yourShare = withSplit

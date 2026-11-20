@@ -26,7 +26,7 @@ async function call(method, url, body, cookie) {
   return { status: res.status, body: await res.json().catch(() => ({})), cookie: (res.headers.get('set-cookie') || '').split(';')[0] };
 }
 const EMAIL = 'owner.multi@example.com';
-const enquire = business => call('POST', '/enquiry', { role: 'host', name: 'Divyaj', email: EMAIL, business, business_type_id: 3, location: 'RR Nagar, Bengaluru', termsAccepted: true });
+const enquire = business => call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divyaj', email: EMAIL, business, business_type_id: 3, location: 'RR Nagar, Bengaluru', termsAccepted: true });
 
 test.before(async () => {
   initialize();
@@ -81,7 +81,7 @@ test('asking for a code for one dashboard sends it for that dashboard only', asy
 });
 
 test('the sign-up form allows a new business on an email that has one, but not the same business twice', async () => {
-  const body = name => ({ role: 'business', name: 'Divyaj', email: EMAIL, businessName: name, category: 'cafe', location: 'RR Nagar', termsAccepted: true });
+  const body = name => ({ role: 'business', phone: '+91 98765 43210', name: 'Divyaj', email: EMAIL, businessName: name, category: 'cafe', location: 'RR Nagar', termsAccepted: true });
   const third = await call('POST', '/auth/signup', body('Third Wave Kiosk'));
   assert.equal(third.status, 201);
   assert.ok(third.body.profileId);
@@ -94,7 +94,7 @@ test('the sign-up form allows a new business on an email that has one, but not t
 test('the email button signs in to its own dashboard in one step, once', async () => {
   const linkIn = m => /href="([^"]*activate\.html\?token=[a-f0-9]{64})"/.exec(m.html)?.[1]?.replace(/&amp;/g, '&');
   sent.length = 0;
-  const r = await call('POST', '/enquiry', { role: 'host', name: 'Divyaj', email: 'one.tap@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
+  const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divyaj', email: 'one.tap@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
   assert.equal(r.status, 201);
   const welcome = sent.find(m => m.to === 'one.tap@example.com');
   const link = linkIn(welcome);

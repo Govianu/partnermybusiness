@@ -18,6 +18,15 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
+## CTA as policies only, no direct contact, slides with "Enquire for more", phone required
+- The CTA now holds the policies only (no feasibility, revenue or cost-saving sections); those stay in the dashboard
+  and emails. Its intro text on the homepage is gone. Terms version 2026-11-20.2.
+- No direct contact: buyers, businesses and partners never get each other's phone, email or address, not even after a
+  match; the PMB team coordinates everything. Match emails and dashboards say so; no joint onboarding call.
+- Homepage: every opportunity is a slide (the team's creative, or a text slide) with "Enquire for more", which fills the
+  enquiry form; every section ends with "Enquire & sign up".
+- Phone number is required on the homepage form and the sign-up page (checked on the server too).
+
 ## CTA, cost saving, lead IDs and the team's Drive research
 - The agreement is now the **CTA**, viewed (`/cta.html`) and agreed online, with nothing else to sign.
 - The CTA brings together feasibility, revenue, cost saving, money split and terms; emailed at sign-up with the lead ID

@@ -2,7 +2,8 @@
 //   requested         buyer sent a request; the seller sees it straight away
 //   pending_approval  the seller accepted: buyer and seller match, and the PMB team is asked to approve
 //   awaiting_payment  the PMB team approved and set the amount; PMB's share is requested (Razorpay link if set up)
-//   matched           PMB's share is received: it's a match, and both sides get each other's contact details
+//   matched           PMB's share is received: it's a match. Neither side ever gets the other's contact details;
+//                     the PMB team coordinates everything between them.
 // Either side can drop out before the match; the PMB team can decline at approval.
 const Booking = require('../models/Booking');
 const Listing = require('../models/Listing');
@@ -10,7 +11,6 @@ const User = require('../models/User');
 const Lead = require('../models/Lead');
 const { computeSplit, MODELS } = require('./split');
 const { razorpayConfigured, createPaymentLink, getPaymentLink } = require('./razorpay');
-const { createMeeting } = require('./meet');
 const { sendMail } = require('./mailer');
 const emails = require('./emails');
 const { fail } = require('./http');
@@ -115,14 +115,6 @@ async function shareReceived({ booking, admin, reference }) {
 }
 
 async function confirmMatch({ booking, listing, seller }) {
-  try {
-    const meet = await createMeeting({
-      summary: `PMB onboarding: ${booking.eventType} with ${seller?.business?.businessName || seller?.name || 'your partner'}`,
-      description: `Booking ${booking._id}\nRequested by ${booking.requesterName}\nPeople: ${booking.guests || '-'}\nAmount: ₹${booking.amount}`,
-      attendees: [seller?.email, booking.requesterEmail].filter(Boolean)
-    });
-    if (meet?.link) { booking.meetLink = meet.link; booking.meetEventId = meet.eventId; await booking.save(); }
-  } catch (err) { console.error('[deal] Meet creation skipped:', err.message); }
   await Lead.updateOne({ relatedBooking: booking._id },
     { $set: { stage: 'signed' }, $push: { history: { stage: 'signed', note: 'Matched: PMB share received', proofUrl: `booking:${booking._id}`, at: now() } } }).catch(() => {});
   await sendAll(emails.matchConfirmed({ booking, listing, seller }));

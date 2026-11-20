@@ -254,7 +254,7 @@
   function dealActions(r) {
     if (r.status === 'pending_approval') {
       return `<div class="deal-box">
-        <p class="meta"><strong>Matched: the seller accepted.</strong> Approve to request PMB’s share. Contact details are shared only after the share is received.</p>
+        <p class="meta"><strong>Matched: the seller accepted.</strong> Approve to request PMB’s share. Buyer and seller never get each other’s details; you coordinate both sides.</p>
         <div class="row">
           <div class="field"><label for="amt-${esc(r.id)}">Agreed amount (₹)</label><input id="amt-${esc(r.id)}" type="number" min="1" value="${r.budget || ''}" data-deal-amount="${esc(r.id)}"></div>
           <div class="field"><label for="mdl-${esc(r.id)}">Split</label><select id="mdl-${esc(r.id)}" data-deal-model="${esc(r.id)}">
@@ -282,7 +282,7 @@
       </div>`;
     }
     if (r.status === 'matched') {
-      return `<p class="meta"><strong>Matched.</strong> PMB share ${inr(r.pmbShare)} received${r.payment?.reference ? ` (ref ${esc(r.payment.reference)})` : ''}. Both sides have each other’s details.</p>`;
+      return `<p class="meta"><strong>Matched.</strong> PMB share ${inr(r.pmbShare)} received${r.payment?.reference ? ` (ref ${esc(r.payment.reference)})` : ''}. Neither side has the other’s details: coordinate between them.</p>`;
     }
     if (r.status === 'pending_review') {  // requests from before listings went straight to sellers
       return `<div class="accept-row">

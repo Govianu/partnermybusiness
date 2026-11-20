@@ -1,7 +1,8 @@
 // Marketplace: businesses list spaces and free slots, professionals list services, buyers request them.
 // Partnermybusiness is the third party. Listings go live as soon as a seller publishes them (the team is emailed and
 // can take one down). A buyer's request goes to the seller; when the seller accepts, the match goes to the PMB team
-// for approval, and once PMB's share is received it's a match and both sides get each other's contact details.
+// for approval, and once PMB's share is received it's a match. Buyers and sellers never get each other's contact
+// details at any stage: the PMB team coordinates everything.
 // The deal steps live in utils/deal.js.
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
@@ -137,8 +138,7 @@ const STATUS_LABEL = {
   awaiting_payment: 'Approved, waiting for PMB share', matched: 'Matched', accepted: 'Accepted', declined: 'Not available', completed: 'Completed', cancelled: 'Cancelled'
 };
 const CAN_CANCEL = ['pending_review', 'requested', 'pending_approval'];
-// The other side's contact details: only once it's a match
-const contactOf = u => (u ? { name: u.business?.businessName || u.name, email: u.email || '', phone: u.phone || '' } : null);
+
 router.get('/my/requests', requireAuth(), async (req, res) => {
   const rows = (await Booking.find({ buyer: req.user._id })).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   const out = [];
@@ -148,7 +148,7 @@ router.get('/my/requests', requireAuth(), async (req, res) => {
     out.push({ id: b._id, status: b.status, statusLabel: STATUS_LABEL[b.status] || b.status, what: b.eventType, date: b.eventDate, people: b.guests,
       budget: b.amount, createdAt: b.createdAt, listing: l ? publicListing(l, owner) : null, note: b.buyerNote || '',
       share: b.status === 'awaiting_payment' && b.sharePayer === 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null,
-      seller: b.status === 'matched' ? contactOf(await User.findById(b.business)) : null, meetLink: b.status === 'matched' ? b.meetLink || null : null,
+
       canCancel: CAN_CANCEL.includes(b.status) });
   }
   res.json({ requests: out });
@@ -224,8 +224,7 @@ router.get('/my/incoming', seller, async (req, res) => {
       budget: b.amount, message: b.message, from: `${String(b.requesterName || '').split(/\s+/)[0]}${b.buyerType ? `, ${b.buyerType.toLowerCase()}` : ''}`,
       listingTitle: l?.title || '', createdAt: b.createdAt, note: b.buyerNote || '',
       share: b.status === 'awaiting_payment' && b.sharePayer !== 'buyer' ? { amount: b.pmbShare, payUrl: b.payment?.linkUrl || null } : null,
-      buyer: b.status === 'matched' ? { name: b.requesterName, email: b.requesterEmail || '', phone: b.requesterPhone || '' } : null,
-      meetLink: b.status === 'matched' ? b.meetLink || null : null });
+    });
   }
   res.json({ requests: out });
 });

@@ -209,9 +209,16 @@ h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;
 .pmb-video{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000}
 .pmb-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .pmb-slides{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.4rem}
-.pmb-slides a{flex:0 0 auto;scroll-snap-align:start}
-.pmb-slides img{height:220px;width:auto;border-radius:12px;display:block;border:1px solid rgba(0,0,0,.1)}
-@media (max-width:760px){.pmb-media-row{grid-template-columns:1fr}.pmb-slides img{height:170px}}
+.pmb-media-row.no-video{grid-template-columns:minmax(0,1fr)}
+.section-cta{margin:1.75rem 0 0}
+.pmb-slide{flex:0 0 auto;scroll-snap-align:start;display:grid;gap:.5rem;justify-items:start}
+.pmb-slide img,.pmb-textslide{height:240px;width:auto;border-radius:12px;display:block;border:1px solid rgba(0,0,0,.1)}
+.pmb-textslide{width:192px;box-sizing:border-box;padding:1rem;background:#142C7A;color:#fff;display:flex;flex-direction:column;gap:.5rem}
+.pmb-textslide strong{font-size:1.15rem;line-height:1.25}
+.pmb-textslide .pmb-n{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.pmb-textslide .pmb-idle{font-size:.8rem;opacity:.85;margin-top:auto}
+.pmb-textslide .pmb-brand{font-size:.75rem;color:#F7B32B;font-weight:700}
+@media (max-width:760px){.pmb-media-row{grid-template-columns:1fr}.pmb-slide img,.pmb-textslide{height:200px}.pmb-textslide{width:160px}}
 .kpi-label .dot{margin-right:.4rem;vertical-align:baseline}
 .kpis5{grid-template-columns:1fr 1fr}
 .kpis5 .kpi{border-right:1px solid var(--line)}
@@ -702,7 +709,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       </div>
     </div>
     <p class="statement">The host brings the place. The partner brings the offer. We bring the system.</p>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band band-alt" id="cross">
@@ -715,7 +724,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <div><h3>Professional with professional</h3><p>A wedding planner, a makeup artist and a photographer sell one package and split it.</p></div>
     </div>
     <p class="statement" style="margin-top:2.5rem">Discover. Match. Agree. Activate. Transact. Settle. Measure.</p>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band" id="how">
@@ -734,7 +745,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <li><h3>Settle</h3><p>Everyone sees the same statement and each share is paid on schedule.</p></li>
       <li><h3>Measure</h3><p>Results are reviewed against the plan. Weak ideas are fixed or replaced, and the next one is added.</p></li>
     </ol>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band band-alt" id="who">
@@ -767,7 +780,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <a class="btn btn-line" href="#top">See my opportunities</a>
       </div>
     </div>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band" id="money">
@@ -793,7 +808,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       </table>
     </div>
     <p class="fine">Each collaboration uses one or two of these. The percentages and fees are agreed in writing before anything starts, and they change with who funds the stock, equipment, marketing and staff.</p>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band band-alt" id="trust">
@@ -809,7 +826,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <div class="check"><h3>Ratings that matter</h3><p>Hosts and partners are rated on service, settlement conduct and reliability. Repeated underperformance means removal.</p></div>
     </div>
     <p class="care"><strong>Health and wellness services are treated differently.</strong> They launch only with licensed professionals, the required approvals, customer screening and added insurance, never as an ordinary retail activation.</p>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band world" id="world">
@@ -823,7 +842,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <li><span class="dot" style="--c:var(--hours-b)"></span>Workshops and private hire</li>
       </ul>
     </div>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band" id="about">
@@ -836,7 +857,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <h3>Our mission</h3>
       <p>Find underused business assets and turn them into lasting revenue through trusted partnerships, technology and transparent transactions.</p>
     </div>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band band-alt" id="faq">
@@ -880,7 +903,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <p>Choose your profession at the top of the page to see where you could work and with whom, then send your details. After verification you sign one agreement and become available to every suitable business in the network.</p>
       </details>
     </div>
-  </div>
+  
+  <p class="section-cta"><a class="btn btn-gold" href="#start" data-enquire="">Enquire &amp; sign up</a></p>
+</div>
 </section>
 
 <section class="band" id="start">
@@ -911,7 +936,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <div class="fields">
           <div><label for="fName">Your name</label><input id="fName" name="name" type="text" autocomplete="name" required></div>
           <div><label for="fBiz" id="fBizLabel">Business name</label><input id="fBiz" name="business" type="text" autocomplete="organization" required></div>
-          <div><label for="fPhone">Phone or WhatsApp <span class="hint">(optional)</span></label><input id="fPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel"></div>
+          <div><label for="fPhone">Phone or WhatsApp</label><input id="fPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></div>
           <div><label for="fEmail">Email <span class="hint">(your dashboard link is sent here)</span></label><input id="fEmail" name="email" type="email" autocomplete="email" required></div>
 
           <div class="full" data-for="host pro">
@@ -938,13 +963,12 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
       <div class="terms-step" id="termsStep" hidden tabindex="-1">
         <h3>Your CTA</h3>
-        <p style="margin:0">Your CTA brings it all together: what is feasible for you, how you can earn more, how you can save, how money is shared, and the terms. Read it, then agree below. We email your own CTA, with your lead ID, to <strong id="termsEmail"></strong> and keep it in your dashboard.</p>
-        <p style="margin:.75rem 0 0"><a class="btn btn-line" id="viewCta" href="/cta.html" target="_blank" rel="noopener">View your full CTA</a></p>
-        <p style="margin:.75rem 0 0;font-weight:600">In short:</p>
+        <span id="termsEmail" hidden></span>
+        <p style="margin:.5rem 0 0"><a class="btn btn-line" id="viewCta" href="/cta.html" target="_blank" rel="noopener">View your full CTA</a></p>
         <ul class="terms-points">
           <li><strong>Partner in principle.</strong> You join as a partner. The CTA is the agreement: there is nothing else to sign. Each opportunity starts only after you approve it in your dashboard.</li>
           <li><strong>Group deals.</strong> You let us include your business when we negotiate bulk supplies, brand placements and orders for many partners. Nothing is ordered without your OK.</li>
-          <li><strong>One point of contact and billing.</strong> Orders and payments for collaborations we bring go through Partnermybusiness, and you won’t deal around us with the partners we introduce.</li>
+          <li><strong>No direct contact.</strong> Partnermybusiness is your only point of contact. We never share your phone or email with buyers, partners or other businesses, or theirs with you. All communication, orders and payments go only through us.</li>
           <li><strong>We share net, not gross.</strong> Taxes, refunds, payment charges and agreed costs come off first. If someone funds equipment, an agreed share repays it first. The profit is then shared as agreed, case by case.</li>
           <li>Revenue figures on this site are illustrative, not a promise of income. Each opportunity depends on feasibility, licensing and partner availability.</li>
           <li>We use your details to handle your enquiry and run your dashboard, and we never sell them.</li>
@@ -1438,27 +1462,43 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       if (d.savings && d.savings.levers){
         var list = el("ul", "list");
         d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + ". ")); item.appendChild(document.createTextNode(l.how + " (" + l.saving + ")")); list.appendChild(item); });
-        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Five ways we bring them down:"), list, el("p", "hint-line", "Example: " + d.savings.example)]);
+        var saveBtn = el("button", "btn btn-line btn-sm", "Enquire for more"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
+        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Five ways we bring them down:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
       }
       var v = d.videos && d.videos[0], imgs = d.images || [];
-      if (!v && !imgs.length) return;
-      if (d.hook) box.appendChild(el("h3", "dash-h", d.hook));
-      var row = el("div", "pmb-media-row");
+      var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
+      var opps = (d.opportunities || []).slice(0, 10);
+      box.appendChild(el("h3", "dash-h", d.hook || ("Opportunities for " + s.n.toLowerCase())));
+      var row = el("div", "pmb-media-row" + (v ? "" : " no-video"));
       if (v){
         var frame = document.createElement("iframe");
         frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
         var wrap = el("div", "pmb-video"); wrap.appendChild(frame); row.appendChild(wrap);
       }
-      if (imgs.length){
-        var strip = el("div", "pmb-slides");
-        imgs.forEach(function(i){
-          var a = document.createElement("a"); a.href = "https://drive.google.com/file/d/" + i.id + "/view"; a.target = "_blank"; a.rel = "noopener"; a.title = i.title;
-          var img = document.createElement("img"); img.src = i.thumb; img.alt = i.title; img.loading = "lazy";
-          img.onerror = function(){ a.remove(); };   /* a creative Drive won't serve is left out, not shown broken */
-          a.appendChild(img); strip.appendChild(a);
-        });
-        row.appendChild(strip);
-      }
+      /* One slide per opportunity: the team's creative if there is one, else a text slide; each with "Enquire for more" */
+      var textSlide = function(o, n){
+        var c = el("div", "pmb-textslide");
+        c.appendChild(el("span", "pmb-n", "Opportunity " + (n + 1) + " of " + opps.length));
+        c.appendChild(el("strong", null, o));
+        c.appendChild(el("span", "pmb-idle", "Idle today: " + (d.idle || s.a)));
+        c.appendChild(el("span", "pmb-brand", "Partnermybusiness.ai"));
+        return c;
+      };
+      var strip = el("div", "pmb-slides");
+      opps.forEach(function(o, n){
+        var slide = el("div", "pmb-slide");
+        var img = imgs.filter(function(i){ return norm(i.title) === norm(o) || norm(i.title).indexOf(norm(o)) > -1; })[0];
+        if (img){
+          var pic = document.createElement("img"); pic.src = img.thumb; pic.alt = o; pic.loading = "lazy";
+          pic.onerror = function(){ pic.replaceWith(textSlide(o, n)); };
+          slide.appendChild(pic);
+        } else slide.appendChild(textSlide(o, n));
+        var btn = el("button", "btn btn-gold btn-sm", "Enquire for more");
+        btn.type = "button"; btn.setAttribute("data-enquire", o);
+        slide.appendChild(btn);
+        strip.appendChild(slide);
+      });
+      row.appendChild(strip);
       box.appendChild(row);
       box.hidden = false;
     }).catch(function(){});
@@ -1500,11 +1540,12 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       ideaNodes.length ? [el("h4", "sub-h", "Collaboration ideas ready to pilot")].concat(ideaNodes) : []));
     $("sumCollab").textContent = partners.length + " probable partners" + (ideas.length ? ", " + ideas.length + (ideas.length === 1 ? " ready idea" : " ready ideas") : "");
 
-    setBody("bodyProducts", [listBlock(s.p)]);
-    setBody("bodyServices", [listBlock(s.s)]);
+    var enq = function(topic){ var b = el("button", "btn btn-line btn-sm", "Enquire for more"); b.type = "button"; b.setAttribute("data-enquire", topic); return b; };
+    setBody("bodyProducts", [listBlock(s.p), enq("Products for " + s.n.toLowerCase())]);
+    setBody("bodyServices", [listBlock(s.s), enq("Services for " + s.n.toLowerCase())]);
     setBody("bodyOps", [el("p", null, GROUPS[s.g].o)]);
     setBody("bodySave", [el("p", null, GROUPS[s.g].x)]);
-    setBody("bodyAssets", [el("p", null, s.a + ".")]);
+    setBody("bodyAssets", [el("p", null, s.a + "."), enq("Earning from my idle space and time")]);
     var modelList = el("dl", "models-dl");
     s.m.forEach(function(name){
       var d = el("div"); d.appendChild(el("dt", null, name)); d.appendChild(el("dd", null, MODEL_NOTES[name] || "")); modelList.appendChild(d);
@@ -1569,6 +1610,25 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
   [$("footMail"), $("mailTxt"), $("startMail")].forEach(function(a){ a.textContent = MAIL; a.href = "mailto:" + MAIL; });
   form.addEventListener("submit", function(e){ e.preventDefault(); });   /* Enter key on a live site must not reload the page */
 
+  /* "Enquire for more" anywhere on the page: pick the type in the form, note the topic, and go to the form,
+     which ends with agreeing to the CTA and signing up */
+  function enquireAbout(s, topic){
+    if (s){ setRole(s.t === "b" ? "host" : "pro"); fType.value = String(s.id); }
+    if (topic){
+      var line = "I'd like to know more about: " + topic;
+      if ($("fMsg").value.indexOf(line) < 0) $("fMsg").value = ($("fMsg").value ? $("fMsg").value + "\n" : "") + line;
+    }
+    if (loc.text && !$("fCity").value) $("fCity").value = loc.lat !== null ? mapsLink() : loc.text;
+    $("start").scrollIntoView({behavior: "smooth", block: "start"});
+    setTimeout(function(){ try { $("fName").focus({preventScroll: true}); } catch (err) {} }, 500);
+  }
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-enquire]");
+    if (!b) return;
+    e.preventDefault();
+    enquireAbout(current, b.getAttribute("data-enquire"));
+  });
+
   $("sendPlan").addEventListener("click", function(){
     if (!current) return;
     var s = current, f = figs(s), t = total(s);
@@ -1611,6 +1671,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     if (!name) { problem = "Add your name so we know who to reply to."; focusId = "fName"; }
     else if (!email) { problem = "Add your email address. We send your dashboard verification code there."; focusId = "fEmail"; }
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { problem = "That email address looks incomplete. Check it and try again."; focusId = "fEmail"; }
+    else if (phone.replace(/\D/g, "").length < 10) { problem = "Add your phone or WhatsApp number (at least 10 digits)."; focusId = "fPhone"; }
     else if (role === "host" && !v("fBiz")) { problem = "Add your business name."; focusId = "fBiz"; }
     else if (!fType.value) { problem = role === "host" ? "Choose your type of business." : "Choose your profession."; focusId = "fType"; }
     else if (!v("fCity")) { problem = "Add your area and city or a Google Maps link."; focusId = "fCity"; }

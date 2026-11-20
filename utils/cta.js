@@ -1,8 +1,7 @@
-// The CTA: one document per business or professional that brings everything together:
-//   feasibility (what sits idle, verdict), revenue opportunities, cost saving, how money is shared, and the
-//   commercial terms they view and agree to online (no separate written agreement to sign).
-// Modelled on the team's Feasibility Report and Partnership Agreement drafts (Google Drive).
-// Used on the website before agreeing (/cta.html, a preview for the chosen type), in the dashboard and by email.
+// The CTA: the policies a business or professional views and agrees to online (nothing else to sign).
+// Policies only: no revenue streams. Opportunities, cost saving and the team's research stay in the dashboard
+// and emails. Used on the website before agreeing (/cta.html), in the dashboard (My CTA) and by email at sign-up.
+// ctaFor() still gathers the type's research, which the dashboard uses for media and cost saving.
 const { playbookFor } = require('./playbook');
 const { costSavingFor } = require('./costSaving');
 const { plural, withArticle } = require('./catalog');
@@ -54,90 +53,56 @@ const C = { ink: '#0F1B3D', muted: '#47537C', line: '#D5DCEC', soft: '#F6F8FC', 
 const h2 = t => `<h2 style="margin:26px 0 10px;font-size:18px;line-height:1.3;color:${C.navy};font-family:inherit">${t}</h2>`;
 const para = t => `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:${C.ink}">${t}</p>`;
 const small = t => `<p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:${C.muted}">${t}</p>`;
-const table = (head, rows) => `<div style="overflow-x:auto"><table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:4px 0 14px;font-size:14px">
-  ${head ? `<tr>${head.map(x => `<th style="text-align:left;padding:8px 10px;background:${C.soft};border-bottom:1px solid ${C.line};color:${C.muted};font-weight:600">${x}</th>`).join('')}</tr>` : ''}
-  ${rows.map(r => `<tr>${r.map((x, i) => `<td style="padding:8px 10px;border-bottom:1px solid ${C.line};vertical-align:top;${i === 0 ? 'font-weight:600;' : ''}color:${C.ink}">${x}</td>`).join('')}</tr>`).join('')}
-</table></div>`;
 const list = items => `<ul style="margin:0 0 14px;padding-left:20px;font-size:15px;line-height:1.7;color:${C.ink}">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
 const box = inner => `<div style="margin:6px 0 16px;padding:14px 16px;border-radius:12px;background:${C.okSoft};color:${C.ink};font-size:15px;line-height:1.6">${inner}</div>`;
 
+// The CTA's policies. "No direct contact": partners, buyers and businesses never get each other's details and
+// never deal with each other directly; Partnermybusiness is the only point of contact, communication and billing.
 function termsList(c) {
-  const space = c.isPro ? 'your skills and agreed hours' : `the space and hours that sit idle (${esc(lower(c.idle))})`;
+  const space = c.isPro ? 'your skills and agreed hours' : 'the space and hours you choose to share';
   return [
     `<strong>Partner in principle.</strong> You join Partnermybusiness as a partner. This CTA is the agreement: there is nothing else to sign. Each opportunity starts only after you approve it in your dashboard.`,
+    `<strong>No direct contact.</strong> Partnermybusiness is your only point of contact. We never share your phone number, email or address with buyers, partners or other businesses, and we never share theirs with you. All communication, orders, bookings and payments go only through Partnermybusiness.`,
+    `<strong>One point of billing.</strong> Customers pay through Partnermybusiness, and shares are settled with one statement that every party sees.`,
     `<strong>What you bring.</strong> ${cap(space)}, your quality and hygiene standards, and approval of each activity.`,
-    `<strong>What we bring.</strong> The partners and customers, the paperwork, the platform, tracking of every transaction, and a dashboard shared with every party.`,
+    `<strong>What we bring.</strong> The partners and customers, the coordination between everyone, the platform, tracking of every transaction, and your dashboard.`,
     `<strong>Group deals.</strong> You let us include ${c.isPro ? 'you' : 'your business'} when we negotiate bulk supplies, brand placements and orders for many partners. Nothing is ordered without your OK.`,
-    `<strong>One point of contact and billing.</strong> For collaborations we bring, customers pay through Partnermybusiness and shares are settled with a statement to every party. You won’t deal around us with partners we introduce for 12 months after the introduction.`,
-    `<strong>Net, not gross.</strong> Taxes, refunds, payment charges and agreed direct costs come off first. If someone funds equipment, an agreed share (for example 20%) repays it first. The rest is shared as shown in section 4, case by case.`,
+    `<strong>Net, not gross.</strong> Taxes, refunds, payment charges and agreed direct costs come off first. If someone funds equipment, an agreed share (for example 20%) repays it first.`,
+    `<strong>How the rest is shared.</strong> The standard split is 25% each to the infrastructure partner, ${c.isPro ? 'you' : 'the business owner'}, the lead generator and Partnermybusiness. Where a party isn’t involved, the split is agreed case by case. Any figures we show are illustrative, not a promise of income.`,
     `<strong>Your brand stays yours.</strong> Marketing that uses your name needs your approval. We show the partnership in our marketing only with your OK.`,
+    `<strong>Your details.</strong> We use them to run your dashboard and arrange opportunities for you, keep them private, and never sell them.`,
     `<strong>Leaving.</strong> Any party can exit with 30 days’ notice after dues are settled. Confidential information stays confidential. Disputes are first discussed in good faith, then under the laws of India with courts in Bengaluru.`
   ];
 }
 
-function renderCta(c, { full = true, preview = false } = {}) {
+function renderCta(c, { preview = false } = {}) {
   if (!c) return '';
   const header = `<div style="padding:18px 20px;border-radius:14px;background:${C.navy};color:#fff">
     <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.85">Partnermybusiness · CTA${c.leadId ? ` · ${esc(c.leadId)}` : ''}</div>
     <div style="font-size:22px;font-weight:700;margin:6px 0 4px">${esc(c.business)}</div>
-    <div style="font-size:14px;opacity:.9">${esc(c.type)}${c.area ? ` · ${esc(c.area)}` : ''} · ${preview ? 'Preview for your business type' : `Prepared ${fmtDate(c.preparedOn)}`}</div>
+    <div style="font-size:14px;opacity:.9">${esc(c.type)}${c.area ? ` · ${esc(c.area)}` : ''} · ${preview ? 'The policies you agree to' : 'Your policies with Partnermybusiness'}</div>
   </div>`;
-
-  const summary = h2('1. Feasibility summary') + box(`<strong>Verdict: feasible, recommended to start.</strong> ${esc(c.business)} has ${c.isPro ? 'skills and time' : 'space and time'} that can earn more without disturbing ${c.isPro ? 'your current work' : 'the core business'}: <strong>${esc(c.idle)}</strong>. Start with <strong>${c.startWith.map(esc).join('</strong> and <strong>')}</strong>, which need the least investment. Partners we bring in: ${esc(c.partners)}.`)
-    + table(['Key indicator', 'Assessment'], [
-      [c.isPro ? 'Skills and hours available' : 'Idle space or time', `Yes: ${esc(c.idle)}`],
-      ['Partner availability', `High: ${esc(c.partners)}`],
-      ['Investment to start', 'Low to medium. Most opportunities run on the partner’s capital and operations'],
-      ['Time to first revenue', '2–8 weeks, depending on the opportunity picked first']
-    ]);
-
-  const revenue = h2('2. Revenue opportunities') + table(['Opportunity', 'Investment', 'First revenue', 'Feasibility'],
-    c.opportunities.map((o, i) => [`${i + 1}. ${esc(o.name)}`, esc(o.investment), esc(o.time), esc(o.feasibility)]))
-    + (full && c.moreOpportunities.length ? small(`More ideas for ${esc(c.nouns)}: ${c.moreOpportunities.map(esc).join(', ')}.`) : '');
-
-  const sv = c.savings;
-  const costs = h2('3. Cost saving') + para(`Top costs for ${esc(lower(sv.label))}: ${esc(sv.topCosts.join(', '))}. We match you with partners on both sides to bring them down:`)
-    + table(['How', 'What we do', 'Typical saving'], sv.levers.map(l => [esc(l.title), esc(l.how), esc(l.saving)]))
-    + small(`<strong>Worked example (illustrative):</strong> ${esc(sv.example)} We confirm real numbers from your top 5 monthly expenses, quantities, rates and current suppliers.`);
-
-  const money = h2('4. How the money is shared') + table(['Party', 'Role', 'Share', 'On ₹1,00,000'], [
-    ['Infrastructure partner', 'Funds approved set-up and equipment', '25%', '₹25,000'],
-    [c.isPro ? 'You, the professional' : 'Business owner', c.isPro ? 'Brings the skill and time' : 'Gives the space, time or asset', '25%', '₹25,000'],
-    ['Lead generator', 'Brings the customers, e.g. an event company', '25%', '₹25,000'],
-    ['Partnermybusiness', 'Agreement, platform, tracking and payments', '25%', '₹25,000']
-  ]) + small('Shares are on net revenue, after GST and agreed direct costs. Where nobody funds equipment or brings customers, those shares are agreed case by case. Figures are illustrative, not a promise of income.');
-
-  const terms = h2('5. Commercial terms you agree to') + list(termsList(c))
+  return `<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;color:${C.ink}">${header}`
+    + h2('Policies you agree to') + list(termsList(c))
     + (c.agreed ? box(`<strong>Agreed.</strong> Accepted online on ${fmtDate(c.agreed.at)} (terms version ${esc(c.agreed.version)}).`) : '')
-    + small(`Full Terms and Privacy Policy: partnermybusiness.ai/terms.html. Terms version ${esc(c.terms.version)}.`);
-
-  const next = h2('6. Next steps') + table(['When', 'What happens'], [
-    ['Week 1', 'Your PMB manager confirms what sits idle and your top costs on a call or visit'],
-    ['Week 2', 'We line up partners and share the opportunities and savings we can start with'],
-    ['Week 3', 'You approve the first opportunity in your dashboard'],
-    ['Week 4+', 'Launch, track every rupee on the dashboard, review numbers every week']
-  ]);
-
-  return `<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;color:${C.ink}">${header}${summary}${revenue}${costs}${full ? money + terms + next : ''}</div>`;
+    + small(`Full Terms and Privacy Policy: partnermybusiness.ai/terms.html. Terms version ${esc(c.terms.version)}.`)
+    + '</div>';
 }
 
-// The CTA email sent at sign-up: summary, revenue and cost saving, the key terms in short, and a one-tap
-// button to the full CTA in the dashboard
+// The CTA email sent at sign-up: the policies they agreed to, with their lead ID
 function ctaEmail({ user, link }) {
   const { layout, button, firstName, TEAM_INBOX } = require('./emails');
   const c = ctaFor({ user });
   if (!c || !user.email) return null;
-  const terms = termsList(c).slice(0, 6).map(t => t.replace(/<\/strong>.*$/, '</strong>'));
-  const body = para(`Hi ${esc(firstName(user.name))}, here is your CTA${c.leadId ? `, lead ID <strong>${esc(c.leadId)}</strong>` : ''}. It sets out what we found is feasible for ${esc(c.business)}, how you can earn more and save, and the terms you agreed to.`)
-    + renderCta(c, { full: false })
-    + h2('Terms you agreed to') + list(terms)
-    + (link ? button(link, 'Read your full CTA') : '')
-    + small('Reply to this email with any questions. Your PMB manager will call you to confirm the details.');
+  const body = para(`Hi ${esc(firstName(user.name))}, here is your CTA${c.leadId ? `, lead ID <strong>${esc(c.leadId)}</strong>` : ''}: the policies you agreed to with Partnermybusiness. Keep it for your records.`)
+    + renderCta(c)
+    + (link ? button(link, 'Open my dashboard') : '')
+    + small('Reply to this email with any questions. Partnermybusiness is your only point of contact.');
   return {
     to: user.email, replyTo: TEAM_INBOX(),
     subject: `Your CTA: ${c.business}${c.leadId ? ` · ${c.leadId}` : ''}`,
     html: layout('Your CTA', body),
-    text: `Your CTA for ${c.business}${c.leadId ? ` (${c.leadId})` : ''}: feasibility, ${c.opportunities.length} revenue opportunities, ${c.savings.levers.length} ways to save, and your terms.${link ? ` Read it: ${link}` : ''}`
+    text: `Your CTA for ${c.business}${c.leadId ? ` (${c.leadId})` : ''}: the policies you agreed to with Partnermybusiness.${link ? ` Open your dashboard: ${link}` : ''}`
   };
 }
 

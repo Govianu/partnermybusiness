@@ -1,6 +1,6 @@
 /* Marketplace UI shared by the public "Find" page and every dashboard.
    Partnermybusiness is the third party: listings go live when published, requests go to the seller, and when the seller
-   accepts, the PMB team approves the match and collects its share before contact details are shared. */
+   accepts, the PMB team approves the match and collects its share. Contact details are never shared between them. */
 (function () {
   const UNITS = [['slot', 'per slot'], ['hour', 'per hour'], ['day', 'per day'], ['session', 'per session'], ['event', 'per event'], ['project', 'per project'], ['month', 'per month']];
   const dialog = id => {
@@ -77,7 +77,7 @@
     d.innerHTML = `<form method="dialog" class="gdialog-body" novalidate>
       <h2>Request to book</h2>
       <p class="meta"><strong>${esc(l.title)}</strong>, ${esc(l.seller)}. ${esc(l.priceText)}</p>
-      <p class="mk-note">Your request goes to the seller. When they accept, the PMB team approves the match and connects you. Your contact details stay private until then.</p>
+      <p class="mk-note">Your request goes to the seller. When they accept, the PMB team approves the match and coordinates everything. Your contact details are never shared with the seller.</p>
       <div class="field"><label for="rqPurpose">What is it for?</label><input id="rqPurpose" maxlength="160" placeholder="${l.kind === 'space' ? 'Product launch for 60 guests' : 'Birthday dinner for 12'}"></div>
       <div class="row">
         <div class="field"><label for="rqDate">Date</label><input id="rqDate" type="date"></div>
@@ -159,7 +159,6 @@
   // ---------- Buyer: my requests ----------
   const STEPS = ['Sent to seller', 'Seller accepted', 'Approved by PMB', 'Matched'];
   const stepOf = s => ({ pending_review: 1, requested: 1, pending_approval: 2, awaiting_payment: 3, matched: 4, accepted: 4, completed: 4, declined: 2, cancelled: 0 }[s] ?? 1);
-  const contactHtml = (label, c, meetLink) => c ? `<div class="contact-box"><strong>It’s a match. ${esc(label)}:</strong> ${esc(c.name)}${c.email ? `, <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}${c.phone ? `, <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : ''}${meetLink ? `<br><a href="${esc(meetLink)}" target="_blank" rel="noopener">Join the onboarding call</a>` : ''}</div>` : '';
   const shareHtml = s => s ? `<div class="contact-box"><strong>One step left:</strong> pay the Partnermybusiness share of ${inr(s.amount)} to confirm the match.${s.payUrl ? ` <a class="btn small" href="${esc(s.payUrl)}" target="_blank" rel="noopener">Pay ${inr(s.amount)}</a>` : ' Your PMB manager will send the payment details.'}</div>` : '';
   async function renderMyRequests(el) {
     el.innerHTML = '<p class="meta">Loading…</p>';
@@ -175,7 +174,7 @@
         ${r.status === 'pending_approval' ? '<p class="item-body meta">The seller accepted. Our team is approving the match now.</p>' : ''}
         ${r.status === 'awaiting_payment' && !r.share ? '<p class="item-body meta">Approved by our team. The match is confirmed as soon as the PMB share is received.</p>' : ''}
         ${shareHtml(r.share)}
-        ${contactHtml('Seller', r.seller, r.meetLink)}
+        ${r.status === 'matched' ? '<div class="contact-box"><strong>It’s a match.</strong> Your PMB manager coordinates everything with the seller for you. Reply to any of our emails or call +91 81039 90990.</div>' : ''}
         ${r.status === 'accepted' ? '<p class="item-body meta">Your PMB manager will contact you to confirm the details and payment.</p>' : ''}
         ${r.canCancel ? `<button class="btn ghost small" type="button" data-cancel-req="${esc(r.id)}">Cancel request</button>` : ''}
       </div>`; }).join('')}</div>`
@@ -278,7 +277,7 @@
         ${r.status === 'awaiting_payment' && !r.share ? '<p class="item-body meta">Approved by our team. The match is confirmed as soon as the PMB share is received.</p>' : ''}
         ${r.note ? `<p class="item-body"><strong>From our team:</strong> ${esc(r.note)}</p>` : ''}
         ${shareHtml(r.share)}
-        ${contactHtml('Buyer', r.buyer, r.meetLink)}
+        ${r.status === 'matched' ? '<div class="contact-box"><strong>It’s a match.</strong> Your PMB manager coordinates everything with the buyer for you. Reply to any of our emails or call +91 81039 90990.</div>' : ''}
       </div>`).join('')}</div>`
       : '<div class="list"><div class="empty"><strong>No requests yet</strong>Requests from buyers appear here as soon as they’re sent.</div></div>';
     el.onclick = async e => {

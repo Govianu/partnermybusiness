@@ -146,7 +146,7 @@
         ? `<div class="contact-box"><strong>One step left:</strong> pay the Partnermybusiness share of ${inr(b.share.amount)} to confirm the match.${b.share.payUrl ? ` <a class="btn small" href="${esc(b.share.payUrl)}" target="_blank" rel="noopener">Pay ${inr(b.share.amount)}</a>` : ' Your PMB manager will send the payment details.'}</div>`
         : '<p class="meta">Approved by the PMB team. The match is confirmed as soon as the PMB share is received.</p>';
     } else if (b.status === 'matched') {
-      action = `<div class="contact-box"><strong>It’s a match.</strong> ${esc(b.requesterName)}${b.requesterEmail ? `, <a href="mailto:${esc(b.requesterEmail)}">${esc(b.requesterEmail)}</a>` : ''}${b.requesterPhone ? `, <a href="tel:${esc(b.requesterPhone)}">${esc(b.requesterPhone)}</a>` : ''}${b.meetLink ? `<br><a href="${esc(b.meetLink)}" target="_blank" rel="noopener">Join the onboarding call</a>` : ''}</div>`;
+      action = '<div class="contact-box"><strong>It’s a match.</strong> Your PMB manager coordinates everything with the customer for you. Reply to any of our emails or call +91 81039 90990.</div>';
     } else if (b.status === 'accepted') {
       action = b.meetLink
         ? `<p><a class="btn small" href="${esc(b.meetLink)}" target="_blank" rel="noopener">Join onboarding call on Google Meet</a></p>`

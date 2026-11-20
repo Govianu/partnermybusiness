@@ -45,6 +45,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   if (!ROLE_NAMES[role]) throw fail('Choose what kind of enquiry this is');
   if (!name) throw fail('Add your name so we know who to reply to.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw fail('Add a valid email address. We send your dashboard verification code there.');
+  if (phone.replace(/\D/g, '').length < 10) throw fail('Add your phone or WhatsApp number (at least 10 digits).');
   if (b.termsAccepted !== true) throw fail('Please read and agree to the Terms and Conditions to continue.');
 
   const fields = {

@@ -42,8 +42,8 @@ test('lead IDs look like PMB-NOV26-01 and count up within the month', () => {
   assert.equal(prefixFor(new Date('2026-11-30T19:00:00Z')), 'PMB-DEC26-', 'months follow India time');
 });
 
-test('signing up gives a lead ID and sends the CTA with feasibility, revenue, cost saving and terms', async () => {
-  const r = await call('POST', '/enquiry', { role: 'host', name: 'Divya', email: 'mint@example.com', business: 'Mint Masala', business_type_id: 1, location: 'Sadashivanagar, Bengaluru', termsAccepted: true });
+test('signing up gives a lead ID and sends the CTA: the policies, with no revenue streams', async () => {
+  const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divya', email: 'mint@example.com', business: 'Mint Masala', business_type_id: 1, location: 'Sadashivanagar, Bengaluru', termsAccepted: true });
   assert.equal(r.status, 201);
   const user = await User.findOne({ email: 'mint@example.com' });
   assert.match(user.leadId, /^PMB-[A-Z]{3}\d{2}-\d{2,}$/);
@@ -53,14 +53,16 @@ test('signing up gives a lead ID and sends the CTA with feasibility, revenue, co
   const ctaMail = sent.find(m => m.to === 'mint@example.com' && /^Your CTA/.test(m.subject));
   assert.ok(ctaMail, 'CTA email sent');
   assert.match(ctaMail.subject, new RegExp(user.leadId));
-  for (const part of ['Feasibility summary', 'Revenue opportunities', 'Cost saving', 'Cloud kitchen in morning hours', 'Buy direct from farmers', 'Terms you agreed to'])
+  for (const part of ['Policies you agree to', 'No direct contact', 'Net, not gross', 'Leaving'])
     assert.ok(ctaMail.html.includes(part), `CTA email has: ${part}`);
+  for (const part of ['Feasibility', 'Revenue opportunities', 'Cloud kitchen in morning hours', 'Buy direct from farmers'])
+    assert.ok(!ctaMail.html.includes(part), `CTA email leaves out: ${part}`);
   assert.match(ctaMail.html, /activate\.html\?next=business\.html%23cta&amp;token=/, 'button opens the CTA in the dashboard');
   const team = sent.find(m => m.to === 'info@partnermybusiness.ai' && m.subject.includes(user.leadId));
   assert.ok(team, 'team email carries the lead ID');
 
   // A second sign-up the same month gets the next number
-  await call('POST', '/enquiry', { role: 'host', name: 'Ravi', email: 'ravi@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true });
+  await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Ravi', email: 'ravi@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true });
   const second = await User.findOne({ email: 'ravi@example.com' });
   assert.equal(Number(second.leadId.split('-')[2]), Number(user.leadId.split('-')[2]) + 1);
 });
@@ -70,7 +72,8 @@ test('anyone can preview the CTA for a business type before agreeing', async () 
   assert.equal(r.status, 200);
   assert.match(r.body.html, /smoor/);
   assert.match(r.body.html, /RR Nagar/);
-  assert.match(r.body.html, /Commercial terms you agree to/);
+  assert.match(r.body.html, /Policies you agree to/);
+  assert.doesNotMatch(r.body.html, /Revenue opportunities|Feasibility/);
   assert.equal((await call('GET', '/public/cta-preview')).status, 400, 'needs a business type');
   const pb = await call('GET', '/public/playbook/1');
   assert.ok(pb.body.images.length > 0 && pb.body.savings.levers.length === 5);

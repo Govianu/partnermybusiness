@@ -61,7 +61,7 @@ test('seller publishes, buyer requests, PMB approves and collects its share, the
   const id = req.body.bookingId;
   let incoming = await call('GET', '/market/my/incoming', seller);
   assert.equal(incoming.body.requests[0].status, 'requested');
-  assert.equal(incoming.body.requests[0].buyer, null);
+  assert.equal(incoming.body.requests[0].buyer, undefined, 'no buyer contact details');
 
   // 3. Seller accepts: a match, sent to the PMB team for approval
   sent.length = 0;
@@ -76,17 +76,24 @@ test('seller publishes, buyer requests, PMB approves and collects its share, the
   assert.ok(mailsTo('ravi@example.com').some(m => /Pay the PMB share/.test(m.subject)));
   incoming = await call('GET', '/market/my/incoming', seller);
   assert.equal(incoming.body.requests[0].share.amount, 10000);
-  assert.equal(incoming.body.requests[0].buyer, null, 'still no contact details before the share is in');
+  assert.equal(incoming.body.requests[0].buyer, undefined, 'still no contact details');
 
   // 5. Share received without a reference is refused; with one, it's a match and both sides get details
   assert.equal((await call('POST', `/admin/market/requests/${id}/share-received`, staff, {})).status, 400);
   sent.length = 0;
   assert.equal((await call('POST', `/admin/market/requests/${id}/share-received`, staff, { reference: 'UTR123' })).body.status, 'matched');
-  assert.ok(mailsTo('asha@example.com').some(m => /match/.test(m.subject) && m.html.includes('ravi@example.com')));
-  assert.ok(mailsTo('ravi@example.com').some(m => /match/.test(m.subject) && m.html.includes('asha@example.com')));
+  // It's a match, but no direct contact: neither side ever gets the other's email or phone
+  const buyerMatch = mailsTo('asha@example.com').find(m => /match/.test(m.subject));
+  const sellerMatch = mailsTo('ravi@example.com').find(m => /match/.test(m.subject));
+  assert.ok(buyerMatch && sellerMatch, 'both told it is a match');
+  assert.ok(!/ravi@example\.com|90000 00001/.test(buyerMatch.html), 'buyer does not get the seller’s details');
+  assert.ok(!/asha@example\.com|90000 00002/.test(sellerMatch.html), 'seller does not get the buyer’s details');
+  assert.match(buyerMatch.html, /PMB manager will coordinate/);
   const mine = await call('GET', '/market/my/requests', buyer);
   assert.equal(mine.body.requests[0].status, 'matched');
-  assert.equal(mine.body.requests[0].seller.email, 'ravi@example.com');
+  assert.equal(mine.body.requests[0].seller, undefined, 'no seller contact in the buyer dashboard');
+  const sellerView = await call('GET', '/market/my/incoming', seller);
+  assert.equal(sellerView.body.requests[0].buyer, undefined, 'no buyer contact in the seller dashboard');
 });
 
 test('only Govianu staff can open the PMB team routes', async () => {

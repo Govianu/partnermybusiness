@@ -38,7 +38,7 @@ test.before(async () => {
 test.after(() => server?.close());
 
 test('a new café gets ten emails, revenue and cost saving in turn, three days apart, then stops', async () => {
-  const r = await call('POST', '/enquiry', { role: 'host', name: 'Divya', email: 'smoor.drip@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
+  const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divya', email: 'smoor.drip@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
   assert.equal(r.status, 201);
   const user = await User.findOne({ email: 'smoor.drip@example.com' });
   assert.equal(user.drip.step, 0);
@@ -69,7 +69,7 @@ test('a new café gets ten emails, revenue and cost saving in turn, three days a
 });
 
 test('the unsubscribe link asks first, then stops the emails', async () => {
-  await call('POST', '/enquiry', { role: 'host', name: 'Ravi', email: 'stop.me@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true });
+  await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Ravi', email: 'stop.me@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true });
   const user = await User.findOne({ email: 'stop.me@example.com' });
   const url = new URL(drip.unsubscribeUrl(user));
   const q = url.search;

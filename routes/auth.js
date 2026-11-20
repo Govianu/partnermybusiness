@@ -66,6 +66,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
     throw fail('That team invite code is not valid', 403);
   }
   if (role !== 'admin' && !location) throw fail('Enter your area, for example Sadashivnagar');
+  if (role !== 'admin' && str(b.phone).replace(/\D/g, '').length < 10) throw fail('Enter your phone or WhatsApp number (at least 10 digits)');
   if (!mailConfigured() && process.env.NODE_ENV === 'production') {
     throw fail('Email verification is not configured. Please contact support.', 503);
   }
