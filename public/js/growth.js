@@ -115,8 +115,7 @@
         key: `${sector.n}:${t.kind}:${t.topic}`.toLowerCase(),
         kind: t.kind, topic: t.topic, title, money, scenes,
         minutes: Math.max(1, Math.round(words / 150)),
-        video: (window.PMB_LESSON_VIDEOS || {})[t.topic.toLowerCase()] || null,
-        search: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.kind === 'partner' ? partner : t.topic} ${noun} business ideas India`)}`
+        video: (window.PMB_LESSON_VIDEOS || {})[t.topic.toLowerCase()] || null
       };
     });
   }
@@ -147,7 +146,6 @@
             <button class="lp-btn lp-voice" type="button" data-lp="voice" aria-pressed="true" title="Voice narration">🔊 <span>Voice on</span></button>
           </div>
           <div class="lp-links">
-            <a class="lp-yt" target="_blank" rel="noopener">Watch real examples on YouTube</a>
             <button class="btn small" type="button" data-lp="launch">Help me launch this</button>
           </div>
         </div>
@@ -252,7 +250,6 @@
       if (sc.cta) inner += `<button class="lp-cta" type="button" data-lp="launch">Help me launch this</button>`;
       const stage = $('.lp-stage');
       stage.innerHTML = `<div class="lp-scene ${animate && !reduceMotion ? 'enter' : ''}">${inner}</div>`;
-      $('.lp-yt').href = l.search;
       const real = $('.lp-real');
       if (l.video) {
         real.hidden = false;
