@@ -123,4 +123,16 @@ async function sendCtaEmail(user) {
   }
 }
 
-module.exports = { ctaFor, renderCta, ctaEmail, sendCtaEmail, assess };
+// The plan sent in the sign-up email and to the team: what sits idle, 5 opportunities and 5 ways to save
+function planFor(user) {
+  const pb = playbookFor(user);
+  if (!pb) return null;
+  const savings = costSavingFor(user);
+  return {
+    type: pb.type, idle: pb.idle,
+    opportunities: pb.opportunities.concat(pb.moreOpportunities).slice(0, 5).map(o => ({ name: o, ...assess(o) })),
+    savings: { label: savings.label, levers: savings.levers.slice(0, 5), example: savings.example }
+  };
+}
+
+module.exports = { ctaFor, renderCta, ctaEmail, sendCtaEmail, planFor, assess };

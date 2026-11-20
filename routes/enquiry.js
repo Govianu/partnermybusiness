@@ -13,7 +13,7 @@ const { issueOtp } = require('../utils/otp');
 const { issueLink } = require('../utils/links');
 const drip = require('../utils/drip');
 const { assignLeadId, nextLeadId } = require('../utils/leadId');
-const { sendCtaEmail } = require('../utils/cta');
+const { planFor } = require('../utils/cta');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -130,17 +130,18 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     history: [{ stage: 'new', note: `Website enquiry, terms ${TERMS_VERSION} accepted`, at: termsAcceptedAt }]
   });
 
+  // One email to them: code, dashboard, lead ID, 5 opportunities and 5 ways to save (the CTA is in the dashboard)
+  const plan = user ? planFor(user) : null;
   const [toPerson, toTeam] = await Promise.all([
     sendMail(enquiryWelcome({
       name, email, roleName: ROLE_NAMES[role], code: emailCode,
       hasDashboard: !!accountRole, existingAccount, category: user?.category,
       sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : '',
-      profileId: user?._id || null, link: signInLink
+      profileId: user?._id || null, link: signInLink, plan, leadId
     })),
-    sendMail(teamEnquiry({ ...enquiry, leadId, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount }))
+    // The team gets everything, whether or not they picked an opportunity
+    sendMail(teamEnquiry({ ...enquiry, leadId, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount, sentPlan: plan, source: 'enquiry' }))
   ]);
-  // Their CTA (feasibility, revenue, cost saving, terms), with their lead ID
-  if (user) await sendCtaEmail(user);
   enquiry.emailStatus = { person: toPerson.sent ? 'sent' : (toPerson.error ? 'failed' : 'outbox'), team: toTeam.sent ? 'sent' : (toTeam.error ? 'failed' : 'outbox') };
   await enquiry.save();
 

@@ -9,13 +9,13 @@ const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
 const { issueLink, findByToken, spendLink } = require('../utils/links');
 const { sendMail, mailConfigured } = require('../utils/mailer');
-const { emailOtp, loginLink } = require('../utils/emails');
+const { emailOtp, loginLink, teamEnquiry } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
 const { isStaffEmail, staffDomains } = require('../utils/staff');
 const drip = require('../utils/drip');
 const { assignLeadId } = require('../utils/leadId');
-const { sendCtaEmail } = require('../utils/cta');
+const { planFor } = require('../utils/cta');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
@@ -39,10 +39,12 @@ function newestSignIn(profiles) {
   return profiles.slice().sort((a, b) => String(b.lastLoginAt || b.createdAt || '').localeCompare(String(a.lastLoginAt || a.createdAt || '')))[0];
 }
 // The code email says which dashboard it opens, and its button signs in to that dashboard in one tap
-const otpMail = async (user, code) => emailOtp({
+// welcome: the one email after signing up, which also carries the lead ID, 5 opportunities and 5 ways to save
+const otpMail = async (user, code, { welcome = false, plan = null } = {}) => emailOtp({
   name: user.name, email: user.email, code, role: user.role, category: user.category, sectorId: user.sectorId,
   businessName: user.role === 'business' ? user.business?.businessName : '',
-  link: await issueLink(user, 'signin')
+  link: await issueLink(user, 'signin'),
+  welcome, plan, leadId: welcome ? user.leadId || '' : ''
 });
 
 // staffDomains: the login page shows the PMB team sign-up only for these email domains
@@ -156,10 +158,21 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       .catch(err => console.error('Opportunity seeding failed:', err.message));
   }
 
+  // One email: code, dashboard, lead ID, 5 opportunities and 5 ways to save (their CTA is in the dashboard)
+  const plan = ['business', 'associate'].includes(role) ? planFor(user) : null;
   const code = await issueOtp(user);
-  const mailResult = await sendMail(await otpMail(user, code));
+  const mailResult = await sendMail(await otpMail(user, code, { welcome: true, plan }));
   if (mailResult.error) throw fail('We could not send your verification code. Please try again later.', 503);
-  await sendCtaEmail(user);   // their CTA with lead ID: feasibility, revenue, cost saving and terms
+  // The team gets every sign-up too, with what we sent them
+  if (role !== 'admin') {
+    await sendMail(teamEnquiry({
+      source: 'signup', leadId: user.leadId, roleName: role === 'associate' ? 'A professional' : role === 'buyer' ? 'A buyer' : 'A business',
+      name: user.name, business: user.business?.businessName || user.buyer?.company || '', email, phone: user.phone,
+      businessType: user.category ? user.category.replace(/_/g, ' ') : '', location: user.location,
+      message: role === 'associate' ? [user.associate?.skills?.join(', '), user.associate?.availability].filter(Boolean).join(' · ') : (user.business?.idleSlots || ''),
+      termsVersion: user.termsVersion, termsAcceptedAt: user.termsAcceptedAt, handle: user.handle, sentPlan: plan
+    })).catch(err => console.error('[signup] team email failed:', err.message));
+  }
 
   res.status(201).json({
     ok: true, verificationRequired: true, email, profileId: user._id,

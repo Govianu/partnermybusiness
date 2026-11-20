@@ -42,7 +42,7 @@ test('lead IDs look like PMB-NOV26-01 and count up within the month', () => {
   assert.equal(prefixFor(new Date('2026-11-30T19:00:00Z')), 'PMB-DEC26-', 'months follow India time');
 });
 
-test('signing up gives a lead ID and sends the CTA: the policies, with no revenue streams', async () => {
+test('signing up sends one email: code, dashboard, lead ID, 5 opportunities and 5 ways to save', async () => {
   const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divya', email: 'mint@example.com', business: 'Mint Masala', business_type_id: 1, location: 'Sadashivanagar, Bengaluru', termsAccepted: true });
   assert.equal(r.status, 201);
   const user = await User.findOne({ email: 'mint@example.com' });
@@ -50,21 +50,42 @@ test('signing up gives a lead ID and sends the CTA: the policies, with no revenu
   const lead = await Lead.findOne({ leadId: user.leadId });
   assert.ok(lead, 'the CRM lead has the same ID');
 
-  const ctaMail = sent.find(m => m.to === 'mint@example.com' && /^Your CTA/.test(m.subject));
-  assert.ok(ctaMail, 'CTA email sent');
-  assert.match(ctaMail.subject, new RegExp(user.leadId));
-  for (const part of ['Policies you agree to', 'No direct contact', 'Net, not gross', 'Leaving'])
-    assert.ok(ctaMail.html.includes(part), `CTA email has: ${part}`);
-  for (const part of ['Feasibility', 'Revenue opportunities', 'Cloud kitchen in morning hours', 'Buy direct from farmers'])
-    assert.ok(!ctaMail.html.includes(part), `CTA email leaves out: ${part}`);
-  assert.match(ctaMail.html, /activate\.html\?next=business\.html%23cta&amp;token=/, 'button opens the CTA in the dashboard');
+  const toLead = sent.filter(m => m.to === 'mint@example.com');
+  assert.equal(toLead.length, 1, 'exactly one email to the lead');
+  const mail = toLead[0];
+  assert.match(mail.subject, new RegExp(user.leadId));
+  assert.match(mail.html, /letter-spacing:8px[^>]*>\d{6}</, 'has the code');
+  assert.match(mail.html, /activate\.html\?token=[a-f0-9]{64}/, 'has the one-tap dashboard button');
+  for (const part of [user.leadId, '5 ways to earn more', 'Cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
+    assert.ok(mail.html.includes(part), `email has: ${part}`);
+
+  // The team gets everything, even though no opportunity was picked
   const team = sent.find(m => m.to === 'info@partnermybusiness.ai' && m.subject.includes(user.leadId));
   assert.ok(team, 'team email carries the lead ID');
+  for (const part of ['No specific opportunity picked', 'Cloud kitchen in morning hours', 'Buy direct from farmers', '98765 43210', 'Open this lead in the PMB team dashboard'])
+    assert.ok(team.html.includes(part), `team email has: ${part}`);
+  assert.ok(!/activate\.html\?token=/.test(team.html), 'the team copy never contains the lead’s own sign-in link');
 
-  // A second sign-up the same month gets the next number
-  await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Ravi', email: 'ravi@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true });
+  // A second sign-up the same month gets the next number, and what they asked about reaches the team
+  await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Ravi', email: 'ravi@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true, message: "I'd like to know more about: Paid coworking seats 11 AM–4 PM" });
   const second = await User.findOne({ email: 'ravi@example.com' });
   assert.equal(Number(second.leadId.split('-')[2]), Number(user.leadId.split('-')[2]) + 1);
+  const team2 = sent.find(m => m.to === 'info@partnermybusiness.ai' && m.subject.includes(second.leadId));
+  assert.match(team2.html, /Enquired about[\s\S]*Paid coworking seats 11 AM–4 PM/);
+});
+
+test('signing up on the sign-up page also sends one email, and tells the team', async () => {
+  sent.length = 0;
+  const r = await call('POST', '/auth/signup', { role: 'business', name: 'Sana', email: 'sana@example.com', phone: '+91 91234 56789', businessName: 'Sana Salon', category: 'salon', location: 'Jayanagar', termsAccepted: true });
+  assert.equal(r.status, 201);
+  const user = await User.findOne({ email: 'sana@example.com' });
+  const toLead = sent.filter(m => m.to === 'sana@example.com');
+  assert.equal(toLead.length, 1, 'one email');
+  assert.match(toLead[0].html, /5 ways to save/);
+  assert.ok(toLead[0].html.includes(user.leadId));
+  const team = sent.find(m => m.to === 'info@partnermybusiness.ai');
+  assert.ok(team && team.subject.includes(user.leadId) && /New sign-up/.test(team.subject));
+  assert.equal((await call('POST', '/auth/signup', { role: 'business', name: 'NoPhone', email: 'np@example.com', businessName: 'X', category: 'salon', location: 'Jayanagar', termsAccepted: true })).status, 400, 'phone is required');
 });
 
 test('anyone can preview the CTA for a business type before agreeing', async () => {
@@ -81,19 +102,21 @@ test('anyone can preview the CTA for a business type before agreeing', async () 
 
 test('the dashboard shows their own CTA with lead ID and agreement', async () => {
   const user = await User.findOne({ email: 'mint@example.com' });
-  const ctaMail = sent.find(m => m.to === 'mint@example.com' && /^Your CTA/.test(m.subject));
-  const token = /token=([a-f0-9]{64})/.exec(ctaMail.html)[1];
-  const signedIn = await call('POST', '/auth/activate', { token });
-  assert.equal(signedIn.status, 200);
-  const r = await call('GET', '/growth/my-cta', null, signedIn.cookie);
+  const mail = sent.find(m => m.to === 'mint@example.com') || null;
+  const token = mail ? /token=([a-f0-9]{64})/.exec(mail.html)?.[1] : null;
+  let cookie;
+  if (token) cookie = (await call('POST', '/auth/activate', { token })).cookie;
+  else {
+    sent.length = 0;
+    await call('POST', '/auth/request-otp', { email: 'mint@example.com' });
+    const code = /letter-spacing:8px[^>]*>(\d{6})</.exec(sent[0].html)[1];
+    cookie = (await call('POST', '/auth/verify-otp', { email: 'mint@example.com', code })).cookie;
+  }
+  const r = await call('GET', '/growth/my-cta', null, cookie);
   assert.equal(r.body.leadId, user.leadId);
   assert.ok(r.body.agreed, 'records the agreement');
   assert.match(r.body.html, /Agreed\./);
-  assert.equal(r.body.savings.levers.length, 5);
-  // The welcome email's own button still works after the CTA one was used
-  const welcome = sent.find(m => m.to === 'mint@example.com' && !/^Your CTA/.test(m.subject));
-  const t2 = /token=([a-f0-9]{64})/.exec(welcome.html)[1];
-  assert.equal((await call('POST', '/auth/activate', { token: t2 })).status, 200);
+  assert.match(r.body.html, /Policies you agree to/);
 });
 
 test('earlier sign-ups get lead IDs from the month they joined', async () => {

@@ -206,19 +206,34 @@ h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;
 .dash-h{font-size:1.35rem;margin:2rem 0 .85rem}
 /* The type's 30-second video and creatives from the team's research */
 .pmb-media-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:1rem;align-items:start}
-.pmb-video{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000}
-.pmb-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.pmb-slides{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.4rem}
-.pmb-media-row.no-video{grid-template-columns:minmax(0,1fr)}
+/* One slide deck of opportunities, like a presentation */
+.deck{background:#142C7A;color:#fff;border-radius:20px;padding:clamp(1rem,3vw,2rem);outline:none}
+.deck:focus-visible{box-shadow:0 0 0 3px #F7B32B}
+.deck-stage{min-height:340px;display:grid}
+.deck-slide{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem;align-items:center;animation:deckIn .25s ease}
+.deck-slide.has-media{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+@keyframes deckIn{from{opacity:.4;transform:translateX(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.deck-slide{animation:none}}
+.deck-text{display:grid;gap:.7rem;align-content:center;justify-items:start}
+.deck-kicker{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#F7B32B;font-weight:700}
+.deck-title{margin:0;font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.12;color:#fff}
+.deck-body{margin:0;font-size:1.08rem;line-height:1.55;color:#E6EBFA;max-width:46ch}
+.deck-sub{margin:0;font-size:.92rem;color:#B9C4EC}
+.deck-facts{margin:0;padding:0;list-style:none;display:grid;gap:.3rem;font-size:.92rem;color:#D5DCF6}
+.deck-facts li::before{content:"• ";color:#F7B32B}
+.deck-media{width:100%;max-width:100%;max-height:360px;object-fit:contain;border-radius:14px;background:#0F1F5C}
+.deck-video{position:relative;aspect-ratio:16/9;overflow:hidden}
+.deck-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.deck-nav{display:flex;align-items:center;gap:.75rem;margin-top:1.25rem}
+.deck-arrow{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-size:1.6rem;line-height:1;cursor:pointer}
+.deck-arrow:hover,.deck-arrow:focus-visible{background:rgba(255,255,255,.12)}
+.deck-dots{display:flex;flex-wrap:wrap;gap:.4rem;flex:1;justify-content:center}
+.deck-dot{width:10px;height:10px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.35);cursor:pointer}
+.deck-dot[aria-current="true"]{background:#F7B32B;width:22px;border-radius:6px}
+.deck-count{font-size:.85rem;color:#B9C4EC;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+@media (max-width:760px){.deck-slide.has-media{grid-template-columns:1fr}.deck-stage{min-height:0}.deck-media{max-height:300px}}
 .section-cta{margin:1.75rem 0 0}
-.pmb-slide{flex:0 0 auto;scroll-snap-align:start;display:grid;gap:.5rem;justify-items:start}
-.pmb-slide img,.pmb-textslide{height:240px;width:auto;border-radius:12px;display:block;border:1px solid rgba(0,0,0,.1)}
-.pmb-textslide{width:192px;box-sizing:border-box;padding:1rem;background:#142C7A;color:#fff;display:flex;flex-direction:column;gap:.5rem}
-.pmb-textslide strong{font-size:1.15rem;line-height:1.25}
-.pmb-textslide .pmb-n{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
-.pmb-textslide .pmb-idle{font-size:.8rem;opacity:.85;margin-top:auto}
-.pmb-textslide .pmb-brand{font-size:.75rem;color:#F7B32B;font-weight:700}
-@media (max-width:760px){.pmb-media-row{grid-template-columns:1fr}.pmb-slide img,.pmb-textslide{height:200px}.pmb-textslide{width:160px}}
+
 .kpi-label .dot{margin-right:.4rem;vertical-align:baseline}
 .kpis5{grid-template-columns:1fr 1fr}
 .kpis5 .kpi{border-right:1px solid var(--line)}
@@ -489,6 +504,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 /* ---- terms step + login link ---- */
 .top-login{color:#fff;text-decoration:none;font-weight:600;font-size:.95rem;padding:.5rem .25rem;white-space:nowrap}
 .top-login:hover{text-decoration:underline}
+@media (max-width:559px){.top-actions a[href="/find.html"]{display:none}}
+@media (min-width:1080px) and (max-width:1359px){.nav{gap:1.1rem}.top-in{gap:.75rem}}
 .terms-step{margin-top:2rem;padding:1.5rem;border:1.5px solid var(--blue-text);border-radius:18px;background:var(--surface)}
 .terms-step h3{margin-bottom:.4rem}
 .terms-step .terms-points{margin:1rem 0;padding-left:1.2rem}
@@ -1462,43 +1479,78 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       if (d.savings && d.savings.levers){
         var list = el("ul", "list");
         d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + ". ")); item.appendChild(document.createTextNode(l.how + " (" + l.saving + ")")); list.appendChild(item); });
-        var saveBtn = el("button", "btn btn-line btn-sm", "Enquire for more"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
+        var saveBtn = el("button", "btn btn-line btn-sm", "Enquire now"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
         setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Five ways we bring them down:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
       }
       var v = d.videos && d.videos[0], imgs = d.images || [];
       var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
-      var opps = (d.opportunities || []).slice(0, 10);
-      box.appendChild(el("h3", "dash-h", d.hook || ("Opportunities for " + s.n.toLowerCase())));
-      var row = el("div", "pmb-media-row" + (v ? "" : " no-video"));
-      if (v){
-        var frame = document.createElement("iframe");
-        frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
-        var wrap = el("div", "pmb-video"); wrap.appendChild(frame); row.appendChild(wrap);
-      }
-      /* One slide per opportunity: the team's creative if there is one, else a text slide; each with "Enquire for more" */
-      var textSlide = function(o, n){
-        var c = el("div", "pmb-textslide");
-        c.appendChild(el("span", "pmb-n", "Opportunity " + (n + 1) + " of " + opps.length));
-        c.appendChild(el("strong", null, o));
-        c.appendChild(el("span", "pmb-idle", "Idle today: " + (d.idle || s.a)));
-        c.appendChild(el("span", "pmb-brand", "Partnermybusiness.ai"));
-        return c;
-      };
-      var strip = el("div", "pmb-slides");
-      opps.forEach(function(o, n){
-        var slide = el("div", "pmb-slide");
-        var img = imgs.filter(function(i){ return norm(i.title) === norm(o) || norm(i.title).indexOf(norm(o)) > -1; })[0];
-        if (img){
-          var pic = document.createElement("img"); pic.src = img.thumb; pic.alt = o; pic.loading = "lazy";
-          pic.onerror = function(){ pic.replaceWith(textSlide(o, n)); };
-          slide.appendChild(pic);
-        } else slide.appendChild(textSlide(o, n));
-        var btn = el("button", "btn btn-gold btn-sm", "Enquire for more");
-        btn.type = "button"; btn.setAttribute("data-enquire", o);
-        slide.appendChild(btn);
-        strip.appendChild(slide);
+      var low = function(x){ x = String(x || ""); return /^[A-Z]{2}/.test(x) ? x : x.charAt(0).toLowerCase() + x.slice(1); };
+      var details = (d.details || (d.opportunities || []).map(function(o){ return {name: o}; })).slice(0, 10);
+            /* Different words on every slide about what the idle space or time is used for */
+      var LINES = [
+        function(o){ return "Earn from the hours your space sits empty: " + low(o) + "."; },
+        function(o){ return o + " turns idle time into steady income."; },
+        function(o){ return "Put what sits idle to work with " + low(o) + "."; },
+        function(o){ return "Your space can host " + low(o) + ", with partners we bring in."; },
+        function(o){ return "Add " + low(o) + " without changing how you run today."; },
+        function(o){ return "Customers already come to you. Offer them " + low(o) + " too."; },
+        function(o){ return "Fill the quiet hours with " + low(o) + "."; }
+      ];
+      /* One deck, one slide at a time, like a presentation */
+      var slides = [];
+      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What sits idle can earn", body: "What sits idle today: " + (d.idle || s.a) + ".", sub: details.length + " ways to put it to work, one per slide. Press the arrows to see each one.", topic: "Earning from my idle space and time"});
+      details.forEach(function(o, n){
+        var img = imgs.filter(function(i){ return norm(i.title) === norm(o.name) || norm(i.title).indexOf(norm(o.name)) > -1; })[0];
+        slides.push({kind: "opp", kicker: "Opportunity " + (n + 1) + " of " + details.length, title: o.name, body: LINES[n % LINES.length](o.name),
+          facts: ["Uses: " + (d.idle || s.a)].concat(o.investment ? ["Investment to start: " + o.investment, "First revenue in " + o.time, n % 2 ? "Partners we bring: " + (d.partners || "") : "We bring the partners, the agreement and the payments"] : []),
+          img: img, topic: o.name});
       });
-      row.appendChild(strip);
+      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Enquire now. Agree to the CTA, sign up, and your PMB manager plans the first opportunity with you.", topic: ""});
+
+      var row = el("div", "deck");
+      row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", "Opportunities for " + s.n);
+      var stage = el("div", "deck-stage"), nav = el("div", "deck-nav");
+      var prev = el("button", "deck-arrow", "‹"), next = el("button", "deck-arrow", "›"), dots = el("div", "deck-dots"), count = el("span", "deck-count");
+      prev.type = next.type = "button"; prev.setAttribute("aria-label", "Previous slide"); next.setAttribute("aria-label", "Next slide");
+      var at = 0;
+      function show(i){
+        at = (i + slides.length) % slides.length;
+        var sl = slides[at];
+        stage.textContent = "";
+        var slide = el("div", "deck-slide deck-" + sl.kind + (sl.img || (sl.kind === "intro" && v) ? " has-media" : ""));
+        var text = el("div", "deck-text");
+        text.appendChild(el("span", "deck-kicker", sl.kicker));
+        text.appendChild(el("h4", "deck-title", sl.title));
+        text.appendChild(el("p", "deck-body", sl.body));
+        if (sl.sub) text.appendChild(el("p", "deck-sub", sl.sub));
+        if (sl.facts && sl.facts.length){ var ul = el("ul", "deck-facts"); sl.facts.forEach(function(f){ ul.appendChild(el("li", null, f)); }); text.appendChild(ul); }
+        var go = el("button", "btn btn-gold", "Enquire now"); go.type = "button"; go.setAttribute("data-enquire", sl.topic);
+        text.appendChild(go);
+        slide.appendChild(text);
+        if (sl.img){
+          var pic = document.createElement("img"); pic.src = sl.img.thumb; pic.alt = sl.title; pic.className = "deck-media";
+          pic.onerror = function(){ pic.remove(); slide.classList.remove("has-media"); };
+          slide.appendChild(pic);
+        } else if (sl.kind === "intro" && v){
+          var frame = document.createElement("iframe");
+          frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
+          var wrap = el("div", "deck-media deck-video"); wrap.appendChild(frame); slide.appendChild(wrap);
+        }
+        stage.appendChild(slide);
+        Array.prototype.forEach.call(dots.children, function(b, k){ b.setAttribute("aria-current", k === at ? "true" : "false"); });
+        count.textContent = (at + 1) + " / " + slides.length;
+      }
+      slides.forEach(function(sl, k){
+        var b = el("button", "deck-dot"); b.type = "button"; b.setAttribute("aria-label", "Slide " + (k + 1) + ": " + sl.title);
+        b.addEventListener("click", function(){ show(k); }); dots.appendChild(b);
+      });
+      prev.addEventListener("click", function(){ show(at - 1); });
+      next.addEventListener("click", function(){ show(at + 1); });
+      row.tabIndex = 0;
+      row.addEventListener("keydown", function(e){ if (e.key === "ArrowLeft") show(at - 1); if (e.key === "ArrowRight") show(at + 1); });
+      nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(count); nav.appendChild(next);
+      row.appendChild(stage); row.appendChild(nav);
+      show(0);
       box.appendChild(row);
       box.hidden = false;
     }).catch(function(){});
@@ -1540,7 +1592,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       ideaNodes.length ? [el("h4", "sub-h", "Collaboration ideas ready to pilot")].concat(ideaNodes) : []));
     $("sumCollab").textContent = partners.length + " probable partners" + (ideas.length ? ", " + ideas.length + (ideas.length === 1 ? " ready idea" : " ready ideas") : "");
 
-    var enq = function(topic){ var b = el("button", "btn btn-line btn-sm", "Enquire for more"); b.type = "button"; b.setAttribute("data-enquire", topic); return b; };
+    var enq = function(topic){ var b = el("button", "btn btn-line btn-sm", "Enquire now"); b.type = "button"; b.setAttribute("data-enquire", topic); return b; };
     setBody("bodyProducts", [listBlock(s.p), enq("Products for " + s.n.toLowerCase())]);
     setBody("bodyServices", [listBlock(s.s), enq("Services for " + s.n.toLowerCase())]);
     setBody("bodyOps", [el("p", null, GROUPS[s.g].o)]);
@@ -1610,7 +1662,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
   [$("footMail"), $("mailTxt"), $("startMail")].forEach(function(a){ a.textContent = MAIL; a.href = "mailto:" + MAIL; });
   form.addEventListener("submit", function(e){ e.preventDefault(); });   /* Enter key on a live site must not reload the page */
 
-  /* "Enquire for more" anywhere on the page: pick the type in the form, note the topic, and go to the form,
+  /* "Enquire now" anywhere on the page: pick the type in the form, note the topic, and go to the form,
      which ends with agreeing to the CTA and signing up */
   function enquireAbout(s, topic){
     if (s){ setRole(s.t === "b" ? "host" : "pro"); fType.value = String(s.id); }
