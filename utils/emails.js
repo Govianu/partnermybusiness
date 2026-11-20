@@ -56,8 +56,14 @@ function planBlock(plan) {
   const h2 = t => `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">${t}</h2>`;
   const ol = items => `<ol style="margin:0 0 16px;padding-left:22px;font-size:15px;line-height:1.6;color:#0F1B3D">${items.join('')}</ol>`;
   const small = t => `<span style="font-size:13px;color:#47537C">${t}</span>`;
-  return h2('5 ways to earn more')
-      + ol(plan.ways.map(w => `<li style="margin-bottom:10px"><strong>${esc(w.title)}</strong><br>${esc(w.line)}${w.examples.length ? `<br>${small(`For example: ${esc(w.examples.join(', '))}.`)}` : ''}</li>`))
+  const inr = n => `₹${Math.round(n).toLocaleString('en-IN')}`;
+  // What we found when we looked the business up (only when we did)
+  const found = plan.researched && plan.about
+    ? h2('What we found about you')
+      + p(esc(plan.about) + (plan.busyHours ? `<br>${small(`Busy: ${esc(plan.busyHours)}`)}` : '') + (plan.quietHours ? `<br>${small(`Quiet: ${esc(plan.quietHours)}`)}` : ''))
+    : '';
+  return found + h2('5 ways to earn more')
+      + ol(plan.ways.map(w => `<li style="margin-bottom:10px"><strong>${esc(w.title)}</strong><br>${esc(w.line)}${w.examples.length ? `<br>${small(`For example: ${esc(w.examples.join(', '))}.`)}` : ''}${w.estMonthly ? `<br>${small(`Could bring about ${inr(w.estMonthly)} a month.`)}` : ''}</li>`))
       + h2('5 ways to save')
       + ol(plan.savings.levers.map(l => `<li><strong>${esc(l.title)}</strong>: save ${esc(l.saving)}</li>`))
       + p(small(`For example: ${esc(plan.savings.example)} These numbers are only examples.`))

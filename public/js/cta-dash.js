@@ -32,14 +32,21 @@
   async function renderWays(el, ctx) {
     if (!el) return;
     try {
-      const { ways } = await load();
+      const { ways, about } = await load();
       if (!ways || !ways.length) { el.innerHTML = ''; return; }
-      el.innerHTML = `<div class="section-title"><h2>5 ways to earn more</h2></div>
+      const inr = n => `₹${Math.round(n).toLocaleString('en-IN')}`;
+      // What we found when we looked this business up on the web
+      const found = about && about.text ? `<div class="section-title"><h2>What we found about you</h2></div>
+        <div class="save-example"><p style="margin:0">${esc(about.text)}</p>
+          ${about.busy ? `<p class="save-eg" style="margin:.4rem 0 0">Busy: ${esc(about.busy)}</p>` : ''}
+          ${about.quiet ? `<p class="save-eg" style="margin:.2rem 0 0">Quiet: ${esc(about.quiet)}</p>` : ''}</div>` : '';
+      el.innerHTML = `${found}<div class="section-title"><h2>5 ways to earn more</h2></div>
         <div class="save-grid">${ways.map((w, i) => `<article class="save-card">
           <span class="save-n">${i + 1}</span>
           <h3>${esc(w.title)}</h3>
           <p>${esc(w.line)}</p>
           ${w.examples.length ? `<p class="save-eg">For example: ${esc(w.examples.join(', '))}.</p>` : ''}
+          ${w.estMonthly ? `<p class="save-eg"><strong>About ${inr(w.estMonthly)} a month</strong></p>` : ''}
         </article>`).join('')}</div>
         <div class="save-example">${esc(PITCH)}</div>
         <button class="btn" type="button" data-earn-plan>Talk to my PMB manager</button>`;

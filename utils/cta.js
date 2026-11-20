@@ -137,14 +137,28 @@ async function sendCtaEmail(user) {
 }
 
 // The plan in the sign-up email and the dashboard: 5 different ways to earn and 5 ways to save
+// The plan in the sign-up email and the dashboard. When we have looked up this exact business on the web
+// (utils/research.js), its own ways and savings replace the general ones for its type.
 function planFor(user) {
   const pb = playbookFor(user);
-  if (!pb) return null;
+  const r = user?.research;
+  if (!pb && !r) return null;
   const savings = costSavingFor(user);
+  const general = pb ? waysToEarn(pb) : waysToEarn({ sector: { t: user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] });
   return {
-    type: pb.type, idle: pb.idle,
-    ways: waysToEarn(pb),
-    savings: { label: savings.label, levers: savings.levers.slice(0, 5), example: savings.example }
+    type: pb?.type || String(user.category || '').replace(/_/g, ' '),
+    idle: r?.quietHours || pb?.idle || '',
+    about: r?.about || '', busyHours: r?.busyHours || '', quietHours: r?.quietHours || '',
+    researched: Boolean(r),
+    ways: r ? general.map(g => {
+      const w = r.ways.find(x => x.key === g.key);
+      return w?.line ? { key: g.key, title: g.title, line: w.line, examples: w.examples.length ? w.examples : g.examples, estMonthly: w.estMonthly || 0 } : g;
+    }) : general,
+    savings: {
+      label: savings.label,
+      levers: r ? r.savings.concat(savings.levers).slice(0, 5) : savings.levers.slice(0, 5),
+      example: savings.example
+    }
   };
 }
 

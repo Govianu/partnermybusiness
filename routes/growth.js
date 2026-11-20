@@ -53,12 +53,24 @@ router.get('/community', async (req, res) => {
 router.get('/my-cta', async (req, res) => {
   const { ctaFor, renderCta } = require('../utils/cta');
   const c = ctaFor({ user: req.user });
-  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings: c?.savings || null,
-    ways: (() => {
-      const { planFor } = require('../utils/cta'), { waysToEarn } = require('../utils/pitch');
-      return planFor(req.user)?.ways   // type not known: the general five ways
-        || waysToEarn({ sector: { t: req.user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] });
-    })() });
+  const { planFor } = require('../utils/cta'), { waysToEarn } = require('../utils/pitch');
+  // Signed up before research existed (or the lookup failed): look the business up in the background, at
+  // most once a day; the next dashboard load shows it
+  const research = require('../utils/research');
+  const u = req.user;
+  if (research.researchConfigured() && !u.research && ['business', 'associate'].includes(u.role)
+      && Date.now() - new Date(u.researchTriedAt || 0).getTime() > 24 * 3600 * 1000) {
+    u.researchTriedAt = new Date().toISOString();
+    await u.save();
+    research.researchUser(u);
+  }
+  const plan = planFor(req.user);
+  // Researched businesses get their own five ways to save in place of the general ones for their type
+  const savings = c?.savings && plan?.researched ? { ...c.savings, levers: plan.savings.levers } : (c?.savings || null);
+  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings,
+    about: plan?.researched ? { text: plan.about, busy: plan.busyHours, quiet: plan.quietHours } : null,
+    ways: plan?.ways   // type not known: the general five ways
+      || waysToEarn({ sector: { t: req.user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] }) });
 });
 
 router.get('/', async (req, res) => {

@@ -14,6 +14,7 @@ const { issueLink } = require('../utils/links');
 const drip = require('../utils/drip');
 const { assignLeadId, nextLeadId } = require('../utils/leadId');
 const { planFor } = require('../utils/cta');
+const { researchUser, within } = require('../utils/research');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -131,6 +132,8 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   });
 
   // One email to them: code, dashboard, lead ID, 5 opportunities and 5 ways to save (the CTA is in the dashboard)
+  // Look this exact business up on the web first (once), so the plan fits it; the email waits up to 25s
+  if (user && !user.research) await within(researchUser(user), Number(process.env.RESEARCH_WAIT_MS) || 25000);
   const plan = user ? planFor(user) : null;
   const [toPerson, toTeam] = await Promise.all([
     sendMail(enquiryWelcome({

@@ -10,6 +10,7 @@ const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
 const { issueLink, findByToken, spendLink } = require('../utils/links');
 const { sendMail, mailConfigured, sendFailureMessage } = require('../utils/mailer');
+const { researchUser, within } = require('../utils/research');
 const { emailOtp, loginLink, teamEnquiry } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
@@ -161,7 +162,10 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       .catch(err => console.error('Opportunity seeding failed:', err.message));
   }
 
-  // One email: code, dashboard, lead ID, 5 opportunities and 5 ways to save (their CTA is in the dashboard)
+  // Look this exact business up on the web, so the 5 ways to earn and save fit it. The email waits for it up to
+  // RESEARCH_WAIT_MS (25s); a slower lookup still lands in the dashboard when it finishes.
+  if (['business', 'associate'].includes(role)) await within(researchUser(user), Number(process.env.RESEARCH_WAIT_MS) || 25000);
+  // One email: code, dashboard, 5 ways to earn and 5 ways to save (their CTA is in the dashboard)
   const plan = ['business', 'associate'].includes(role) ? planFor(user) : null;
   const code = await issueOtp(user);
   const mailResult = await sendMail(await otpMail(user, code, { welcome: true, plan }));
