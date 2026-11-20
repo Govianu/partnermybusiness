@@ -55,6 +55,7 @@
         <div class="save-grid">${s.levers.map((l, i) => `<article class="save-card">
           <span class="save-n">${i + 1}</span>
           ${l.cost ? `<p class="save-eg" style="margin:0">You spend on: ${esc(l.cost.toLowerCase())}</p>` : ''}
+          ${l.leak ? `<p class="save-eg" style="margin:0">${esc(l.leak)}</p>` : ''}
           <h3>${esc(l.title)}</h3>
           <strong>Save ${esc(l.saving)}</strong>
           ${l.we ? `<p>${esc(l.we)}</p>` : ''}

@@ -104,7 +104,7 @@ const HOW_WE_CUT = [
   [/direct bookings|marketing platform/i, 'Customers come to you through PMB, so you pay less to booking sites and ads.'],
   [/brand|sponsor|shelf|wall space|rent out|idle/i, 'We bring brands and partners who pay to use what you have, which covers part of your costs.'],
   [/clustered/i, 'We group your bookings close together, so you spend less time and money on travel.'],
-  [/solar|power|energy|cooling|lighting|meter/i, 'We bring a trusted solar and power partner who sets it all up, often with nothing to pay upfront.'],
+  [/solar|power|energy|cooling|lighting|meter/i, 'We bring a trusted solar and power partner who sets it all up for you.'],
   [/water/i, 'We bring a partner who sets up water reuse for you.'],
   [/direct|farmer|producer|manufacturer|distributor|sourcing/i, 'We connect you straight to the makers, so no middleman takes a cut.'],
   [/group|bulk|pooled|together|contract/i, 'We add your order to other PMB partners nearby, so you all get the bulk price.'],
@@ -122,7 +122,8 @@ function costOf(saving) {
 // One way to save: the plain name, the cost it cuts, how much, and how PMB does it
 function savingPitch(lever) {
   return { title: PLAIN[lever.title] || lever.title, saving: lever.saving,
-    cost: lever.cost || costOf(lever.saving), we: lever.we || howWeCut(lever.title) };
+    cost: lever.cost || costOf(lever.saving), we: lever.we || howWeCut(lever.title),
+    ...(lever.leak ? { leak: lever.leak } : {}) };
 }
 
 module.exports = { PITCH, waysToEarn, savingPitch, costOf, howWeCut };

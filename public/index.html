@@ -1486,6 +1486,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         d.savings.levers.forEach(function(l){
           var item = el("li");
           if (l.cost) item.appendChild(el("span", "hint-line", "You spend on: " + l.cost.toLowerCase() + ". "));
+          if (l.leak) item.appendChild(el("span", "hint-line", l.leak + " "));
           item.appendChild(el("strong", null, l.title)); item.appendChild(document.createTextNode(": save " + l.saving + ". " + (l.we || "")));
           list.appendChild(item);
         });
@@ -1515,7 +1516,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         levers.forEach(function(l, n){
           slides.push({kind: "save", kicker: "Save " + (n + 1) + " of " + levers.length + (l.cost ? ": " + l.cost.toLowerCase() : ""),
             title: l.title, body: l.we || "We find the right partner and set it all up for you.",
-            facts: ["Save " + l.saving + "."], topic: "Saving: " + l.title});
+            facts: (l.leak ? ["Where the money goes: " + l.leak] : []).concat(["Save " + l.saving + "."]), topic: "Saving: " + l.title});
         });
       }
       slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Earning more and spending less is easy to say. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});

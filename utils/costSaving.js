@@ -6,6 +6,12 @@ const { sectorById, sectorFor } = require('./catalog');
 const playbook = require('./playbook.json');
 const { savingPitch } = require('./pitch');
 
+// Where each of the 100 business and professional types loses money, from web research into Indian industry
+// data (one entry per type id, with sources). Types without an entry fall back to their broad category below.
+const BY_TYPE = (() => {
+  try { return Object.fromEntries(require('./savingsByType.json').map(t => [t.id, t])); } catch { return {}; }
+})();
+
 const CATEGORIES = {
   food: {
     label: 'Restaurants & food',
@@ -186,6 +192,9 @@ function costSavingFor(userOrSectorId) {
     ? sectorById(userOrSectorId)
     : (sectorById(userOrSectorId?.sectorId) || sectorFor(userOrSectorId || {}));
   const key = costCategoryFor(sector);
+  // Researched for this exact type (utils/savingsByType.json): its own costs, money leaks and savings
+  const own = sector && BY_TYPE[sector.id];
+  if (own) return { key, label: sector.n, topCosts: own.topCosts, example: own.example, levers: own.levers.map(savingPitch), sources: own.sources || [] };
   const c = CATEGORIES[key];
   return { key, label: c.label, topCosts: c.topCosts, example: c.example, levers: c.levers.map(savingPitch) };
 }
