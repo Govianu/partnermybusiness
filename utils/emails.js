@@ -54,13 +54,17 @@ ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:7px 10px 7px
 function planBlock(plan) {
   if (!plan) return '';
   const li = items => `<ol style="margin:0 0 16px;padding-left:22px;font-size:15px;line-height:1.7;color:#0F1B3D">${items.join('')}</ol>`;
+  const small = t => `<span style="font-size:13px;color:#47537C">${t}</span>`;
   return `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">5 ways to earn more</h2>`
-      + p(`What sits idle today: <strong>${esc(plan.idle)}</strong>.`)
-      + li(plan.opportunities.map(o => `<li><strong>${esc(o.name)}</strong><br><span style="font-size:13px;color:#47537C">Investment: ${esc(o.investment)} · First revenue in ${esc(o.time)}</span></li>`))
+      + p(`What sits idle today: <strong>${esc(plan.idle)}</strong>. Here is what it could earn. ${esc(NEEDS)}`)
+      + li(plan.opportunities.map((o, i) => `<li><strong>${esc(o.name)}</strong><br>${small(`Partner we bring: ${esc(partnerFor(plan.partners, i))} · Investment: ${esc(o.investment)} · First revenue in ${esc(o.time)}`)}</li>`))
+      + `<div style="margin:0 0 16px;padding:14px 16px;border-left:4px solid #F7B32B;background:#FFF8E8;border-radius:8px;font-size:15px;line-height:1.6;color:#0F1B3D">${esc(PITCH.hook)}<br><strong>${esc(PITCH.deal)}</strong></div>`
       + `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">5 ways to save</h2>`
-      + li(plan.savings.levers.map(l => `<li><strong>${esc(l.title)}</strong> (${esc(l.saving)})<br><span style="font-size:13px;color:#47537C">${esc(l.how)}</span></li>`))
-      + p(`<span style="font-size:13px;color:#47537C">For example: ${esc(plan.savings.example)} Figures are illustrative; your PMB manager confirms what fits you.</span>`);
+      + li(plan.savings.levers.map(l => `<li><strong>${esc(l.title)}</strong> (${esc(l.saving)})<br>${small(`Alone: ${esc(l.alone)}<br><strong style="color:#142C7A">With PMB:</strong> ${esc(l.withUs)}`)}</li>`))
+      + p(small(`For example: ${esc(plan.savings.example)} Figures are illustrative.`))
+      + p(esc(PITCH.call));
 }
+const { PITCH, NEEDS, partnerFor } = require('./pitch');
 const codeBox = code => `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`;
 
 function emailOtp({ name, email, code, role, category, sectorId, businessName = '', link = '', plan = null, welcome = false }) {

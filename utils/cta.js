@@ -129,7 +129,7 @@ function planFor(user) {
   if (!pb) return null;
   const savings = costSavingFor(user);
   return {
-    type: pb.type, idle: pb.idle,
+    type: pb.type, idle: pb.idle, partners: pb.partners,
     opportunities: pb.opportunities.concat(pb.moreOpportunities).slice(0, 5).map(o => ({ name: o, ...assess(o) })),
     savings: { label: savings.label, levers: savings.levers.slice(0, 5), example: savings.example }
   };

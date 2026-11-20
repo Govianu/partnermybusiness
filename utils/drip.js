@@ -13,6 +13,7 @@ const { issueLink } = require('./links');
 const { layout, p, button, esc, firstName, APP_URL, TEAM_INBOX, PHONE } = require('./emails');
 const { playbookFor, imageFor } = require('./playbook');
 const { costSavingFor } = require('./costSaving');
+const { PITCH } = require('./pitch');
 const { assess } = require('./cta');
 
 const STEPS = 10;
@@ -60,9 +61,9 @@ function revenueEmail(user, k, pb) {
     title: `${opp}`,
     body: (k === 1 ? p(`${isPro ? 'Your skills and spare hours' : `What sits idle at ${esc(name)} today`}: <strong>${esc(pb.idle)}</strong>. Here’s one way to put ${isPro ? 'them' : 'it'} to work.`) : '')
       + (creative ? image(creative.url.replace(/w=\d+$/, 'w=1000'), `${opp}: how it works`) : '')
-      + p(`<strong>Opportunity ${k} of 5: ${esc(opp)}.</strong> We bring the partners for it (${esc(pb.partners)}), set up the terms in your CTA, and handle bookings and billing.`)
+      + p(`<strong>Opportunity ${k} of 5: ${esc(opp)}.</strong> It needs a partner to run it, a written agreement, customers and billing. We bring all four: the partners (${esc(pb.partners)}), the terms, the bookings and the payments.`)
       + li([`Investment to start: ${a.investment}`, `Time to first revenue: ${a.time}`, `Feasibility: ${a.feasibility}`])
-      + p(muted('Desk assessment from our research. Your PMB manager confirms it with you before anything starts.')),
+      + p(`${esc(PITCH.deal)} ${muted(esc(PITCH.call))}`),
     cta: 'Show me how this works'
   };
 }
@@ -74,8 +75,8 @@ function savingEmail(user, k, savings) {
     subject: /^(\d|up to)/i.test(lever.saving) ? `Save ${lower(lever.saving)}: ${lower(lever.title)}` : `${lever.title}: ${lower(lever.saving)}`,
     title: `Cut costs: ${lever.title}`,
     body: p(`Earning more is half of it. The other half is spending less. Here’s cost-saving idea ${k} of 5 for ${esc(lower(savings.label))}:`)
-      + p(`<strong>${esc(lever.title)}.</strong> ${esc(lever.how)}`)
-      + li([`Typical saving: ${lever.saving}`])
+      + p(`<strong>${esc(lever.title)}.</strong> Typical saving: ${esc(lever.saving)}.`)
+      + li([`Doing it alone: ${lever.alone}`, `With PMB: ${lever.withUs}`])
       + (k === 1 ? p(`<strong>For example:</strong> ${esc(savings.example)} ${muted('Illustrative.')}`) : '')
       + p(`Partnership is collaboration, not competition: we match you with partners on both sides so everyone’s costs come down. Send us your top 5 monthly expenses and we’ll work out your real numbers.`)
       + (last ? p(`That’s the last of these emails. The quickest way to start is one pilot: press the button and we’ll call you to pick it. Or reply, or call ${PHONE}.`) : ''),

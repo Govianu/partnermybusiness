@@ -31,14 +31,15 @@
     try {
       const { savings: s } = await load();
       if (!s) { el.innerHTML = ''; return; }
-      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Top costs for ${esc(s.label.toLowerCase())}: ${esc(s.topCosts.join(', '))}. Partnership is collaboration, not competition: we match you with partners on both sides so costs come down.</p>
+      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Top costs for ${esc(s.label.toLowerCase())}: ${esc(s.topCosts.join(', '))}. Knowing where to save is easy. Getting the supplier, the volume rate or the right partner to say yes is the hard part, and that is what we do.</p>
         <div class="save-grid">${s.levers.map((l, i) => `<article class="save-card">
           <span class="save-n">${i + 1}</span>
           <h3>${esc(l.title)}</h3>
-          <p>${esc(l.how)}</p>
           <strong>${esc(l.saving)}</strong>
+          <p class="save-alone"><span>Alone</span>${esc(l.alone)}</p>
+          <p class="save-us"><span>With PMB</span>${esc(l.withUs)}</p>
         </article>`).join('')}</div>
-        <div class="save-example"><span>Example</span>${esc(s.example)} <span class="meta">Illustrative. We confirm your real numbers from your top 5 monthly expenses, quantities, rates and suppliers.</span></div>
+        <div class="save-example"><span>Example</span>${esc(s.example)} <span class="meta">Illustrative. Share your top 5 monthly expenses and your PMB manager shows you the suppliers, rates and partners for your real numbers.</span></div>
         <button class="btn" type="button" data-save-plan>Get my savings plan</button>`;
       el.querySelector('[data-save-plan]').addEventListener('click', () => Growth.openCtaDialog(ctx, { action: 'save_costs', topic: 'Cost-saving plan' }));
     } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; }

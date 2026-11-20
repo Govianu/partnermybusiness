@@ -1478,9 +1478,9 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       if (!d || mine !== playbookReq) return;
       if (d.savings && d.savings.levers){
         var list = el("ul", "list");
-        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + ". ")); item.appendChild(document.createTextNode(l.how + " (" + l.saving + ")")); list.appendChild(item); });
+        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + " (" + l.saving + "). ")); item.appendChild(document.createTextNode("With PMB: " + l.withUs)); list.appendChild(item); });
         var saveBtn = el("button", "btn btn-line btn-sm", "Enquire now"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
-        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Five ways we bring them down:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
+        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Knowing where to save is easy; getting the supplier, the volume rate or the partner to say yes is the hard part. That is what we do:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
       }
       var v = d.videos && d.videos[0], imgs = d.images || [];
       var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
@@ -1505,7 +1505,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
           facts: ["Uses: " + (d.idle || s.a)].concat(o.investment ? ["Investment to start: " + o.investment, "First revenue in " + o.time, n % 2 ? "Partners we bring: " + (d.partners || "") : "We bring the partners, the agreement and the payments"] : []),
           img: img, topic: o.name});
       });
-      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Enquire now. Agree to the CTA, sign up, and your PMB manager plans the first opportunity with you.", topic: ""});
+      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "The idea is the easy part. The partner, the agreement, the customers and the payments are the hard part, and that is what we do. Your part: say yes to the slot.", sub: "Enquire now. Your PMB manager shows you which partner, the exact split and your first-month numbers.", topic: ""});
 
       var row = el("div", "deck");
       row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", "Opportunities for " + s.n);

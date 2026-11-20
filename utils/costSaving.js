@@ -4,6 +4,7 @@
 // Percentages are planning ranges, confirmed with each owner's real bills.
 const { sectorById, sectorFor } = require('./catalog');
 const playbook = require('./playbook.json');
+const { savingPitch } = require('./pitch');
 
 const CATEGORIES = {
   food: {
@@ -178,13 +179,15 @@ function costCategoryFor(sector) {
   return fromSheet || FROM_CATALOG[sector.cat] || 'services';
 }
 
-// Cost-saving plan for a user (or a sector id)
+// Cost-saving plan for a user (or a sector id), as we pitch it: what they save, the hard part alone, and what
+// PMB does. The internal `how` notes stay with the team (CATEGORIES).
 function costSavingFor(userOrSectorId) {
   const sector = typeof userOrSectorId === 'number'
     ? sectorById(userOrSectorId)
     : (sectorById(userOrSectorId?.sectorId) || sectorFor(userOrSectorId || {}));
   const key = costCategoryFor(sector);
-  return { key, ...CATEGORIES[key] };
+  const c = CATEGORIES[key];
+  return { key, label: c.label, topCosts: c.topCosts, example: c.example, levers: c.levers.map(savingPitch) };
 }
 
 module.exports = { costSavingFor, CATEGORIES };

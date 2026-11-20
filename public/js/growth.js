@@ -85,19 +85,21 @@
       const partner = t.partner || partners[(i + 1) % partners.length] || partners[0];
       const topicLc = lowerFirst(t.topic);
       const money = t.kind === 'product' ? roundK(f[0] / 4) : t.kind === 'partner' ? roundK((f[2] || 20000) / 2) : roundK((f[1] || 50000) / 4);
+      // What we do and what they do. No do-it-yourself recipe: the partner, the split and the numbers come on the PMB call.
+      const slot = lowerFirst(where.split(',')[0]);
       let steps;
       if (t.kind === 'partner') {
         steps = isPro
-          ? [`Your PMB manager introduces you to ${partner}.`, 'Agree one pilot and your fee or share in writing.', 'Deliver it, collect feedback, and improve.', 'Turn it into a regular slot with repeat bookings.']
-          : [`Your PMB manager introduces you to ${partner}.`, 'Agree one pilot on a one-page opportunity sheet.', `Use ${lowerFirst(where.split(',')[0])} during quiet hours.`, 'Split the income after taxes and agreed costs.'];
+          ? [`We find and vet ${partner} who need you.`, 'We agree your fee or share in writing.', 'You do the work you already know.', 'We bring repeat bookings and handle the payments.']
+          : [`We find and vet ${partner} for ${who}.`, 'We write the agreement and the split. You approve it.', `You give the slot: ${slot} in quiet hours.`, 'We handle billing and settle every party.'];
       } else if (t.kind === 'product') {
         steps = isPro
-          ? [`Turn what you know into ${topicLc}.`, `Sell through ${partner} and their customers.`, 'Agree price and margins before you start.', 'Get paid digitally on one shared statement.']
-          : [`Start with one or two ${topicLc}.`, 'Display them where customers already wait or pay.', `Let ${partner} supply or co-create them.`, 'Sell by QR or at billing, with margins agreed upfront.'];
+          ? [`We shape ${topicLc} with you.`, `We bring ${partner} and their customers to sell through.`, 'We set the price and margins in writing.', 'You get paid on one statement.']
+          : [`We bring ${partner} to supply or co-create ${topicLc}.`, 'We set the price and margins in writing.', 'You give the shelf or counter space.', 'We handle billing; your share settles automatically.'];
       } else {
         steps = isPro
-          ? [`Add ${topicLc} to your skills so partner businesses can find you.`, `Pick where it works best: ${lowerFirst(where)}.`, `Run one pilot with ${partner}.`, 'Get booked through PMB, with the agreement in place before you start.', 'Get paid digitally, and build ratings for repeat work.']
-          : [`Package ${topicLc}: fix the price and what’s included.`, 'Show it on your booking page so customers and event companies can request it.', 'Accept requests on your dashboard after checking the split.', `Bring in ${partner} when you need extra hands.`, 'Get paid digitally; your share settles automatically.'];
+          ? ['We list you for partner businesses that need this.', `We line up a first booking with ${partner}.`, 'We sign the agreement before you start.', 'You deliver; we collect and pay you.']
+          : [`We package ${topicLc} and set the price.`, `We bring ${partner} to run it.`, 'We bring customers and event companies to book it.', `You give the slot: ${slot} in quiet hours.`, 'We collect the payments; your share settles automatically.'];
       }
       const title = t.topic.charAt(0).toUpperCase() + t.topic.slice(1);
       const icon = t.kind === 'partner' ? '🤝' : icons[[0, 1, 2, 1, 0][i] ?? 0];
@@ -105,7 +107,7 @@
         { icon, head: title, body: t.kind === 'partner' ? `Why ${partner} are good partners for ${isPro ? 'you' : who}, and how to start.` : (isPro ? `How ${an(noun)} turns this into paid work.` : `How ${an(noun)} like ${who} turns this into income.`), say: `${title}. A short guide for ${ctx.plural}.` },
         { icon: icons[5], head: 'Who pays for it', list: isPro ? partners.slice(0, 3).map(p => p.charAt(0).toUpperCase() + p.slice(1)) : ['Local customers', ...partners.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1))], say: `Who pays for it: ${isPro ? listOf(partners) : 'local customers, ' + listOf(partners.slice(0, 2))}.` },
         { icon: icons[1], head: 'Use what you already have', body: where, say: `Use what you already have: ${where}.` },
-        { icon: icons[2], head: 'Your workflow', steps, say: `Your workflow. ${steps.join(' ')}` },
+        { icon: icons[2], head: 'How we launch it with you', steps, say: `How we launch it with you. ${steps.join(' ')}` },
         { icon: icons[4], head: `Up to ${inr(money)} a month`, body: 'An illustrative figure from our sector research, not a promise. Your PMB manager checks what fits you.', cta: true, say: `This could be worth up to ${money.toLocaleString('en-IN')} rupees a month. Press "Help me launch this" and your manager will set it up with you.` }
       ];
       const words = scenes.reduce((n, sc) => n + sc.say.split(/\s+/).length, 0);
