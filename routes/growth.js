@@ -14,7 +14,7 @@ router.use(requireAuth('business', 'associate'));
 const cleanSkills = list => (Array.isArray(list) ? list : String(list || '').split(','))
   .map(x => str(String(x)).slice(0, 60)).filter(Boolean)
   .filter((x, i, all) => all.findIndex(y => y.toLowerCase() === x.toLowerCase()) === i)
-  .slice(0, 12);
+  .slice(0, 40);   // "Select all skills" can pick every suggestion
 
 // "People behind your growth" on the dashboard: who their manager is, and real numbers from the network.
 // Counts below COMMUNITY_MIN_COUNT (default 10) are left out rather than shown small. Nothing is made up.

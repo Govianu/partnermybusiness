@@ -1,3 +1,4 @@
+const { requireKyc } = require('../utils/kyc');
 const router = require('express').Router();
 const Booking = require('../models/Booking');
 const Opportunity = require('../models/Opportunity');
@@ -90,6 +91,7 @@ router.patch('/opportunities/:id', async (req, res) => {
 // Accepting makes it a match: it goes to the PMB team for approval, then PMB's share, then both sides are connected (utils/deal.js)
 router.post('/bookings/:id/accept', async (req, res) => {
   if (req.body?.agreementAccepted !== true) throw fail('Tick the partner agreement to accept this booking');
+  requireKyc(req.user, 'accept a booking');
   const booking = await Booking.findOne({ _id: req.params.id, business: req.user._id });
   if (!booking) throw fail('Booking not found', 404);
   if (booking.status !== 'requested') throw fail(`This booking is already ${String(booking.status).replace(/_/g, ' ')}`);

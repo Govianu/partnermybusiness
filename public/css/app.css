@@ -97,6 +97,11 @@ textarea { min-height: 96px; resize: vertical; }
 .error-box:empty { display: none; }
 
 /* ---------- Pills ---------- */
+.kyc-docs { display: grid; gap: .5rem; }
+.kyc-doc { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .6rem .8rem; border: 1px solid var(--line, #D5DCEC); border-radius: 10px; }
+.kyc-doc > span:first-child { flex: 1 1 14rem; font-weight: 600; }
+.kyc-doc label.btn { cursor: pointer; }
+.pill.warn { background: var(--marigold-soft); color: #9A5F07; }
 .pill { display: inline-block; font-size: .78rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; background: var(--teal-soft); color: var(--teal); white-space: nowrap; }
 .pill.pending, .pill.requested, .pill.proposed, .pill.imported, .pill.new { background: var(--marigold-soft); color: #9A5F07; }
 @media (prefers-color-scheme: dark) { .pill.pending, .pill.requested, .pill.proposed, .pill.imported, .pill.new { color: var(--marigold); } }
@@ -271,3 +276,4 @@ td select, td input { padding: .35rem .5rem; font-size: .85rem; }
 @media (max-width: 980px) { .two-col { grid-template-columns: 1fr; } }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+#kycBox input::placeholder { text-transform: none; }

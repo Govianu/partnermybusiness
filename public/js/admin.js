@@ -87,6 +87,23 @@
 
   // ---------- Profiles ----------
   let searchTimer;
+  // KYC: Aadhaar (last 4 only), PAN and bank, with document links, and a button to mark it checked
+  function kycCell(u) {
+    const k = u.kycStatus;
+    if (!k) return '';
+    if (!k.complete) return `<span class="pill pending">Missing</span><div class="meta">${esc(k.missing.join(', '))}</div>`;
+    const docs = ['aadhaar', 'pan', 'bank'].map(d => `<a href="/api/kyc/docs/${d}?user=${u._id}" target="_blank" rel="noopener">${d === 'bank' ? 'Bank' : d.toUpperCase()}</a>`).join(' · ');
+    return `${k.verifiedAt ? '<span class="pill approved">Verified</span>' : `<button class="btn small" type="button" data-kyc-verify="${u._id}">Mark verified</button>`}
+      <div class="meta">Aadhaar ${esc(k.aadhaar)} · PAN ${esc(k.pan)}<br>${esc(k.bankName || 'Bank')} ${esc(k.accountNumber)} · ${esc(k.ifsc)}<br>${docs}</div>`;
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-kyc-verify]');
+    if (!b) return;
+    b.disabled = true;
+    try { await api(`/kyc/user/${b.dataset.kycVerify}/verify`, { method: 'POST' }); toast('KYC marked verified'); loadUsers(); }
+    catch (err) { toast(err.message, true); b.disabled = false; }
+  });
+
   async function loadUsers() {
     const p = new URLSearchParams();
     const r = document.getElementById('roleFilter').value;
@@ -99,8 +116,9 @@
       <td><code class="handle">${handleHtml(u.handle)}</code><div class="meta">${pretty(u.role)}</div></td>
       <td>${esc(u.role === 'business' ? u.business?.businessName : u.name)}${u.business?.mapsUrl ? `<div><a href="${esc(u.business.mapsUrl)}" target="_blank" rel="noopener">Maps</a></div>` : ''}</td>
       <td class="meta">${esc(u.email || 'Not claimed yet')}<br>${esc(u.phone || '')}</td>
+      <td>${kycCell(u)}</td>
       <td><select data-user-manager="${u._id}"><option value="">Unassigned</option>${admins.map(a => `<option value="${a._id}" ${u.assignedManager?._id === a._id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></td>
-    </tr>`).join('') || '<tr><td colspan="4" class="empty"><strong>No profiles match</strong>Try another filter.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="5" class="empty"><strong>No profiles match</strong>Try another filter.</td></tr>';
   }
   ['roleFilter'].forEach(id => document.getElementById(id).addEventListener('change', loadUsers));
   document.getElementById('userSearch').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadUsers, 300); });

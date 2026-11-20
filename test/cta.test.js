@@ -62,7 +62,7 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
     assert.ok(mail.html.includes(part), `email pitches: ${part}`);
   assert.ok(!mail.html.includes('Milk, vegetables and staples straight from farms'), 'no do-it-yourself steps');
   for (const w of ['Partner we bring', 'With PMB:', 'Alone:']) assert.ok(!mail.html.includes(w), `no repeated "${w}" lines`);
-  for (const part of ['5 ways to earn more', 'cloud kitchen in morning hours', 'Where your money goes, and how we cut it', 'Get more orders without app commissions', 'You spend on: delivery app commissions', 'Where the money goes:', 'My CTA'])
+  for (const part of ['5 ways to earn more', 'cloud kitchen in morning hours', 'Where your money goes, and how we cut it', 'Buy vegetables straight from farmer groups', 'You spend on: vegetables and fruit', 'Where the money goes:', 'My CTA'])
     assert.ok(mail.html.includes(part), `email has: ${part}`);
 
   // The team gets everything, even though no opportunity was picked

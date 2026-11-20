@@ -4,6 +4,7 @@
 // for approval, and once PMB's share is received it's a match. Buyers and sellers never get each other's contact
 // details at any stage: the PMB team coordinates everything.
 // The deal steps live in utils/deal.js.
+const { requireKyc } = require('../utils/kyc');
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -83,6 +84,8 @@ router.post('/requests', rateLimit(10, 60 * 60 * 1000), async (req, res) => {
   const listing = await Listing.findById(str(b.listingId));
   if (!listing || listing.status !== 'live') throw fail('This listing isn’t available any more', 404);
   if (me && String(listing.owner) === String(me._id)) throw fail('This is your own listing');
+  // Signed-in people book only after KYC; guests go through the PMB team, who collect it before confirming
+  if (me) requireKyc(me, 'book');
   const seller = await User.findById(listing.owner);
   if (!seller) throw fail('This listing isn’t available any more', 404);
 
@@ -236,6 +239,7 @@ router.post('/my/incoming/:id/:decision', seller, async (req, res) => {
   if (!b || String(b.business) !== String(req.user._id)) throw fail('Request not found', 404);
   if (b.status !== 'requested') throw fail(`This request is already ${STATUS_LABEL[b.status]?.toLowerCase() || b.status}`);
   if (decision === 'accept' && req.body?.agreementAccepted !== true) throw fail('Tick the partner agreement to accept this request');
+  if (decision === 'accept') requireKyc(req.user, 'accept a booking');
   // Accepting is a match: it goes to the PMB team for approval
   if (decision === 'accept') await deal.sellerAccepted({ booking: b, seller: req.user });
   else await deal.sellerDeclined({ booking: b, seller: req.user });

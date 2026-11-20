@@ -11,7 +11,8 @@ const models = {};
 // Never sent to the browser
 const USER_SECRETS = [
   'passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose', 'linkTokens',
-  'emailOtpHash', 'emailOtpExpiresAt', 'emailOtpAttempts'
+  'emailOtpHash', 'emailOtpExpiresAt', 'emailOtpAttempts',
+  'kyc'   // Aadhaar, PAN and bank details: only through /api/kyc, masked (utils/kyc.js)
 ];
 let data;
 

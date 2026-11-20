@@ -129,7 +129,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   } else if (role === 'associate') {
     const skill = ASSOCIATE_SKILLS.includes(b.skill) ? b.skill : 'other';
     const years = b.experienceYears === undefined || b.experienceYears === '' ? 0 : Number(b.experienceYears);
-    const suppliedSkills = Array.isArray(b.skills) ? b.skills.slice(0, 12) : str(b.skills).slice(0, 800).split(',');
+    const suppliedSkills = Array.isArray(b.skills) ? b.skills.slice(0, 40) : str(b.skills).slice(0, 800).split(',');
     if (!Number.isInteger(years) || years < 0 || years > 60) throw fail('Enter experience from 0 to 60 years');
     Object.assign(doc, {
       category: skill,

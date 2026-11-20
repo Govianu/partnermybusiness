@@ -98,7 +98,9 @@ router.get('/users', async (req, res) => {
   if (req.query.q) q.$or = [{ handle: new RegExp(escapeRx(req.query.q), 'i') }, { name: new RegExp(escapeRx(req.query.q), 'i') }];
   const users = await User.find(q).populate('assignedManager', 'name').sort({ createdAt: -1 }).limit(200);
   const admins = await User.find({ role: 'admin' }, 'name email');
-  res.json({ users, admins });
+  // KYC stays off the profile itself (never sent); the team gets its status, masked, beside each profile
+  const { kycSummary } = require('../utils/kyc');
+  res.json({ users: users.map(u => ({ ...u.toJSON(), kycStatus: kycSummary(u) })), admins });
 });
 
 router.patch('/users/:id', async (req, res) => {

@@ -46,6 +46,10 @@ test('seller publishes, buyer requests, PMB approves and collects its share, the
   const seller = await User.create({ role: 'business', name: 'Ravi Kumar', email: 'ravi@example.com', phone: '+91 90000 00001', status: 'approved', location: 'indiranagar', business: { businessName: 'Ravi Hall' } });
   const buyer = await User.create({ role: 'buyer', name: 'Asha Rao', email: 'asha@example.com', phone: '+91 90000 00002', status: 'approved', buyer: { type: 'company' } });
   const staff = await User.create({ role: 'admin', name: 'PMB Ops', email: 'ops@govianu.com', status: 'approved' });
+  // Booking needs KYC on both sides (utils/kyc.js): without it the request is refused
+  const KYC = { aadhaarLast4: '9012', pan: 'ABCDE1234F', accountName: 'Test', accountNumber: '123456789012', ifsc: 'HDFC0001234',
+    docs: { aadhaar: { key: 'a.jpg' }, pan: { key: 'p.jpg' }, bank: { key: 'b.jpg' } } };
+  seller.kyc = KYC; await seller.save();
 
   // 1. Publish: live straight away and the team inbox is told
   const pub = await call('POST', '/market/my/listings', seller, { title: 'Banquet hall, weekday mornings', price: 20000, priceUnit: 'slot', capacity: 120 });
@@ -56,6 +60,10 @@ test('seller publishes, buyer requests, PMB approves and collects its share, the
   assert.ok(browse.body.listings.some(l => l.id === pub.body.listing.id), 'buyers can see it');
 
   // 2. Buyer requests: goes straight to the seller, no contact details shared
+  const blocked = await call('POST', '/market/requests', buyer, { listingId: pub.body.listing.id, purpose: 'Product launch', people: 80, budget: 40000 });
+  assert.equal(blocked.status, 403, 'no booking before KYC');
+  assert.match(blocked.body.error, /KYC.*Aadhaar number.*PAN/);
+  buyer.kyc = KYC; await buyer.save();
   const req = await call('POST', '/market/requests', buyer, { listingId: pub.body.listing.id, purpose: 'Product launch', people: 80, budget: 40000 });
   assert.equal(req.status, 201);
   const id = req.body.bookingId;

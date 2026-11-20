@@ -459,11 +459,13 @@
   function openSkillsDialog(ctx, onSave) {
     let dlg = document.getElementById('skillsDialog');
     if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'skillsDialog'; dlg.className = 'gdialog'; document.body.appendChild(dlg); }
+    const MAX_SKILLS = 40;
     const chosen = new Set(ctx.skills.map(s => s));
     const opts = [...new Set([...ctx.skills, ...suggestions(ctx)])];
     dlg.innerHTML = `<form method="dialog" class="gdialog-body">
       <h2>${ctx.isPro ? `Your skills as ${esc(an(ctx.noun))}` : `What ${esc(ctx.bizName || 'your ' + ctx.noun)} does best`}</h2>
-      <p class="meta">Choose up to 12. Your lessons are built from the first four.</p>
+      <p class="meta">Choose as many as fit. Your lessons are built from the first four.</p>
+      <p style="margin:0 0 .5rem"><button type="button" class="btn ghost small" data-all>Select all skills</button></p>
       <div class="pick" role="group" aria-label="Skills">${opts.map(o => `<button type="button" class="pick-chip" aria-pressed="${chosen.has(o)}" data-skill="${esc(o)}">${esc(o)}</button>`).join('')}</div>
       <div class="pick-add"><label for="skillAdd" class="sr-only">Add your own skill</label>
         <input id="skillAdd" maxlength="60" placeholder="Add your own, e.g. ${ctx.isPro ? 'Tandoor cooking' : 'Rooftop seating'}">
@@ -476,8 +478,16 @@
       const chip = e.target.closest('[data-skill]');
       if (chip) {
         const v = chip.dataset.skill;
-        if (chosen.has(v)) chosen.delete(v); else if (chosen.size < 12) chosen.add(v);
+        if (chosen.has(v)) chosen.delete(v); else if (chosen.size < MAX_SKILLS) chosen.add(v);
         chip.setAttribute('aria-pressed', String(chosen.has(v)));
+      }
+      // One tap picks every skill shown (or clears them all if they are all picked already)
+      const all = e.target.closest('[data-all]');
+      if (all) {
+        const chips = [...dlg.querySelectorAll('[data-skill]')];
+        const everyOn = chips.every(c => chosen.has(c.dataset.skill));
+        chips.forEach(c => { if (everyOn) chosen.delete(c.dataset.skill); else if (chosen.size < MAX_SKILLS) chosen.add(c.dataset.skill); c.setAttribute('aria-pressed', String(chosen.has(c.dataset.skill))); });
+        all.textContent = everyOn ? 'Select all skills' : 'Clear all';
       }
       if (e.target.closest('[data-add]')) addCustom();
       if (e.target.closest('[data-close]')) dlg.close();
@@ -494,7 +504,7 @@
       const input = dlg.querySelector('#skillAdd');
       const v = input.value.trim();
       if (!v) return;
-      if (chosen.size >= 12) { err.textContent = 'You can choose up to 12 skills.'; return; }
+      if (chosen.size >= MAX_SKILLS) { err.textContent = `You can choose up to ${MAX_SKILLS} skills.`; return; }
       chosen.add(v);
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pick-chip'; b.dataset.skill = v; b.setAttribute('aria-pressed', 'true'); b.textContent = v;

@@ -1,3 +1,4 @@
+const { requireKyc } = require('../utils/kyc');
 const router = require('express').Router();
 const Gig = require('../models/Gig');
 const Media = require('../models/Media');
@@ -87,6 +88,7 @@ router.post('/gigs/:id/apply', async (req, res) => {
   const gig = await Gig.findOne({ _id: req.params.id, type: 'shift', status: 'open' });
   if (!gig) throw fail('This shift is no longer open', 404);
   if (gig.applicants.some(a => String(a) === String(req.user._id))) throw fail('You have already applied');
+  requireKyc(req.user, 'apply for a shift');
   gig.applicants.push(req.user._id);
   await gig.save();
   res.json({ gig });

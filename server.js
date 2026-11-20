@@ -29,6 +29,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/public', require('./routes/public'));
 app.use('/api/enquiry', require('./routes/enquiry'));
 app.use('/api/growth', require('./routes/growth'));
+app.use('/api/kyc', require('./routes/kyc'));
 app.use('/api/market', require('./routes/market').router);
 app.use('/api/lesson-videos', require('./routes/lessonVideos'));
 // The 100 business types and professions, served to the dashboards from the same file the server uses
