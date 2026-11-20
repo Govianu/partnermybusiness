@@ -91,4 +91,25 @@ async function verifyMail() {
   catch (err) { console.error('[mail] SMTP connection failed:', err.message, '(if your host blocks email ports, use BREVO_API_KEY instead)'); }
 }
 
-module.exports = { sendMail, mailConfigured, verifyMail };
+// Why a sign-in code could not be sent, in words the person can act on (the full error is in the server log)
+function sendFailureMessage(error, to) {
+  const e = String(error || '');
+  if (/5\.1\.[0-9]|user.*(unknown|not exist|not found)|no such user|mailbox.*(unavailable|not found)|invalid recipient|recipient.*reject|5\.0\.0.*recipient/i.test(e)) {
+    return `We could not deliver the code to ${to}. Check the address is correct and the mailbox exists.`;
+  }
+  if (/unusual sending|blocked|limit|quota|too many|5\.4\.6|4\.7\.|throttl/i.test(e)) {
+    return 'Our email account is blocked from sending for now (Zoho sending limit or block). Please try again later or contact info@partnermybusiness.ai.';
+  }
+  if (/auth|535|534|credentials|password/i.test(e)) {
+    return 'Our email account could not log in to send the code. The PMB admin needs to check the email password on the server.';
+  }
+  if (/relay|553|sender.*not allowed|from address/i.test(e)) {
+    return 'Our email server refused the sender address. The PMB admin needs to check MAIL_FROM matches the email account on the server.';
+  }
+  if (/timeout|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN/i.test(e)) {
+    return 'We could not reach our email server just now. Please try again in a minute.';
+  }
+  return 'We could not send your sign-in code. Please try again later.';
+}
+
+module.exports = { sendMail, mailConfigured, verifyMail, sendFailureMessage };

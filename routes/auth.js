@@ -9,7 +9,7 @@ const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
 const { issueLink, findByToken, spendLink } = require('../utils/links');
-const { sendMail, mailConfigured } = require('../utils/mailer');
+const { sendMail, mailConfigured, sendFailureMessage } = require('../utils/mailer');
 const { emailOtp, loginLink, teamEnquiry } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
@@ -198,8 +198,9 @@ router.post('/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       throw fail('Email sign-in is temporarily unavailable. Please contact support.', 503);
     }
     const code = await issueOtp(user);
-    const result = await sendMail(await otpMail(user, code));
-    if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
+    const mail = await otpMail(user, code);
+    const result = await sendMail(mail);
+    if (result.error) throw fail(sendFailureMessage(result.error, mail.to), 503);
     if (!mailConfigured() && process.env.NODE_ENV !== 'production') devOtp = code;
   }
 
@@ -228,8 +229,9 @@ router.post('/team/request-otp', rateLimit(5, 15 * 60 * 1000), async (req, res) 
     });
   }
   const code = await issueOtp(user);
-  const result = await sendMail(await otpMail(user, code));
-  if (result.error) throw fail('We could not send your sign-in code. Please try again later.', 503);
+  const mail = await otpMail(user, code);
+  const result = await sendMail(mail);
+  if (result.error) throw fail(sendFailureMessage(result.error, mail.to), 503);
   res.json({
     ok: true, email, profileId: user._id,
     devOtp: !mailConfigured() && process.env.NODE_ENV !== 'production' ? code : undefined
