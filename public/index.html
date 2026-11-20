@@ -222,6 +222,7 @@ h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;
 .deck-facts{margin:0;padding:0;list-style:none;display:grid;gap:.3rem;font-size:.92rem;color:#D5DCF6}
 .deck-facts li::before{content:"• ";color:#F7B32B}
 .deck-save .deck-kicker,.deck-save-intro .deck-kicker{color:#7EE2A8}
+.deck-head{margin:1.5rem 0 .75rem;font-size:1.25rem}
 .deck-media{width:100%;max-width:100%;max-height:360px;object-fit:contain;border-radius:14px;background:#0F1F5C}
 .deck-video{position:relative;aspect-ratio:16/9;overflow:hidden}
 .deck-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -684,10 +685,6 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <details class="acc">
         <summary><span>Operational support you could get</span><span class="acc-sum">Help running the work</span></summary>
         <div class="acc-body" id="bodyOps"></div>
-      </details>
-      <details class="acc">
-        <summary><span>Expenses you could reduce</span><span class="acc-sum">Group buying and shared costs</span></summary>
-        <div class="acc-body" id="bodySave"></div>
       </details>
       <details class="acc">
         <summary><span>Assets you can put to work</span><span class="acc-sum">What you already have</span></summary>
@@ -1481,25 +1478,15 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     box.hidden = true; box.textContent = "";
     fetch("/api/public/playbook/" + s.id).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
       if (!d || mine !== playbookReq) return;
-      if (d.savings && d.savings.levers){
-        var list = el("ul", "list");
-        d.savings.levers.forEach(function(l){
-          var item = el("li");
-          if (l.cost) item.appendChild(el("span", "hint-line", "You spend on: " + l.cost.toLowerCase() + ". "));
-          if (l.leak) item.appendChild(el("span", "hint-line", l.leak + " "));
-          item.appendChild(el("strong", null, l.title)); item.appendChild(document.createTextNode(": save " + l.saving + ". " + (l.we || "")));
-          list.appendChild(item);
-        });
-        var saveBtn = el("button", "btn btn-line btn-sm", "Enquire now"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
-        setBody("bodySave", [el("p", null, "Where your money goes: " + d.savings.topCosts.join(", ") + ". How we cut each one:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
-      }
       var v = d.videos && d.videos[0], imgs = d.images || [];
       var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
       var low = function(x){ x = String(x || ""); return /^[A-Z]{2}/.test(x) ? x : x.charAt(0).toLowerCase() + x.slice(1); };
       /* The same 5 ways to earn as the welcome email and the dashboard: five different ways, not five versions of one */
       var ways = d.ways || [];
+      /* Two decks: 5 ways to earn, then "Expenses you could reduce" (where the money goes and 5 ways we cut it).
+         The same content as the welcome email and the dashboard. */
       var slides = [];
-      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What you are not using can earn money", body: "Not used today: " + (d.idle || s.a) + ".", sub: "5 ways to earn more, then 5 ways to spend less, one per slide. Press the arrows to see each one.", topic: "Earning more from my business"});
+      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What you are not using can earn money", body: "Not used today: " + (d.idle || s.a) + ".", sub: "5 ways to earn more, one per slide. Press the arrows to see each one.", topic: "Earning more from my business"});
       ways.forEach(function(w, n){
         var img = null;
         (w.examples || []).some(function(ex){ img = imgs.filter(function(i){ return norm(i.title) === norm(ex) || norm(i.title).indexOf(norm(ex)) > -1; })[0]; return !!img; });
@@ -1507,65 +1494,76 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
           facts: w.examples && w.examples.length ? ["For example: " + w.examples.join(", ") + "."] : [],
           img: img, topic: w.title});
       });
-      /* Then where the money goes, and one slide per way we cut it (same as the email and the dashboard) */
+      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Having the idea is easy. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});
+
+      var saveSlides = [];
       var levers = (d.savings && d.savings.levers) || [];
       if (levers.length){
-        slides.push({kind: "save-intro", kicker: "Spend less", title: "Where your money goes",
+        saveSlides.push({kind: "save-intro", kicker: "Expenses you could reduce", title: "Where your money goes",
           body: "Your biggest costs each month: " + d.savings.topCosts.join(", ") + ".",
-          sub: "Next: 5 ways we cut them, one per slide.", topic: "Cutting my costs"});
+          sub: "5 ways we cut them, one per slide.", topic: "Cutting my costs"});
         levers.forEach(function(l, n){
-          slides.push({kind: "save", kicker: "Save " + (n + 1) + " of " + levers.length + (l.cost ? ": " + l.cost.toLowerCase() : ""),
+          saveSlides.push({kind: "save", kicker: "Save " + (n + 1) + " of " + levers.length + (l.cost ? ": " + l.cost.toLowerCase() : ""),
             title: l.title, body: l.we || "We find the right partner and set it all up for you.",
             facts: (l.leak ? ["Where the money goes: " + l.leak] : []).concat(["Save " + l.saving + "."]), topic: "Saving: " + l.title});
         });
+        saveSlides.push({kind: "save", kicker: "What it adds up to", title: "An example", body: d.savings.example,
+          sub: "These numbers are only examples. Enquire and we will work out your real savings from your bills.", topic: "Cutting my costs"});
       }
-      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Earning more and spending less is easy to say. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});
 
-      var row = el("div", "deck");
-      row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", "Opportunities for " + s.n);
-      var stage = el("div", "deck-stage"), nav = el("div", "deck-nav");
-      var prev = el("button", "deck-arrow", "‹"), next = el("button", "deck-arrow", "›"), dots = el("div", "deck-dots"), count = el("span", "deck-count");
-      prev.type = next.type = "button"; prev.setAttribute("aria-label", "Previous slide"); next.setAttribute("aria-label", "Next slide");
-      var at = 0;
-      function show(i){
-        at = (i + slides.length) % slides.length;
-        var sl = slides[at];
-        stage.textContent = "";
-        var slide = el("div", "deck-slide deck-" + sl.kind + (sl.img || (sl.kind === "intro" && v) ? " has-media" : ""));
-        var text = el("div", "deck-text");
-        text.appendChild(el("span", "deck-kicker", sl.kicker));
-        text.appendChild(el("h4", "deck-title", sl.title));
-        text.appendChild(el("p", "deck-body", sl.body));
-        if (sl.sub) text.appendChild(el("p", "deck-sub", sl.sub));
-        if (sl.facts && sl.facts.length){ var ul = el("ul", "deck-facts"); sl.facts.forEach(function(f){ ul.appendChild(el("li", null, f)); }); text.appendChild(ul); }
-        var go = el("button", "btn btn-gold", "Enquire now"); go.type = "button"; go.setAttribute("data-enquire", sl.topic);
-        text.appendChild(go);
-        slide.appendChild(text);
-        if (sl.img){
-          var pic = document.createElement("img"); pic.src = sl.img.thumb; pic.alt = sl.title; pic.className = "deck-media";
-          pic.onerror = function(){ pic.remove(); slide.classList.remove("has-media"); };
-          slide.appendChild(pic);
-        } else if (sl.kind === "intro" && v){
-          var frame = document.createElement("iframe");
-          frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
-          var wrap = el("div", "deck-media deck-video"); wrap.appendChild(frame); slide.appendChild(wrap);
+      function makeDeck(slides, label){
+        var row = el("div", "deck");
+        row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", label);
+        var stage = el("div", "deck-stage"), nav = el("div", "deck-nav");
+        var prev = el("button", "deck-arrow", "‹"), next = el("button", "deck-arrow", "›"), dots = el("div", "deck-dots"), count = el("span", "deck-count");
+        prev.type = next.type = "button"; prev.setAttribute("aria-label", "Previous slide"); next.setAttribute("aria-label", "Next slide");
+        var at = 0;
+        function show(i){
+          at = (i + slides.length) % slides.length;
+          var sl = slides[at];
+          stage.textContent = "";
+          var slide = el("div", "deck-slide deck-" + sl.kind + (sl.img || (sl.kind === "intro" && v) ? " has-media" : ""));
+          var text = el("div", "deck-text");
+          text.appendChild(el("span", "deck-kicker", sl.kicker));
+          text.appendChild(el("h4", "deck-title", sl.title));
+          text.appendChild(el("p", "deck-body", sl.body));
+          if (sl.sub) text.appendChild(el("p", "deck-sub", sl.sub));
+          if (sl.facts && sl.facts.length){ var ul = el("ul", "deck-facts"); sl.facts.forEach(function(f){ ul.appendChild(el("li", null, f)); }); text.appendChild(ul); }
+          var go = el("button", "btn btn-gold", "Enquire now"); go.type = "button"; go.setAttribute("data-enquire", sl.topic);
+          text.appendChild(go);
+          slide.appendChild(text);
+          if (sl.img){
+            var pic = document.createElement("img"); pic.src = sl.img.thumb; pic.alt = sl.title; pic.className = "deck-media";
+            pic.onerror = function(){ pic.remove(); slide.classList.remove("has-media"); };
+            slide.appendChild(pic);
+          } else if (sl.kind === "intro" && v){
+            var frame = document.createElement("iframe");
+            frame.src = v.url; frame.title = s.n + ": 30-second video"; frame.loading = "lazy"; frame.allow = "autoplay"; frame.setAttribute("allowfullscreen", "");
+            var wrap = el("div", "deck-media deck-video"); wrap.appendChild(frame); slide.appendChild(wrap);
+          }
+          stage.appendChild(slide);
+          Array.prototype.forEach.call(dots.children, function(b, k){ b.setAttribute("aria-current", k === at ? "true" : "false"); });
+          count.textContent = (at + 1) + " / " + slides.length;
         }
-        stage.appendChild(slide);
-        Array.prototype.forEach.call(dots.children, function(b, k){ b.setAttribute("aria-current", k === at ? "true" : "false"); });
-        count.textContent = (at + 1) + " / " + slides.length;
+        slides.forEach(function(sl, k){
+          var b = el("button", "deck-dot"); b.type = "button"; b.setAttribute("aria-label", "Slide " + (k + 1) + ": " + sl.title);
+          b.addEventListener("click", function(){ show(k); }); dots.appendChild(b);
+        });
+        prev.addEventListener("click", function(){ show(at - 1); });
+        next.addEventListener("click", function(){ show(at + 1); });
+        row.tabIndex = 0;
+        row.addEventListener("keydown", function(e){ if (e.key === "ArrowLeft") show(at - 1); if (e.key === "ArrowRight") show(at + 1); });
+        nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(count); nav.appendChild(next);
+        row.appendChild(stage); row.appendChild(nav);
+
+        show(0);
+        return row;
       }
-      slides.forEach(function(sl, k){
-        var b = el("button", "deck-dot"); b.type = "button"; b.setAttribute("aria-label", "Slide " + (k + 1) + ": " + sl.title);
-        b.addEventListener("click", function(){ show(k); }); dots.appendChild(b);
-      });
-      prev.addEventListener("click", function(){ show(at - 1); });
-      next.addEventListener("click", function(){ show(at + 1); });
-      row.tabIndex = 0;
-      row.addEventListener("keydown", function(e){ if (e.key === "ArrowLeft") show(at - 1); if (e.key === "ArrowRight") show(at + 1); });
-      nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(count); nav.appendChild(next);
-      row.appendChild(stage); row.appendChild(nav);
-      show(0);
-      box.appendChild(row);
+      box.appendChild(makeDeck(slides, "Ways to earn for " + s.n));
+      if (saveSlides.length){
+        box.appendChild(el("h3", "deck-head", "Expenses you could reduce"));
+        box.appendChild(makeDeck(saveSlides, "Expenses you could reduce for " + s.n));
+      }
       box.hidden = false;
     }).catch(function(){});
   }
@@ -1610,7 +1608,6 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     setBody("bodyProducts", [listBlock(s.p), enq("Products for " + s.n.toLowerCase())]);
     setBody("bodyServices", [listBlock(s.s), enq("Services for " + s.n.toLowerCase())]);
     setBody("bodyOps", [el("p", null, GROUPS[s.g].o)]);
-    setBody("bodySave", [el("p", null, GROUPS[s.g].x)]);
     setBody("bodyAssets", [el("p", null, s.a + "."), enq("Earning from my idle space and time")]);
     var modelList = el("dl", "models-dl");
     s.m.forEach(function(name){

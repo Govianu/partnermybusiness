@@ -35,7 +35,7 @@ function parseAddress(value) {
   return m ? { name: m[1].trim() || undefined, email: m[2].trim() } : { email: String(value || '').trim() };
 }
 
-async function sendViaBrevo({ to, subject, html, text, replyTo, headers }) {
+async function sendViaBrevo({ to, subject, html, text, replyTo, headers, attachments }) {
   const body = {
     sender: parseAddress(fromAddress()),
     to: String(to).split(',').map(x => ({ email: x.trim() })).filter(x => x.email),
@@ -43,7 +43,8 @@ async function sendViaBrevo({ to, subject, html, text, replyTo, headers }) {
     htmlContent: html,
     ...(text ? { textContent: text } : {}),
     ...(replyTo ? { replyTo: parseAddress(replyTo) } : {}),
-    ...(headers ? { headers } : {})
+    ...(headers ? { headers } : {}),
+    ...(attachments?.length ? { attachment: attachments.map(a => ({ name: a.filename, content: require('fs').readFileSync(a.path).toString('base64') })) } : {})
   };
   const res = await fetch(`${BREVO_BASE()}/smtp/email`, {
     method: 'POST',
@@ -56,7 +57,8 @@ async function sendViaBrevo({ to, subject, html, text, replyTo, headers }) {
 }
 
 // headers: optional extra email headers, e.g. List-Unsubscribe on opportunity emails
-async function sendMail({ to, subject, html, text, replyTo, headers }) {
+// attachments: optional [{ filename, path }] (KYC documents to the team inbox)
+async function sendMail({ to, subject, html, text, replyTo, headers, attachments }) {
   if (!to) return { sent: false, reason: 'no recipient' };
   if (!mailConfigured()) {
     fs.mkdirSync(OUTBOX, { recursive: true });
@@ -66,8 +68,8 @@ async function sendMail({ to, subject, html, text, replyTo, headers }) {
     return { sent: false, outbox: file };
   }
   try {
-    if (brevoConfigured()) return { sent: true, id: await sendViaBrevo({ to, subject, html, text, replyTo, headers }) };
-    const info = await getTransporter().sendMail({ from: fromAddress(), to, subject, html, text, replyTo, ...(headers ? { headers } : {}) });
+    if (brevoConfigured()) return { sent: true, id: await sendViaBrevo({ to, subject, html, text, replyTo, headers, attachments }) };
+    const info = await getTransporter().sendMail({ from: fromAddress(), to, subject, html, text, replyTo, ...(headers ? { headers } : {}), ...(attachments?.length ? { attachments } : {}) });
     return { sent: true, id: info.messageId };
   } catch (err) {
     // Email problems must never lose an enquiry: log and carry on

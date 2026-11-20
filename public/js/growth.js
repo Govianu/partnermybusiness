@@ -504,8 +504,11 @@
       const input = dlg.querySelector('#skillAdd');
       const v = input.value.trim();
       if (!v) return;
+      // Already in the list: just pick it, no duplicate chip
+      const existing = [...dlg.querySelectorAll('[data-skill]')].find(c => c.dataset.skill.toLowerCase() === v.toLowerCase());
+      if (existing) { chosen.add(existing.dataset.skill); existing.setAttribute('aria-pressed', 'true'); input.value = ''; err.textContent = ''; return; }
       if (chosen.size >= MAX_SKILLS) { err.textContent = `You can choose up to ${MAX_SKILLS} skills.`; return; }
-      chosen.add(v);
+      chosen.add(v); err.textContent = '';
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pick-chip'; b.dataset.skill = v; b.setAttribute('aria-pressed', 'true'); b.textContent = v;
       dlg.querySelector('.pick').prepend(b);

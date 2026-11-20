@@ -126,4 +126,56 @@ function docPath(user, kind) {
   return { file: path.join(KYC_DIR, d.key), mime: d.mime };
 }
 
-module.exports = { cleanDetails, kycComplete, kycSummary, requireKyc, storeDoc, docPath, validAadhaar, DOCS };
+// Everything filled in goes to the team inbox, with the documents attached: one email a short while after the
+// person stops editing (KYC_NOTIFY_DELAY_MS, default 60s), not one per field or upload
+const pending = new Map();
+function notifyTeam(user) {
+  const id = String(user._id);
+  clearTimeout(pending.get(id));
+  const delay = process.env.KYC_NOTIFY_DELAY_MS !== undefined ? Number(process.env.KYC_NOTIFY_DELAY_MS) : 60000;
+  const t = setTimeout(async () => {
+    pending.delete(id);
+    try {
+      const User = require('../models/User');
+      const u = await User.findById(id);
+      if (u) await sendTeamKyc(u);
+    } catch (err) { console.error('[kyc] team email failed:', err.message); }
+  }, delay);
+  t.unref?.();
+  pending.set(id, t);
+}
+
+async function sendTeamKyc(u) {
+  const { sendMail } = require('./mailer');
+  const { layout, p, esc, TEAM_INBOX, APP_URL } = require('./emails');
+  const k = u.kyc || {};
+  const s = kycSummary(u);
+  const who = u.business?.businessName || u.name;
+  const rows = [
+    ['Partner', `${who}${u.leadId ? ` (${u.leadId})` : ''}`], ['Name', u.name], ['Email', u.email], ['Phone', u.phone || ''],
+    ['Type', u.role === 'associate' ? 'Professional' : u.role === 'buyer' ? 'Buyer' : 'Business'],
+    ['Aadhaar', k.aadhaarLast4 ? `Last 4 digits: ${k.aadhaarLast4} (the full number is never stored)` : 'Not given'],
+    ['PAN', k.pan || 'Not given'], ['Account holder', k.accountName || 'Not given'], ['Bank', k.bankName || ''],
+    ['Account number', k.accountNumber || 'Not given'], ['IFSC', k.ifsc || 'Not given'],
+    ['Documents', Object.entries(DOCS).map(([d, label]) => `${label}: ${k.docs?.[d] ? 'attached' : 'not uploaded'}`).join('; ')],
+    ['Status', s.complete ? 'Complete, ready to verify' : `Still missing: ${s.missing.join(', ')}`]
+  ];
+  const table = `<table style="border-collapse:collapse;width:100%">${rows.map(([a, b]) => `<tr><td style="padding:6px 10px;border-bottom:1px solid #D5DCEC;color:#47537C;font-size:13px;vertical-align:top">${esc(a)}</td><td style="padding:6px 10px;border-bottom:1px solid #D5DCEC;font-size:14px">${esc(b)}</td></tr>`).join('')}</table>`;
+  const attachments = Object.keys(DOCS).map(d => {
+    const f = docPath(u, d);
+    return f && fs.existsSync(f.file) ? { filename: `${d}-${String(who).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.${path.extname(f.file).slice(1)}`, path: f.file } : null;
+  }).filter(Boolean);
+  return sendMail({
+    to: TEAM_INBOX(), subject: `KYC ${s.complete ? 'complete' : 'updated'}: ${who}${u.leadId ? ` [${u.leadId}]` : ''}`,
+    html: layout('KYC details', p(`${esc(who)} filled in their KYC. Check it and mark it verified in the PMB team dashboard (KYC tab).`) + table
+      + p(`<a href="${APP_URL()}/admin#kyc">Open the KYC tab</a>`) + p('<span style="font-size:12px;color:#47537C">Private: PAN, bank and identity documents. Do not forward outside the PMB team.</span>')),
+    attachments
+  });
+}
+
+function kycTeamView(u) {
+  const k = u.kyc || {};
+  return { ...kycSummary(u), pan: k.pan || '', accountNumber: k.accountNumber || '', updatedDocs: k.docs || {} };
+}
+
+module.exports = { kycTeamView, notifyTeam, sendTeamKyc, cleanDetails, kycComplete, kycSummary, requireKyc, storeDoc, docPath, validAadhaar, DOCS };

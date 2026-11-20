@@ -30,6 +30,7 @@
       <a href="#import" data-view="import">Import from Maps</a>
       <a href="#leads" data-view="leads">Leads</a>
       <a href="#profiles" data-view="profiles">Profiles</a>
+      <a href="#kyc" data-view="kyc">KYC</a>
       <a href="#gigs" data-view="gigs">Shifts & workshops</a>
       <a href="#bookings" data-view="bookings">Bookings & splits</a>
     </nav>
@@ -121,6 +122,14 @@
       <div class="table-wrap"><table>
         <thead><tr><th>Handle</th><th>Name</th><th>Contact</th><th>KYC</th><th>Manager</th></tr></thead>
         <tbody id="userRows"></tbody>
+      </table></div>
+    </section>
+
+    <section id="view-kyc" hidden>
+      <div class="view-head"><div><h1>KYC</h1><p>Aadhaar (last 4 digits), PAN, bank details and documents from every partner. Check them, then mark them verified. A copy of each submission also goes to info@.</p></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Partner</th><th>Aadhaar · PAN</th><th>Bank</th><th>Documents</th><th>Status</th></tr></thead>
+        <tbody id="kycRows"></tbody>
       </table></div>
     </section>
 

@@ -18,11 +18,13 @@ router.post('/details', rateLimit(20, 60 * 60 * 1000), async (req, res) => {
   u.kyc = { ...(u.kyc || {}), ...changes };
   delete u.kyc.verifiedAt;
   await u.save();
+  kyc.notifyTeam(u);
   res.json({ kyc: kyc.kycSummary(u) });
 });
 
 router.post('/docs/:kind', rateLimit(20, 60 * 60 * 1000), uploadMiddleware, async (req, res) => {
   await kyc.storeDoc(req.user, req.params.kind, req.file);
+  kyc.notifyTeam(req.user);
   res.json({ kyc: kyc.kycSummary(req.user) });
 });
 
@@ -35,6 +37,15 @@ router.get('/docs/:kind', async (req, res) => {
     'Cache-Control': 'private, no-store', 'Cross-Origin-Resource-Policy': 'same-origin' });
   if (doc.mime === 'application/pdf') res.set('Content-Security-Policy', 'sandbox');
   res.sendFile(doc.file);
+});
+
+// PMB team: everyone who has started KYC, newest first (KYC tab in the team dashboard)
+router.get('/all', requireAuth('admin'), async (req, res) => {
+  const users = (await User.find({})).filter(u => u.kyc && u.role !== 'admin');
+  const latest = u => Math.max(0, ...Object.values(u.kyc.docs || {}).map(d => new Date(d.uploadedAt || 0).getTime()));
+  users.sort((a, b) => latest(b) - latest(a));
+  res.json({ partners: users.map(u => ({ _id: u._id, name: u.name, business: u.business?.businessName || '', role: u.role,
+    email: u.email, phone: u.phone || '', leadId: u.leadId || '', kyc: kyc.kycTeamView(u) })) });
 });
 
 // PMB team: see a partner's KYC (masked) and mark it checked

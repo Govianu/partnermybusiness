@@ -10,6 +10,11 @@ process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'pmb-kyc-'));
 process.env.UPLOAD_DIR = path.join(process.env.DATA_DIR, 'uploads');
 process.env.JWT_SECRET = 'test-secret';
 process.env.NODE_ENV = 'test';
+process.env.KYC_NOTIFY_DELAY_MS = '0';
+
+const mailer = require('../utils/mailer');
+const sent = [];
+mailer.sendMail = async m => { sent.push(m); return { sent: true }; };
 
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -76,4 +81,23 @@ test('documents upload privately; KYC is complete once all are in; the team can 
   const v = await call('POST', `/kyc/user/${u._id}/verify`, team);
   assert.ok(v.body.kyc.verifiedAt);
   assert.equal((await call('POST', `/kyc/user/${u._id}/verify`, other)).status, 403);
+});
+
+test('every KYC submission reaches info@ with the documents, and shows in the team KYC tab', async () => {
+  await new Promise(r => setTimeout(r, 50));
+  const toTeam = sent.filter(m => m.to === 'info@partnermybusiness.ai');
+  assert.ok(toTeam.length >= 1, 'the team inbox got the KYC');
+  const last = toTeam[toTeam.length - 1];
+  assert.match(last.subject, /KYC (complete|updated): Ravi Hall/);
+  assert.match(last.html, /ABCDE1234F/); assert.match(last.html, /50100123456789/); assert.match(last.html, /Last 4 digits: 0124/);
+  assert.equal(last.attachments.length, 3, 'Aadhaar, PAN and bank documents attached');
+  assert.ok(toTeam.length < 6, 'one email per burst of edits, not one per field');
+
+  const team = await User.findOne({ email: 'ops@govianu.com' });
+  const all = await call('GET', '/kyc/all', team);
+  assert.equal(all.status, 200);
+  const row = all.body.partners.find(p => p.email === 'ravi@example.com');
+  assert.equal(row.kyc.pan, 'ABCDE1234F'); assert.ok(row.kyc.verifiedAt);
+  const other = await User.findOne({ email: 'asha@example.com' });
+  assert.equal((await call('GET', '/kyc/all', other)).status, 403);
 });

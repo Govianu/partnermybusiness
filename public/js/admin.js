@@ -100,9 +100,21 @@
     const b = e.target.closest('[data-kyc-verify]');
     if (!b) return;
     b.disabled = true;
-    try { await api(`/kyc/user/${b.dataset.kycVerify}/verify`, { method: 'POST' }); toast('KYC marked verified'); loadUsers(); }
+    try { await api(`/kyc/user/${b.dataset.kycVerify}/verify`, { method: 'POST' }); toast('KYC marked verified'); loadUsers(); if (document.getElementById('kycRows')) loadKyc(); }
     catch (err) { toast(err.message, true); b.disabled = false; }
   });
+
+  async function loadKyc() {
+    const { partners } = await api('/kyc/all');
+    const docLink = (p, d, label) => p.kyc.docs[d] ? `<a href="/api/kyc/docs/${d}?user=${p._id}" target="_blank" rel="noopener">${label}</a>` : `<span class="meta">${label}: missing</span>`;
+    document.getElementById('kycRows').innerHTML = partners.map(p => `<tr>
+      <td><strong>${esc(p.business || p.name)}</strong>${p.leadId ? ` <code class="handle">${esc(p.leadId)}</code>` : ''}<div class="meta">${esc(p.name)} · ${esc(p.email)}<br>${esc(p.phone)}</div></td>
+      <td>${esc(p.kyc.aadhaar || 'Aadhaar missing')}<br>${esc(p.kyc.pan || 'PAN missing')}</td>
+      <td>${esc(p.kyc.accountName || '')}<br>${esc(p.kyc.bankName || '')} ${esc(p.kyc.accountNumber || 'Account missing')}<br>${esc(p.kyc.ifsc || '')}</td>
+      <td>${docLink(p, 'aadhaar', 'Aadhaar')}<br>${docLink(p, 'pan', 'PAN card')}<br>${docLink(p, 'bank', 'Cheque/passbook')}</td>
+      <td>${p.kyc.verifiedAt ? '<span class="pill approved">Verified</span>' : p.kyc.complete ? `<button class="btn small" type="button" data-kyc-verify="${p._id}">Mark verified</button>` : `<span class="pill pending">Missing</span><div class="meta">${esc(p.kyc.missing.join(', '))}</div>`}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty"><strong>No KYC yet</strong>Partners fill it in from their Profile.</td></tr>';
+  }
 
   async function loadUsers() {
     const p = new URLSearchParams();
@@ -353,7 +365,7 @@
   // Keep the queues fresh while the Marketplace section is open
   setInterval(() => { if (!document.getElementById('view-market').hidden && !document.hidden) loadMarket().catch(() => {}); }, 60000);
 
-  const loaders = { market: loadMarket, overview: loadOverview, enquiries: loadEnquiries, leads: loadLeads, profiles: loadUsers, gigs: loadGigs, bookings: loadBookings };
+  const loaders = { market: loadMarket, overview: loadOverview, enquiries: loadEnquiries, leads: loadLeads, profiles: loadUsers, kyc: loadKyc, gigs: loadGigs, bookings: loadBookings };
   initViews(name => loaders[name] && loaders[name]().catch(err => toast(err.message, true)));
   loadMarket().catch(() => {}); // waiting-review badge in the menu
   loadOverview().catch(() => {});
