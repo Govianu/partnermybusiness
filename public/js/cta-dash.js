@@ -26,20 +26,39 @@
     } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; }
   }
 
+  const PITCH = 'Having the idea is easy. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.';
+
+  // 5 different ways to earn, the same as in their welcome email
+  async function renderWays(el, ctx) {
+    if (!el) return;
+    try {
+      const { ways } = await load();
+      if (!ways || !ways.length) { el.innerHTML = ''; return; }
+      el.innerHTML = `<div class="section-title"><h2>5 ways to earn more</h2></div>
+        <div class="save-grid">${ways.map((w, i) => `<article class="save-card">
+          <span class="save-n">${i + 1}</span>
+          <h3>${esc(w.title)}</h3>
+          <p>${esc(w.line)}</p>
+          ${w.examples.length ? `<p class="save-eg">For example: ${esc(w.examples.join(', '))}.</p>` : ''}
+        </article>`).join('')}</div>
+        <div class="save-example">${esc(PITCH)}</div>
+        <button class="btn" type="button" data-earn-plan>Talk to my PMB manager</button>`;
+      el.querySelector('[data-earn-plan]').addEventListener('click', () => Growth.openCtaDialog(ctx, { action: 'launch_idea', topic: 'Ways to earn more' }));
+    } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; }
+  }
+
   async function renderSavings(el, ctx) {
     if (!el) return;
     try {
       const { savings: s } = await load();
       if (!s) { el.innerHTML = ''; return; }
-      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Top costs for ${esc(s.label.toLowerCase())}: ${esc(s.topCosts.join(', '))}. Knowing where to save is easy. Getting the supplier, the volume rate or the right partner to say yes is the hard part, and that is what we do.</p>
+      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Your biggest costs: ${esc(s.topCosts.join(', '))}. Here is how you can spend less on them.</p>
         <div class="save-grid">${s.levers.map((l, i) => `<article class="save-card">
           <span class="save-n">${i + 1}</span>
           <h3>${esc(l.title)}</h3>
-          <strong>${esc(l.saving)}</strong>
-          <p class="save-alone"><span>Alone</span>${esc(l.alone)}</p>
-          <p class="save-us"><span>With PMB</span>${esc(l.withUs)}</p>
+          <strong>Save ${esc(l.saving)}</strong>
         </article>`).join('')}</div>
-        <div class="save-example"><span>Example</span>${esc(s.example)} <span class="meta">Illustrative. Share your top 5 monthly expenses and your PMB manager shows you the suppliers, rates and partners for your real numbers.</span></div>
+        <div class="save-example"><span>Example</span>${esc(s.example)} <span class="meta">These numbers are only examples. Send us your 5 biggest monthly costs and we will show you what you can really save. We find the suppliers and partners and set it all up.</span></div>
         <button class="btn" type="button" data-save-plan>Get my savings plan</button>`;
       el.querySelector('[data-save-plan]').addEventListener('click', () => Growth.openCtaDialog(ctx, { action: 'save_costs', topic: 'Cost-saving plan' }));
     } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; }
@@ -98,6 +117,7 @@
   function mount(ctx, user) {
     leadBadge(user);
     renderMyCta(document.getElementById('myCta'));
+    renderWays(document.getElementById('waysBox'), ctx);
     renderSavings(document.getElementById('savingsBox'), ctx);
     renderMedia(document.getElementById('mediaBox'));
     if (ctx.isPro) renderFinance(document.getElementById('financeBox'), ctx);

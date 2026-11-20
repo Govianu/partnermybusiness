@@ -1478,34 +1478,25 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       if (!d || mine !== playbookReq) return;
       if (d.savings && d.savings.levers){
         var list = el("ul", "list");
-        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title + " (" + l.saving + "). ")); item.appendChild(document.createTextNode("With PMB: " + l.withUs)); list.appendChild(item); });
+        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title)); item.appendChild(document.createTextNode(": save " + l.saving)); list.appendChild(item); });
         var saveBtn = el("button", "btn btn-line btn-sm", "Enquire now"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
-        setBody("bodySave", [el("p", null, "Top costs: " + d.savings.topCosts.join(", ") + ". Knowing where to save is easy; getting the supplier, the volume rate or the partner to say yes is the hard part. That is what we do:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
+        setBody("bodySave", [el("p", null, "Your biggest costs: " + d.savings.topCosts.join(", ") + ". 5 ways to spend less on them:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
       }
       var v = d.videos && d.videos[0], imgs = d.images || [];
       var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
       var low = function(x){ x = String(x || ""); return /^[A-Z]{2}/.test(x) ? x : x.charAt(0).toLowerCase() + x.slice(1); };
-      var details = (d.details || (d.opportunities || []).map(function(o){ return {name: o}; })).slice(0, 10);
-            /* Different words on every slide about what the idle space or time is used for */
-      var LINES = [
-        function(o){ return "Earn from the hours your space sits empty: " + low(o) + "."; },
-        function(o){ return o + " turns idle time into steady income."; },
-        function(o){ return "Put what sits idle to work with " + low(o) + "."; },
-        function(o){ return "Your space can host " + low(o) + ", with partners we bring in."; },
-        function(o){ return "Add " + low(o) + " without changing how you run today."; },
-        function(o){ return "Customers already come to you. Offer them " + low(o) + " too."; },
-        function(o){ return "Fill the quiet hours with " + low(o) + "."; }
-      ];
-      /* One deck, one slide at a time, like a presentation */
+      /* The same 5 ways to earn as the welcome email and the dashboard: five different ways, not five versions of one */
+      var ways = d.ways || [];
       var slides = [];
-      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What sits idle can earn", body: "What sits idle today: " + (d.idle || s.a) + ".", sub: details.length + " ways to put it to work, one per slide. Press the arrows to see each one.", topic: "Earning from my idle space and time"});
-      details.forEach(function(o, n){
-        var img = imgs.filter(function(i){ return norm(i.title) === norm(o.name) || norm(i.title).indexOf(norm(o.name)) > -1; })[0];
-        slides.push({kind: "opp", kicker: "Opportunity " + (n + 1) + " of " + details.length, title: o.name, body: LINES[n % LINES.length](o.name),
-          facts: ["Uses: " + (d.idle || s.a)].concat(o.investment ? ["Investment to start: " + o.investment, "First revenue in " + o.time, n % 2 ? "Partners we bring: " + (d.partners || "") : "We bring the partners, the agreement and the payments"] : []),
-          img: img, topic: o.name});
+      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What you are not using can earn money", body: "Not used today: " + (d.idle || s.a) + ".", sub: "5 ways to earn more, one per slide. Press the arrows to see each one.", topic: "Earning more from my business"});
+      ways.forEach(function(w, n){
+        var img = null;
+        (w.examples || []).some(function(ex){ img = imgs.filter(function(i){ return norm(i.title) === norm(ex) || norm(i.title).indexOf(norm(ex)) > -1; })[0]; return !!img; });
+        slides.push({kind: "opp", kicker: "Way " + (n + 1) + " of " + ways.length, title: w.title, body: w.line,
+          facts: w.examples && w.examples.length ? ["For example: " + w.examples.join(", ") + "."] : [],
+          img: img, topic: w.title});
       });
-      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "The idea is the easy part. The partner, the agreement, the customers and the payments are the hard part, and that is what we do. Your part: say yes to the slot.", sub: "Enquire now. Your PMB manager shows you which partner, the exact split and your first-month numbers.", topic: ""});
+      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Having the idea is easy. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});
 
       var row = el("div", "deck");
       row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", "Opportunities for " + s.n);

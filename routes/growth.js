@@ -53,7 +53,8 @@ router.get('/community', async (req, res) => {
 router.get('/my-cta', async (req, res) => {
   const { ctaFor, renderCta } = require('../utils/cta');
   const c = ctaFor({ user: req.user });
-  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings: c?.savings || null });
+  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings: c?.savings || null,
+    ways: (() => { const { planFor } = require('../utils/cta'); return planFor(req.user)?.ways || null; })() });
 });
 
 router.get('/', async (req, res) => {

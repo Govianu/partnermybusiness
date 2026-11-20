@@ -13,8 +13,7 @@ const { issueLink } = require('./links');
 const { layout, p, button, esc, firstName, APP_URL, TEAM_INBOX, PHONE } = require('./emails');
 const { playbookFor, imageFor } = require('./playbook');
 const { costSavingFor } = require('./costSaving');
-const { PITCH } = require('./pitch');
-const { assess } = require('./cta');
+const { PITCH, waysToEarn } = require('./pitch');
 
 const STEPS = 10;
 const DAY = 24 * 60 * 60 * 1000;
@@ -52,19 +51,17 @@ const image = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" width="504
 function revenueEmail(user, k, pb) {
   const isPro = pb.sector.t === 'p';
   const name = isPro ? 'you' : (user.business?.businessName || `your ${pb.sector.noun}`);
-  const all = pb.opportunities.concat(pb.moreOpportunities);
-  const opp = all[(k - 1) % all.length];
-  const a = assess(opp);
-  const creative = imageFor(pb, opp);
+  const way = waysToEarn(pb)[(k - 1) % 5];
+  const creative = way.examples[0] ? imageFor(pb, way.examples[0]) : null;
   return {
-    subject: k === 1 && pb.hook ? `${pb.hook.replace(/\.$/, '')}: ${opp.toLowerCase()} for ${name}` : `${opp} ${isPro ? 'for you' : `at ${name}`}?`,
-    title: `${opp}`,
-    body: (k === 1 ? p(`${isPro ? 'Your skills and spare hours' : `What sits idle at ${esc(name)} today`}: <strong>${esc(pb.idle)}</strong>. Here’s one way to put ${isPro ? 'them' : 'it'} to work.`) : '')
-      + (creative ? image(creative.url.replace(/w=\d+$/, 'w=1000'), `${opp}: how it works`) : '')
-      + p(`<strong>Opportunity ${k} of 5: ${esc(opp)}.</strong> It needs a partner to run it, a written agreement, customers and billing. We bring all four: the partners (${esc(pb.partners)}), the terms, the bookings and the payments.`)
-      + li([`Investment to start: ${a.investment}`, `Time to first revenue: ${a.time}`, `Feasibility: ${a.feasibility}`])
-      + p(`${esc(PITCH.deal)} ${muted(esc(PITCH.call))}`),
-    cta: 'Show me how this works'
+    subject: isPro ? `Way ${k} to earn more: ${lower(way.title)}` : `${name}: way ${k} to earn more, ${lower(way.title)}`,
+    title: way.title,
+    body: p(`<strong>Way ${k} of 5 to earn more ${isPro ? '' : `at ${esc(name)}`}: ${esc(lower(way.title))}.</strong>`)
+      + p(esc(way.line))
+      + (way.examples.length ? p(`For example: ${esc(way.examples.join(', '))}.`) : '')
+      + (creative ? image(creative.url.replace(/w=\d+$/, 'w=1000'), way.title) : '')
+      + p(`${esc(PITCH.hook)} <strong>${esc(PITCH.deal)}</strong>`),
+    cta: 'Talk to my PMB manager'
   };
 }
 
@@ -74,11 +71,10 @@ function savingEmail(user, k, savings) {
   return {
     subject: /^(\d|up to)/i.test(lever.saving) ? `Save ${lower(lever.saving)}: ${lower(lever.title)}` : `${lever.title}: ${lower(lever.saving)}`,
     title: `Cut costs: ${lever.title}`,
-    body: p(`Earning more is half of it. The other half is spending less. Here’s cost-saving idea ${k} of 5 for ${esc(lower(savings.label))}:`)
-      + p(`<strong>${esc(lever.title)}.</strong> Typical saving: ${esc(lever.saving)}.`)
-      + li([`Doing it alone: ${lever.alone}`, `With PMB: ${lever.withUs}`])
+    body: p(`Earning more is half of it. The other half is spending less. Here is money-saving idea ${k} of 5:`)
+      + p(`<strong>${esc(lever.title)}</strong>: save ${esc(lever.saving)}.`)
       + (k === 1 ? p(`<strong>For example:</strong> ${esc(savings.example)} ${muted('Illustrative.')}`) : '')
-      + p(`Partnership is collaboration, not competition: we match you with partners on both sides so everyone’s costs come down. Send us your top 5 monthly expenses and we’ll work out your real numbers.`)
+      + p(`We find the suppliers and partners and set it all up. Send us your 5 biggest monthly costs and we will show you what you can really save.`)
       + (last ? p(`That’s the last of these emails. The quickest way to start is one pilot: press the button and we’ll call you to pick it. Or reply, or call ${PHONE}.`) : ''),
     cta: last ? 'Help me launch one' : 'Get my savings plan'
   };

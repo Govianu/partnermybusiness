@@ -57,10 +57,12 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
   assert.match(mail.html, /letter-spacing:8px[^>]*>\d{6}</, 'has the code');
   assert.match(mail.html, /activate\.html\?token=[a-f0-9]{64}/, 'has the one-tap dashboard button');
   // Pitched, not a recipe: what it takes and that PMB does it, never the internal how-to notes
-  for (const part of ['We bring all four', 'Partner we bring', 'With PMB:', 'say yes to the slot'])
+  // Five different ways to earn, not five versions of renting out the same hours
+  for (const part of ['Rent out your space when it is empty', 'Let brands advertise in your place', 'Sell more to the customers you already have', 'Get big orders from companies', 'Earn from sending customers to partners', 'You just say yes'])
     assert.ok(mail.html.includes(part), `email pitches: ${part}`);
   assert.ok(!mail.html.includes('Milk, vegetables and staples straight from farms'), 'no do-it-yourself steps');
-  for (const part of ['5 ways to earn more', 'Cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
+  for (const w of ['Partner we bring', 'With PMB:', 'Alone:']) assert.ok(!mail.html.includes(w), `no repeated "${w}" lines`);
+  for (const part of ['5 ways to earn more', 'cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
     assert.ok(mail.html.includes(part), `email has: ${part}`);
 
   // The team gets everything, even though no opportunity was picked

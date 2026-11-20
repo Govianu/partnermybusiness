@@ -4,6 +4,7 @@
 // ctaFor() still gathers the type's research, which the dashboard uses for media and cost saving.
 const { playbookFor } = require('./playbook');
 const { costSavingFor } = require('./costSaving');
+const { waysToEarn } = require('./pitch');
 const { plural, withArticle } = require('./catalog');
 const { TERMS_VERSION } = require('./terms');
 
@@ -123,14 +124,14 @@ async function sendCtaEmail(user) {
   }
 }
 
-// The plan sent in the sign-up email and to the team: what sits idle, 5 opportunities and 5 ways to save
+// The plan in the sign-up email and the dashboard: 5 different ways to earn and 5 ways to save
 function planFor(user) {
   const pb = playbookFor(user);
   if (!pb) return null;
   const savings = costSavingFor(user);
   return {
-    type: pb.type, idle: pb.idle, partners: pb.partners,
-    opportunities: pb.opportunities.concat(pb.moreOpportunities).slice(0, 5).map(o => ({ name: o, ...assess(o) })),
+    type: pb.type, idle: pb.idle,
+    ways: waysToEarn(pb),
     savings: { label: savings.label, levers: savings.levers.slice(0, 5), example: savings.example }
   };
 }

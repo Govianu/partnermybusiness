@@ -111,7 +111,8 @@ router.get('/playbook/:sectorId', (req, res) => {
   const sv = costSavingFor(pb.sector.id);
   const { assess } = require('../utils/cta');
   const all = pb.opportunities.concat(pb.moreOpportunities);
-  res.json({ type: pb.type, idle: pb.idle, hook: pb.hook, opportunities: all, details: all.map(o => ({ name: o, ...assess(o) })), partners: pb.partners,
+  const { waysToEarn } = require('../utils/pitch');
+  res.json({ type: pb.type, idle: pb.idle, hook: pb.hook, ways: waysToEarn(pb), opportunities: all, details: all.map(o => ({ name: o, ...assess(o) })), partners: pb.partners,
     videos: pb.videos.slice(0, 3), images: pb.images.slice(0, 10),
     savings: { label: sv.label, topCosts: sv.topCosts, levers: sv.levers, example: sv.example } });
 });
