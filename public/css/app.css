@@ -277,3 +277,10 @@ td select, td input { padding: .35rem .5rem; font-size: .85rem; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 #kycBox input::placeholder { text-transform: none; }
+
+.lead-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem; margin: 1rem 0 .6rem; }
+.lead-check { display: inline-flex; align-items: center; gap: .4rem; font-size: .92rem; cursor: pointer; }
+.btn.danger { background: #B42318; border-color: #B42318; color: #fff; }
+.btn.ghost.danger { background: transparent; color: #B42318; }
+.btn.danger:disabled { opacity: .45; cursor: not-allowed; }
+.lead-check { white-space: nowrap; width: auto; margin: 0; font-weight: 500; } .lead-check input { width: auto; margin: 0; }

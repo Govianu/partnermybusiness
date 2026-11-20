@@ -165,6 +165,35 @@ router.patch('/leads/:id', async (req, res) => {
   res.json({ lead });
 });
 
+// Delete leads (e.g. test sign-ups). With withAccounts, the dashboards behind them go too: the account, its
+// ideas, enquiries, uploads and KYC files. Team (admin) accounts are never deleted here.
+router.post('/leads/delete', async (req, res) => {
+  const ids = (Array.isArray(req.body?.ids) ? req.body.ids : []).map(String).slice(0, 500);
+  if (!ids.length) throw fail('Choose at least one lead');
+  const leads = await Lead.find({ _id: { $in: ids } });
+  let accounts = 0;
+  if (req.body?.withAccounts === true) {
+    const { removeStoredUpload } = require('../utils/mediaUpload');
+    const kyc = require('../utils/kyc');
+    const fs = require('fs');
+    const userIds = [...new Set(leads.map(l => String(l.relatedUser?._id || l.relatedUser || '')).filter(Boolean))];
+    for (const id of userIds) {
+      const u = await User.findById(id);
+      if (!u || u.role === 'admin') continue;
+      for (const m of await Media.find({ owner: u._id })) if (m.storageKey) await removeStoredUpload(m.storageKey).catch(() => {});
+      await Media.deleteMany({ owner: u._id });
+      for (const d of Object.keys(kyc.DOCS)) { const f = kyc.docPath(u, d); if (f) fs.promises.unlink(f.file).catch(() => {}); }
+      await Opportunity.deleteMany({ business: u._id });
+      if (u.email) await Enquiry.deleteMany({ email: u.email });
+      await User.deleteMany({ _id: u._id });
+      accounts++;
+    }
+  }
+  const { deletedCount } = await Lead.deleteMany({ _id: { $in: leads.map(l => l._id) } });
+  console.log(`[admin] ${req.user.email} deleted ${deletedCount} lead(s) and ${accounts} account(s)`);
+  res.json({ leads: deletedCount, accounts });
+});
+
 // ---------- Gigs ----------
 router.get('/gigs', async (req, res) => {
   const gigs = await Gig.find()

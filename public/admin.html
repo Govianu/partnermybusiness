@@ -105,8 +105,13 @@
           <button class="btn" type="submit">Add lead</button>
         </form>
       </details>
+      <div class="lead-tools">
+        <label class="lead-check"><input type="checkbox" id="leadAll"> Select all</label>
+        <label class="lead-check"><input type="checkbox" id="leadWithAccounts" checked> Also delete their accounts and dashboards</label>
+        <button class="btn small danger" type="button" id="leadDelete" disabled>Delete selected</button>
+      </div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Lead</th><th>Source</th><th>Stage</th><th>Last update</th><th>Move to</th></tr></thead>
+        <thead><tr><th style="width:2.2rem"><span class="sr-only">Select</span></th><th>Lead</th><th>Source</th><th>Stage</th><th>Last update</th><th>Move to</th></tr></thead>
         <tbody id="leadRows"></tbody>
       </table></div>
     </section>

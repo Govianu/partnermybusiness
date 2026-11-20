@@ -65,6 +65,7 @@
       ? d.leads.map(l => {
           const last = l.history[l.history.length - 1] || {};
           return `<tr>
+            <td><input type="checkbox" data-lead-pick="${l._id}" aria-label="Select ${esc(l.name)}"></td>
             <td>${l.leadId ? `<code class="handle">${esc(l.leadId)}</code><br>` : ''}<strong>${esc(l.name)}</strong>${l.company ? `<div class="meta">${esc(l.company)}</div>` : ''}<div class="meta">${esc(l.phone || '')} ${esc(l.email || '')}</div>
               ${l.relatedUser?.handle ? `<code class="handle">${handleHtml(l.relatedUser.handle)}</code>` : ''}</td>
             <td>${esc(l.source)}</td>
@@ -75,10 +76,39 @@
               <select data-stage-for="${l._id}">${stages.map(s => `<option value="${s}" ${s === l.stage ? 'selected' : ''}>${pretty(s)}</option>`).join('')}</select>
               <input data-note-for="${l._id}" placeholder="Note" style="margin-top:.35rem">
               <button class="btn small" data-move="${l._id}" style="margin-top:.35rem">Update stage</button>
+              <button class="btn small ghost danger" type="button" data-lead-del="${l._id}" style="margin-top:.35rem">Delete</button>
             </td></tr>`;
         }).join('')
-      : '<tr><td colspan="5" class="empty"><strong>No leads here</strong>Imports and booking requests create leads automatically.</td></tr>';
+      : '<tr><td colspan="6" class="empty"><strong>No leads here</strong>Imports and booking requests create leads automatically.</td></tr>';
+    document.getElementById('leadAll').checked = false;
+    syncLeadDelete();
   }
+
+  // Delete leads (e.g. test sign-ups), one or many, optionally with the accounts behind them
+  const leadDeleteBtn = document.getElementById('leadDelete');
+  const picked = () => [...document.querySelectorAll('[data-lead-pick]:checked')].map(x => x.dataset.leadPick);
+  function syncLeadDelete() {
+    const n = picked().length;
+    leadDeleteBtn.disabled = !n;
+    leadDeleteBtn.textContent = n ? `Delete ${n} selected` : 'Delete selected';
+  }
+  async function deleteLeads(ids) {
+    const withAccounts = document.getElementById('leadWithAccounts').checked;
+    if (!confirm(`Delete ${ids.length} lead${ids.length === 1 ? '' : 's'}${withAccounts ? ' and the accounts and dashboards behind them' : ''}? This cannot be undone.`)) return;
+    const r = await api('/admin/leads/delete', { method: 'POST', body: { ids, withAccounts } });
+    toast(`Deleted ${r.leads} lead${r.leads === 1 ? '' : 's'}${r.accounts ? ` and ${r.accounts} account${r.accounts === 1 ? '' : 's'}` : ''}`);
+    loadLeads();
+  }
+  document.getElementById('leadAll').addEventListener('change', e => {
+    document.querySelectorAll('[data-lead-pick]').forEach(x => { x.checked = e.target.checked; });
+    syncLeadDelete();
+  });
+  document.getElementById('leadRows').addEventListener('change', e => { if (e.target.matches('[data-lead-pick]')) syncLeadDelete(); });
+  document.getElementById('leadRows').addEventListener('click', e => {
+    const b = e.target.closest('[data-lead-del]');
+    if (b) deleteLeads([b.dataset.leadDel]).catch(err => toast(err.message, true));
+  });
+  leadDeleteBtn.addEventListener('click', () => deleteLeads(picked()).catch(err => toast(err.message, true)));
   stageFilter.addEventListener('change', loadLeads);
   onSubmit(document.getElementById('leadForm'), async (data, form) => {
     await api('/admin/leads', { method: 'POST', body: data });

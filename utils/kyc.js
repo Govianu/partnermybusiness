@@ -166,7 +166,7 @@ async function sendTeamKyc(u) {
     return f && fs.existsSync(f.file) ? { filename: `${d}-${String(who).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.${path.extname(f.file).slice(1)}`, path: f.file } : null;
   }).filter(Boolean);
   return sendMail({
-    to: TEAM_INBOX(), subject: `KYC ${s.complete ? 'complete' : 'updated'}: ${who}${u.leadId ? ` [${u.leadId}]` : ''}`,
+    to: [...new Set(['info@partnermybusiness.ai', TEAM_INBOX()])].join(','), subject: `KYC ${s.complete ? 'complete' : 'updated'}: ${who}${u.leadId ? ` [${u.leadId}]` : ''}`,
     html: layout('KYC details', p(`${esc(who)} filled in their KYC. Check it and mark it verified in the PMB team dashboard (KYC tab).`) + table
       + p(`<a href="${APP_URL()}/admin#kyc">Open the KYC tab</a>`) + p('<span style="font-size:12px;color:#47537C">Private: PAN, bank and identity documents. Do not forward outside the PMB team.</span>')),
     attachments
