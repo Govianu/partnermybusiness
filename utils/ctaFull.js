@@ -107,7 +107,8 @@ const SECTIONS = [
     'Disputes are first discussed in good faith for 15 days, then go to a sole arbitrator in Bengaluru, in English, under Indian law.'] }
 ];
 
-// One line each, all unticked to start. The required ones must all be ticked to accept.
+// What they agree to, one line each. The form shows these as a list with one "I agree" box at the end;
+// each line is still recorded separately.
 const CONSENTS = [
   { id: 'terms', required: true, label: 'I have read and agree to the PMB Partner Terms and my Deal Sheet.' },
   { id: 'authorised', required: true, label: 'I am allowed to accept these terms for myself or this business.' },
@@ -143,9 +144,12 @@ function ctaFull(user) {
 function acceptCta(user, body, req) {
   const { fail } = require('./http');
   if (body.version !== CTA_VERSION) throw fail('These terms were updated. Reload the page and read them again.', 409);
-  const ticked = body.consents || {};
+  // One box at the end ("I agree to all of the above") ticks every required point; optional ones start off
+  const ticked = body.agreeAll === true
+    ? Object.fromEntries(CONSENTS.map(c => [c.id, c.required || body.consents?.[c.id] === true]))
+    : (body.consents || {});
   const missing = CONSENTS.filter(c => c.required && ticked[c.id] !== true);
-  if (missing.length) throw fail(`Tick all the required boxes to accept (${missing.length} left).`);
+  if (missing.length) throw fail(body.agreeAll !== undefined ? 'Tick "I agree" to accept.' : `Tick all the required boxes to accept (${missing.length} left).`);
   const name = String(body.name || '').trim().slice(0, 120);
   if (name.length < 3) throw fail('Type your full name to sign');
   const at = new Date();

@@ -284,3 +284,5 @@ td select, td input { padding: .35rem .5rem; font-size: .85rem; }
 .btn.ghost.danger { background: transparent; color: #B42318; }
 .btn.danger:disabled { opacity: .45; cursor: not-allowed; }
 .lead-check { white-space: nowrap; width: auto; margin: 0; font-weight: 500; } .lead-check input { width: auto; margin: 0; }
+
+.kyc-send { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line, #D5DCEC); }

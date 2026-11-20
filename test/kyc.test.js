@@ -10,7 +10,6 @@ process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'pmb-kyc-'));
 process.env.UPLOAD_DIR = path.join(process.env.DATA_DIR, 'uploads');
 process.env.JWT_SECRET = 'test-secret';
 process.env.NODE_ENV = 'test';
-process.env.KYC_NOTIFY_DELAY_MS = '0';
 
 const mailer = require('../utils/mailer');
 const sent = [];
@@ -83,21 +82,31 @@ test('documents upload privately; KYC is complete once all are in; the team can 
   assert.equal((await call('POST', `/kyc/user/${u._id}/verify`, other)).status, 403);
 });
 
-test('every KYC submission reaches info@ with the documents, and shows in the team KYC tab', async () => {
-  await new Promise(r => setTimeout(r, 50));
-  const toTeam = sent.filter(m => m.to === 'info@partnermybusiness.ai');
-  assert.ok(toTeam.length >= 1, 'the team inbox got the KYC');
-  const last = toTeam[toTeam.length - 1];
+test('"All filled, send to PMB" emails info@ with the documents, and it shows in the team KYC tab', async () => {
+  assert.equal(sent.filter(m => /KYC/.test(m.subject)).length, 0, 'nothing is sent while they are still filling it in');
+  const half = await User.create({ role: 'associate', name: 'Half Done', email: 'half@example.com', status: 'approved' });
+  const no = await call('POST', '/kyc/submit', half);
+  assert.equal(no.status, 400); assert.match(no.body.error, /Fill in everything first/);
+
+  const u = await User.findOne({ email: 'ravi@example.com' });
+  const r = await call('POST', '/kyc/submit', u);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.ok(r.body.kyc.submittedAt);
+  const toTeam = sent.filter(m => String(m.to).includes('info@partnermybusiness.ai'));
+  assert.equal(toTeam.length, 1, 'one email, when they press the button');
+  const last = toTeam[0];
   assert.match(last.subject, /KYC (complete|updated): Ravi Hall/);
   assert.match(last.html, /ABCDE1234F/); assert.match(last.html, /50100123456789/); assert.match(last.html, /Last 4 digits: 0124/);
   assert.equal(last.attachments.length, 3, 'Aadhaar, PAN and bank documents attached');
-  assert.ok(toTeam.length < 6, 'one email per burst of edits, not one per field');
+  // Changing anything afterwards means sending again
+  await call('POST', '/kyc/details', u, { bankName: 'HDFC Bank' });
+  assert.equal((await call('GET', '/kyc', u)).body.kyc.submittedAt, null);
 
   const team = await User.findOne({ email: 'ops@govianu.com' });
   const all = await call('GET', '/kyc/all', team);
   assert.equal(all.status, 200);
   const row = all.body.partners.find(p => p.email === 'ravi@example.com');
-  assert.equal(row.kyc.pan, 'ABCDE1234F'); assert.ok(row.kyc.verifiedAt);
+  assert.equal(row.kyc.pan, 'ABCDE1234F'); assert.equal(row.kyc.verifiedAt, null, 'changed after checking: the team checks it again');
   const other = await User.findOne({ email: 'asha@example.com' });
   assert.equal((await call('GET', '/kyc/all', other)).status, 403);
 });

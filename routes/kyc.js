@@ -17,15 +17,29 @@ router.post('/details', rateLimit(20, 60 * 60 * 1000), async (req, res) => {
   if (!Object.keys(changes).length) throw fail('Fill in at least one detail');
   u.kyc = { ...(u.kyc || {}), ...changes };
   delete u.kyc.verifiedAt;
+  delete u.kyc.submittedAt;   // changed after sending: they send it again
   await u.save();
-  kyc.notifyTeam(u);
   res.json({ kyc: kyc.kycSummary(u) });
 });
 
 router.post('/docs/:kind', rateLimit(20, 60 * 60 * 1000), uploadMiddleware, async (req, res) => {
   await kyc.storeDoc(req.user, req.params.kind, req.file);
-  kyc.notifyTeam(req.user);
+  if (req.user.kyc.submittedAt) { delete req.user.kyc.submittedAt; await req.user.save(); }
   res.json({ kyc: kyc.kycSummary(req.user) });
+});
+
+// "All filled, send to PMB": everything goes to info@partnermybusiness.ai with the documents attached
+router.post('/submit', rateLimit(10, 60 * 60 * 1000), async (req, res) => {
+  const u = req.user;
+  if (!kyc.kycComplete(u)) throw fail(`Fill in everything first: ${kyc.kycSummary(u).missing.join(', ')}.`);
+  const result = await kyc.sendTeamKyc(u);
+  if (result?.error) {
+    const { sendFailureMessage } = require('../utils/mailer');
+    throw fail(sendFailureMessage(result.error, 'info@partnermybusiness.ai').replace('the code', 'your KYC'), 503);
+  }
+  u.kyc.submittedAt = new Date().toISOString();
+  await u.save();
+  res.json({ kyc: kyc.kycSummary(u) });
 });
 
 // The document itself: its owner, or the PMB team (?user=<id>)

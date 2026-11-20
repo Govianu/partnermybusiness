@@ -288,3 +288,5 @@
 .cta-check { display: flex; gap: .6rem; align-items: flex-start; padding: .45rem 0; line-height: 1.45; cursor: pointer; }
 .cta-check input { margin-top: .25rem; width: 1.1rem; height: 1.1rem; flex: none; }
 @media (max-width: 600px) { .cta-sheet th { width: 40%; } }
+.cta-points { margin: 0 0 1rem; padding-left: 1.2rem; line-height: 1.6; font-size: .95rem; }
+.cta-agree { margin: .25rem 0 1rem; padding: .75rem .9rem; border-radius: 10px; background: var(--teal-soft, #E0F2E9); }

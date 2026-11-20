@@ -88,7 +88,8 @@ function initViews(onChange) {
     const MOVED = { opportunities: 'learn' };
     let name = location.hash.slice(1) || links[0].dataset.view;
     name = MOVED[name] || name;
-    if (!document.getElementById('view-' + name)) name = links[0].dataset.view;
+    // Only sections in the menu open (e.g. Find & book is hidden for now, so #find opens the first section)
+    if (!document.getElementById('view-' + name) || !links.some(a => a.dataset.view === name)) name = links[0].dataset.view;
     document.querySelectorAll('section[id^="view-"]').forEach(s => (s.hidden = s.id !== 'view-' + name));
     links.forEach(a => (a.dataset.view === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
     onChange && onChange(name);

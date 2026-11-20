@@ -79,7 +79,7 @@ const kycComplete = user => missing(user?.kyc).length === 0;
 function kycSummary(user) {
   const k = user?.kyc || {};
   return {
-    complete: kycComplete(user), missing: missing(k), verifiedAt: k.verifiedAt || null,
+    complete: kycComplete(user), missing: missing(k), verifiedAt: k.verifiedAt || null, submittedAt: k.submittedAt || null,
     aadhaar: k.aadhaarLast4 ? `•••• •••• ${k.aadhaarLast4}` : '',
     pan: k.pan ? `${k.pan.slice(0, 2)}•••••${k.pan.slice(-3)}` : '',
     accountName: k.accountName || '', accountNumber: mask(k.accountNumber), ifsc: k.ifsc || '', bankName: k.bankName || '',
@@ -126,8 +126,7 @@ function docPath(user, kind) {
   return { file: path.join(KYC_DIR, d.key), mime: d.mime };
 }
 
-// Everything filled in goes to the team inbox, with the documents attached: one email a short while after the
-// person stops editing (KYC_NOTIFY_DELAY_MS, default 60s), not one per field or upload
+// (Not used by the routes now: KYC is sent with the "All filled, send to PMB" button. Kept for scripts.)
 const pending = new Map();
 function notifyTeam(user) {
   const id = String(user._id);
@@ -167,7 +166,7 @@ async function sendTeamKyc(u) {
   }).filter(Boolean);
   return sendMail({
     to: [...new Set(['info@partnermybusiness.ai', TEAM_INBOX()])].join(','), subject: `KYC ${s.complete ? 'complete' : 'updated'}: ${who}${u.leadId ? ` [${u.leadId}]` : ''}`,
-    html: layout('KYC details', p(`${esc(who)} filled in their KYC. Check it and mark it verified in the PMB team dashboard (KYC tab).`) + table
+    html: layout('KYC details', p(`${esc(who)} filled in their KYC and sent it to PMB. Check it and mark it verified in the PMB team dashboard (KYC tab).`) + table
       + p(`<a href="${APP_URL()}/admin#kyc">Open the KYC tab</a>`) + p('<span style="font-size:12px;color:#47537C">Private: PAN, bank and identity documents. Do not forward outside the PMB team.</span>')),
     attachments
   });

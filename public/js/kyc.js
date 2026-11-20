@@ -47,12 +47,23 @@
         <button class="btn" type="submit">Save KYC details</button>
       </form>
       <h4 style="margin:1.2rem 0 .4rem">Documents <span class="hint">JPG, PNG or PDF, up to 8 MB. Please hide the first 8 digits of your Aadhaar.</span></h4>
-      <div class="kyc-docs">${['aadhaar', 'pan', 'bank'].map(doc).join('')}</div>`;
+      <div class="kyc-docs">${['aadhaar', 'pan', 'bank'].map(doc).join('')}</div>
+      <div class="kyc-send">
+        ${k.submittedAt
+          ? `<p><span class="pill approved">Sent to PMB</span> <span class="meta">on ${fmtDate(k.submittedAt)}. The PMB team will check it. If you change anything, send it again.</span></p>`
+          : `<p class="meta">${k.complete ? 'Everything is filled in. Send it to the PMB team to check.' : 'Fill in all the details and upload the 3 documents, then send it to PMB.'}</p>`}
+        <button class="btn" type="button" data-kyc-send ${k.complete && !k.submittedAt ? '' : 'disabled'}>${k.submittedAt ? 'Sent' : 'All filled, send to PMB'}</button>
+      </div>`;
 
     onSubmit(box.querySelector('#kycForm'), async data => {
       const body = Object.fromEntries(Object.entries(data).filter(([, v]) => String(v).trim()));
       const r = await api('/kyc/details', { method: 'POST', body });
       render(r.kyc); toast('KYC details saved');
+    });
+    box.querySelector('[data-kyc-send]').addEventListener('click', async e => {
+      e.target.disabled = true;
+      try { render((await api('/kyc/submit', { method: 'POST' })).kyc); toast('Sent to PMB. We will check it and let you know.'); }
+      catch (ex) { toast(ex.message, true); e.target.disabled = false; }
     });
     box.querySelectorAll('[data-doc]').forEach(input => input.addEventListener('change', async () => {
       if (!input.files[0]) return;

@@ -47,17 +47,18 @@ test('the dashboard CTA has a Deal Sheet, 14 sections and a form that needs ever
   assert.equal(d.body.full.accepted, null);
 
   const all = Object.fromEntries(CONSENTS.map(c => [c.id, c.required]));
-  const short = await call('POST', '/growth/cta/accept', u, { version: CTA_VERSION, consents: { ...all, disputes: false }, name: 'Divya Rao' });
-  assert.equal(short.status, 400); assert.match(short.body.error, /1 left/);
+  const short = await call('POST', '/growth/cta/accept', u, { version: CTA_VERSION, agreeAll: false, name: 'Divya Rao' });
+  assert.equal(short.status, 400); assert.match(short.body.error, /Tick "I agree"/);
   assert.equal((await call('POST', '/growth/cta/accept', u, { version: 'old', consents: all, name: 'Divya Rao' })).status, 409);
 
-  const ok = await call('POST', '/growth/cta/accept', u, { version: CTA_VERSION, consents: { ...all, marketing: true }, name: 'Divya Rao', designation: 'Owner' });
+  const ok = await call('POST', '/growth/cta/accept', u, { version: CTA_VERSION, agreeAll: true, consents: { marketing: true }, name: 'Divya Rao', designation: 'Owner' });
   assert.equal(ok.status, 200, JSON.stringify(ok.body));
   assert.equal(ok.body.full.accepted.name, 'Divya Rao');
   const saved = await User.findById(u._id);
   const a = saved.ctaAcceptance;
   assert.equal(a.userAgent, 'test-agent'); assert.ok(a.ip); assert.match(a.termsHash, /^[a-f0-9]{64}$/); assert.match(a.atIST, /IST$/);
   assert.equal(a.consents.find(c => c.id === 'marketing').value, true);
+  assert.ok(a.consents.filter(c => c.required).every(c => c.value), 'one "I agree" box records every point as agreed');
   assert.equal(a.consents.find(c => c.id === 'filming').value, false);
   assert.equal(saved.toJSON().ctaAcceptance, undefined, 'the signature record (IP, device) never goes out with the account');
   assert.ok(sent.some(m => m.to === 'mint@example.com' && /Your Partnermybusiness CTA/.test(m.subject) && /Your Deal Sheet/.test(m.html)), 'a copy is emailed');

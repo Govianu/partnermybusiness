@@ -33,8 +33,9 @@
           }).join('')}<p class="meta">You can change these any time.</p></div>`
         : `<form class="cta-accept" novalidate>
           <h3>Accept your CTA</h3>
-          <p class="meta">Tick each box to show you agree. Boxes marked optional are your choice.</p>
-          ${f.consents.map(c => `<label class="cta-check"><input type="checkbox" name="${c.id}" ${c.required ? 'data-required' : ''}> <span>${esc(c.label)}</span></label>`).join('')}
+          <p class="meta">By accepting, you agree that:</p>
+          <ul class="cta-points">${f.consents.filter(c => c.required).map(c => `<li>${esc(c.label)}</li>`).join('')}</ul>
+          <label class="cta-check cta-agree"><input type="checkbox" name="agreeAll"> <span><strong>I have read my Deal Sheet and all the terms above, and I agree to all of it.</strong></span></label>
           <div class="row">
             <div class="field"><label for="ctaName">Type your full name to sign</label><input id="ctaName" name="signName" autocomplete="name" maxlength="120"></div>
             <div class="field"><label for="ctaRole">Your role <span class="hint">e.g. Owner, Partner, Manager</span></label><input id="ctaRole" name="designation" maxlength="80"></div>
@@ -47,14 +48,13 @@
     const form = el.querySelector('.cta-accept');
     if (form) {
       const btn = form.querySelector('button[type=submit]');
-      const sync = () => { btn.disabled = ![...form.querySelectorAll('[data-required]')].every(x => x.checked) || form.signName.value.trim().length < 3; };
+      const sync = () => { btn.disabled = !form.agreeAll.checked || form.signName.value.trim().length < 3; };
       form.addEventListener('input', sync); form.addEventListener('change', sync);
       form.addEventListener('submit', async e => {
         e.preventDefault();
         btn.disabled = true;
-        const consents = Object.fromEntries(f.consents.map(c => [c.id, form[c.id].checked]));
         try {
-          const r = await api('/growth/cta/accept', { method: 'POST', body: { version: f.version, consents, name: form.signName.value, designation: form.designation.value } });
+          const r = await api('/growth/cta/accept', { method: 'POST', body: { version: f.version, agreeAll: form.agreeAll.checked, name: form.signName.value, designation: form.designation.value } });
           cache = null; draw(el, r.full); toast('CTA accepted. A copy is in your email.');
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (ex) { form.querySelector('.error-box').textContent = ex.message; sync(); }
