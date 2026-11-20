@@ -44,7 +44,14 @@ router.get('/community', async (req, res) => {
     // Facts about this business type from our research (catalog), not counts of members
     ideas: sector ? (sector.s || []).length + (sector.p || []).length : null,
     partnerTypes: sector ? (sector.c || []).length : null,
-    example: sector?.e || null
+    example: sector?.e || null,
+    // The three big numbers on the dashboard. NETWORK_MEMBERS is the size of the whole PMB / Govianu network
+    // (set it on the server to the real figure); the kinds of business come from our catalog.
+    headline: [
+      [process.env.NETWORK_MEMBERS || '5,000+', 'people have joined Partnermybusiness'],
+      [`${Math.floor(data.sectors.length / 10) * 10}+`, 'kinds of businesses and professionals on the network'],
+      ['10', `ways to earn and save, picked for ${me.role === 'associate' ? 'you' : (me.business?.businessName || 'your business')}`]
+    ]
   });
 });
 
@@ -67,7 +74,7 @@ router.get('/my-cta', async (req, res) => {
   const plan = planFor(req.user);
   // Researched businesses get their own five ways to save in place of the general ones for their type
   const savings = c?.savings && plan?.researched ? { ...c.savings, levers: plan.savings.levers } : (c?.savings || null);
-  res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings,
+  res.json({ agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings,
     about: plan?.researched ? { text: plan.about, busy: plan.busyHours, quiet: plan.quietHours } : null,
     ways: plan?.ways   // type not known: the general five ways
       || waysToEarn({ sector: { t: req.user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] }) });

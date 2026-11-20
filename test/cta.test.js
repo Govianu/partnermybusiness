@@ -107,7 +107,7 @@ test('anyone can preview the CTA for a business type before agreeing', async () 
   assert.ok(pb.body.images.length > 0 && pb.body.savings.levers.length === 5);
 });
 
-test('the dashboard shows their own CTA with lead ID and agreement', async () => {
+test('the dashboard shows their own CTA and agreement, never the lead ID', async () => {
   const user = await User.findOne({ email: 'mint@example.com' });
   const mail = sent.find(m => m.to === 'mint@example.com') || null;
   const token = mail ? /token=([a-f0-9]{64})/.exec(mail.html)?.[1] : null;
@@ -120,7 +120,8 @@ test('the dashboard shows their own CTA with lead ID and agreement', async () =>
     cookie = (await call('POST', '/auth/verify-otp', { email: 'mint@example.com', code })).cookie;
   }
   const r = await call('GET', '/growth/my-cta', null, cookie);
-  assert.equal(r.body.leadId, user.leadId);
+  assert.equal(r.body.leadId, undefined, 'lead IDs are for the PMB team only');
+  assert.ok(!JSON.stringify(r.body).includes(user.leadId), 'the lead ID is nowhere in the dashboard data');
   assert.ok(r.body.agreed, 'records the agreement');
   assert.match(r.body.html, /Agreed\./);
   assert.match(r.body.html, /Policies you agree to/);

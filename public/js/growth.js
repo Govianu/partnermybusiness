@@ -604,7 +604,8 @@
     const initials = n => (n ? String(n).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'PMB');
     const titleCase = t => String(t || '').replace(/\b\w/g, c => c.toUpperCase());
     const n = d.numbers || {};
-    const stats = [
+    // Big network numbers (e.g. 5,000+ people have joined), not small counts
+    const stats = d.headline || [
       n.members && [n.members, 'businesses and professionals have joined Partnermybusiness'],
       n.sameTypeNearby && [n.sameTypeNearby, `${ctx.plural} in ${titleCase(n.area)} are on the network`],
       !n.sameTypeNearby && n.sameType && [n.sameType, `${ctx.plural} are on the network`],

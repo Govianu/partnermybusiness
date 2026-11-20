@@ -6,14 +6,6 @@
   const load = () => (cache = cache || api('/growth/my-cta'));
   const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 
-  // Lead ID beside the greeting on the overview
-  function leadBadge(user) {
-    if (!user.leadId) return;
-    const hello = document.getElementById('hello');
-    if (!hello || document.getElementById('leadBadge')) return;
-    hello.insertAdjacentHTML('afterend', ` <code class="handle" id="leadBadge" title="Your Partnermybusiness lead ID">${esc(user.leadId)}</code>`);
-  }
-
   async function renderMyCta(el) {
     if (!el) return;
     el.innerHTML = '<p class="meta">Loading your CTA…</p>';
@@ -122,7 +114,6 @@
   }
 
   function mount(ctx, user) {
-    leadBadge(user);
     renderMyCta(document.getElementById('myCta'));
     renderWays(document.getElementById('waysBox'), ctx);
     renderSavings(document.getElementById('savingsBox'), ctx);

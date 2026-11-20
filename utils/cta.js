@@ -32,7 +32,7 @@ function ctaFor({ user = {}, sectorId, name, area } = {}) {
     // Type not known (e.g. "other"): the policies are the same for everyone, so show them with general wording
     const isPro = user.role === 'associate';
     return {
-      leadId: user.leadId || null, isPro,
+      isPro,
       business: isPro ? (user.name || 'You') : (user.business?.businessName || user.name || 'Your business'),
       area: titleCase(user.location || ''), type: isPro ? 'Professional partner' : 'Business partner',
       savings: costSavingFor(user), terms: { version: TERMS_VERSION },
@@ -47,7 +47,6 @@ function ctaFor({ user = {}, sectorId, name, area } = {}) {
   const opportunities = pb.opportunities.map(o => ({ name: o, ...assess(o) }));
   const easiest = opportunities.filter(o => o.investment === 'Low').slice(0, 2);
   return {
-    leadId: user.leadId || null,
     business, isPro, area: titleCase(area || who.location || ''),
     type: pb.type, sectorName: s.n, noun: s.noun, nouns: plural(s.noun),
     idle: pb.idle, hook: pb.hook, partners: pb.partners,
