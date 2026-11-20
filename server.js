@@ -17,6 +17,7 @@ const app = express();
 const trustProxy = process.env.TRUST_PROXY || 'loopback';
 app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 app.use(express.json({ limit: '1mb' }));
+app.use(require('./middleware/methodOverride'));   // PATCH/PUT/DELETE sent as POST, past Apache's 403
 app.use(cookieParser());
 
 app.use('/api/auth', require('./routes/auth'));
@@ -56,5 +57,12 @@ initialize();
 require('./utils/lessonVideos').startWorker(); // AI presenter videos (only when Higgsfield is set up)
 require('./utils/drip').startDripWorker();      // business-opportunity emails after sign-up
 require('./utils/leadId').backfillLeadIds().catch(err => console.error('[leads] backfill failed:', err.message));
+// Profiles and uploads no longer wait for PMB approval: anything still marked pending goes live
+(async () => {
+  const User = require('./models/User'), Media = require('./models/Media');
+  let n = 0;
+  for (const M of [User, Media]) for (const d of await M.find({ status: 'pending' })) { d.status = 'approved'; await d.save(); n += 1; }
+  if (n) console.log(`[approval] ${n} pending profile(s) and upload(s) are now live`);
+})().catch(err => console.error('[approval] update failed:', err.message));
 verifyMail();
 app.listen(PORT, () => console.log(`partnermybusiness running on http://localhost:${PORT}`));

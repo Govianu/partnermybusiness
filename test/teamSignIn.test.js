@@ -18,6 +18,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const { initialize } = require('../utils/jsonModel');
 const User = require('../models/User');
+const Lead = require('../models/Lead');
 
 let base, server;
 async function call(method, url, body, cookie) {
@@ -28,7 +29,7 @@ async function call(method, url, body, cookie) {
 test.before(async () => {
   initialize();
   const app = express();
-  app.use(express.json()); app.use(cookieParser());
+  app.use(express.json()); app.use(cookieParser()); app.use(require('../middleware/methodOverride'));
   app.use('/api/auth', require('../routes/auth'));
   app.use('/api/admin', require('../routes/admin'));
   app.use((err, req, res, next) => res.status(err.status || 500).json({ error: err.message }));
@@ -68,4 +69,22 @@ test('a Govianu employee who is also a partner gets the team dashboard from team
   await call('POST', '/auth/team/request-otp', { email: 'ravi@govianu.com' });
   const r = await call('POST', '/auth/verify-otp', { email: 'ravi@govianu.com', code: codeIn(sent[0]) });
   assert.equal(r.body.user.role, 'admin');
+});
+
+test('the team moves a lead and changes a profile, sent as POST like the live site (no proof link needed)', async () => {
+  sent.length = 0;
+  await call('POST', '/auth/team/request-otp', { email: 'priya.sharma@govianu.com' });
+  const { cookie } = await call('POST', '/auth/verify-otp', { email: 'priya.sharma@govianu.com', code: codeIn(sent[0]) });
+  const lead = await Lead.create({ name: 'Mint Masala', source: 'enquiry', stage: 'new', history: [] });
+  const asPost = (url, body, method) => fetch(base + url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-http-method-override': method, cookie }, body: JSON.stringify(body) });
+
+  const moved = await asPost(`/admin/leads/${lead._id}`, { stage: 'contacted', note: 'Called' }, 'PATCH');
+  assert.equal(moved.status, 200, 'stage changes without a proof link');
+  assert.equal((await Lead.findById(lead._id)).stage, 'contacted');
+
+  const partner = await User.create({ role: 'business', name: 'Sana', email: 'sana.team@example.com', business: { businessName: 'Sana Salon' } });
+  assert.equal(partner.status, 'approved', 'new partners are live straight away');
+  const priya = await User.findOne({ email: 'priya.sharma@govianu.com' });
+  const assigned = await asPost(`/admin/users/${partner._id}`, { assignedManager: priya._id }, 'PATCH');
+  assert.equal(assigned.status, 200, 'profiles update too');
 });

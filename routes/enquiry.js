@@ -93,7 +93,7 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
         role: accountRole, name, email, phone,
         category, sectorId: sector?.id || null, location: area.toLowerCase(), slug: displayName,
         handle: await uniqueHandle(category, area, isBusiness ? displayName : name.split(' ')[0]),
-        status: 'pending',
+        status: 'approved',
         termsAcceptedAt, termsVersion: TERMS_VERSION,
         source: 'website_enquiry',
         ...(isBusiness

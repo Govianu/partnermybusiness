@@ -150,18 +150,14 @@ router.post('/leads', async (req, res) => {
   res.status(201).json({ lead });
 });
 
-// Every stage change after "new" must carry a link to proof of communication
+// Move a lead to another stage, with an optional note
 router.patch('/leads/:id', async (req, res) => {
   const { stage, note } = req.body || {};
-  const proofUrl = str(req.body?.proofUrl);
   if (!Lead.STAGES.includes(stage)) throw fail('Unknown stage');
-  if (!['new', 'lost'].includes(stage) && !/^https?:\/\/|^booking:/i.test(proofUrl)) {
-    throw fail('Add a link to proof of communication (WhatsApp screenshot, call log, email or signed agreement)');
-  }
   const lead = await Lead.findById(req.params.id);
   if (!lead) throw fail('Lead not found', 404);
   lead.stage = stage;
-  lead.history.push({ stage, note: str(note), proofUrl, by: req.user._id });
+  lead.history.push({ stage, note: str(note), by: req.user._id });
   if (!lead.owner) lead.owner = req.user._id;
   await lead.save();
   res.json({ lead });

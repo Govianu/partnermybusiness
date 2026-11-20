@@ -14,15 +14,11 @@
       `${o.importedToday} of ${o.importTarget} profiles imported today.`;
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="v">${o.importedToday}/${o.importTarget}</div><div class="k">imported today</div></div>
-      <div class="stat"><div class="v">${o.pendingProfiles}</div><div class="k">profiles to review</div></div>
-      <div class="stat"><div class="v">${o.pendingMedia}</div><div class="k">uploads to validate</div></div>
       <div class="stat"><div class="v">${o.requestedBookings}</div><div class="k">matches to approve</div></div>
       <div class="stat"><div class="v">${o.proposedWorkshops}</div><div class="k">workshops to approve</div></div>
       <div class="stat"><div class="v">${(o.users.business || 0)} / ${(o.users.associate || 0)}</div><div class="k">businesses / associates</div></div>`;
     document.getElementById('pipeline').innerHTML = stages
       .map(s => `<div class="stat"><div class="v">${o.leads[s] || 0}</div><div class="k">${pretty(s)}</div></div>`).join('');
-    setCount('validation', o.pendingMedia);
-    setCount('profiles', o.pendingProfiles);
   }
 
   // ---------- Website enquiries ----------
@@ -58,32 +54,6 @@
     }
   });
 
-  // ---------- Validation ----------
-  async function loadMedia() {
-    const { media } = await api('/admin/media?status=pending');
-    const kinds = {
-      intro_video: 'Intro video', training_video: 'Training video', course_pdf: 'Course PDF',
-      portfolio_image: 'Portfolio photos', portfolio_slides: 'Portfolio slides',
-      business_video: 'Business video', business_image: 'Business photos',
-      business_menu: 'Menu or service list', business_slides: 'Business slides'
-    };
-    document.getElementById('mediaQueue').innerHTML = media.length
-      ? `<div class="list">${media.map(m => {
-        const fileUrl = m.storageKey ? `/api/media/${encodeURIComponent(m._id)}/file` : m.url;
-        return `<div class="item">
-          <div class="item-top"><a class="item-title" href="${esc(fileUrl)}" target="_blank" rel="noopener">${esc(m.title)}</a><span class="meta">${kinds[m.kind] || 'Media'}</span></div>
-          <div class="meta"><code class="handle">${handleHtml(m.owner?.handle)}</code>, sent ${fmtDate(m.createdAt)}</div>
-          ${m.description ? `<p class="item-body">${esc(m.description)}</p>` : ''}
-          <div class="accept-row">
-            <input placeholder="Note for owner (needed to reject)" data-note="${m._id}" style="max-width:420px">
-            <button class="btn small" data-review="${m._id}" data-decision="approved">Approve</button>
-            <button class="btn warn small" data-review="${m._id}" data-decision="rejected">Reject</button>
-          </div>
-        </div>`;
-      }).join('')}</div>`
-      : '<div class="list"><div class="empty"><strong>Queue is clear</strong>New uploads from businesses and associates will appear here.</div></div>';
-  }
-
   // ---------- Leads ----------
   const stageFilter = document.getElementById('stageFilter');
   async function loadLeads() {
@@ -100,11 +70,9 @@
             <td>${esc(l.source)}</td>
             <td>${pill(l.stage)}</td>
             <td><div class="meta">${fmtDate(last.at)}${l.owner ? `, ${esc(l.owner.name)}` : ''}</div>
-              ${last.note ? `<div>${esc(last.note)}</div>` : ''}
-              ${last.proofUrl && /^https?:/.test(last.proofUrl) ? `<a href="${esc(last.proofUrl)}" target="_blank" rel="noopener">Proof</a>` : ''}</td>
+              ${last.note ? `<div>${esc(last.note)}</div>` : ''}</td>
             <td style="min-width:230px">
               <select data-stage-for="${l._id}">${stages.map(s => `<option value="${s}" ${s === l.stage ? 'selected' : ''}>${pretty(s)}</option>`).join('')}</select>
-              <input data-proof-for="${l._id}" placeholder="Proof link" style="margin-top:.35rem">
               <input data-note-for="${l._id}" placeholder="Note" style="margin-top:.35rem">
               <button class="btn small" data-move="${l._id}" style="margin-top:.35rem">Update stage</button>
             </td></tr>`;
@@ -122,10 +90,8 @@
   async function loadUsers() {
     const p = new URLSearchParams();
     const r = document.getElementById('roleFilter').value;
-    const s = document.getElementById('statusFilter').value;
     const q = document.getElementById('userSearch').value.trim();
     if (r) p.set('role', r); else p.set('role', '');
-    if (s) p.set('status', s);
     if (q) p.set('q', q);
     const d = await api('/admin/users?' + [...p].filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&'));
     admins = d.admins;
@@ -133,11 +99,10 @@
       <td><code class="handle">${handleHtml(u.handle)}</code><div class="meta">${pretty(u.role)}</div></td>
       <td>${esc(u.role === 'business' ? u.business?.businessName : u.name)}${u.business?.mapsUrl ? `<div><a href="${esc(u.business.mapsUrl)}" target="_blank" rel="noopener">Maps</a></div>` : ''}</td>
       <td class="meta">${esc(u.email || 'Not claimed yet')}<br>${esc(u.phone || '')}</td>
-      <td><select data-user-status="${u._id}">${['pending', 'imported', 'approved', 'rejected'].map(x => `<option ${x === u.status ? 'selected' : ''}>${x}</option>`).join('')}</select></td>
       <td><select data-user-manager="${u._id}"><option value="">Unassigned</option>${admins.map(a => `<option value="${a._id}" ${u.assignedManager?._id === a._id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></td>
-    </tr>`).join('') || '<tr><td colspan="5" class="empty"><strong>No profiles match</strong>Try another filter.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="4" class="empty"><strong>No profiles match</strong>Try another filter.</td></tr>';
   }
-  ['roleFilter', 'statusFilter'].forEach(id => document.getElementById(id).addEventListener('change', loadUsers));
+  ['roleFilter'].forEach(id => document.getElementById(id).addEventListener('change', loadUsers));
   document.getElementById('userSearch').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadUsers, 300); });
 
   // ---------- Gigs ----------
@@ -191,16 +156,10 @@
     const t = e.target.closest('button');
     if (!t) return;
     try {
-      if (t.dataset.review) {
-        const note = document.querySelector(`[data-note="${t.dataset.review}"]`).value;
-        await api(`/admin/media/${t.dataset.review}/review`, { method: 'POST', body: { decision: t.dataset.decision, note } });
-        toast(t.dataset.decision === 'approved' ? 'Upload approved' : 'Upload rejected with note');
-        loadMedia(); loadOverview();
-      } else if (t.dataset.move) {
+      if (t.dataset.move) {
         const id = t.dataset.move;
         await api(`/admin/leads/${id}`, { method: 'PATCH', body: {
           stage: document.querySelector(`[data-stage-for="${id}"]`).value,
-          proofUrl: document.querySelector(`[data-proof-for="${id}"]`).value,
           note: document.querySelector(`[data-note-for="${id}"]`).value
         } });
         toast('Lead updated'); loadLeads();
@@ -229,10 +188,7 @@
   document.addEventListener('change', async e => {
     const el = e.target;
     try {
-      if (el.dataset.userStatus) {
-        await api(`/admin/users/${el.dataset.userStatus}`, { method: 'PATCH', body: { status: el.value } });
-        toast('Status updated'); loadOverview();
-      } else if (el.dataset.userManager !== undefined && el.dataset.userManager) {
+      if (el.dataset.userManager !== undefined && el.dataset.userManager) {
         await api(`/admin/users/${el.dataset.userManager}`, { method: 'PATCH', body: { assignedManager: el.value } });
         toast('Manager assigned');
       } else if (el.dataset.gigStatus) {
@@ -379,7 +335,7 @@
   // Keep the queues fresh while the Marketplace section is open
   setInterval(() => { if (!document.getElementById('view-market').hidden && !document.hidden) loadMarket().catch(() => {}); }, 60000);
 
-  const loaders = { market: loadMarket, overview: loadOverview, enquiries: loadEnquiries, validation: loadMedia, leads: loadLeads, profiles: loadUsers, gigs: loadGigs, bookings: loadBookings };
+  const loaders = { market: loadMarket, overview: loadOverview, enquiries: loadEnquiries, leads: loadLeads, profiles: loadUsers, gigs: loadGigs, bookings: loadBookings };
   initViews(name => loaders[name] && loaders[name]().catch(err => toast(err.message, true)));
   loadMarket().catch(() => {}); // waiting-review badge in the menu
   loadOverview().catch(() => {});

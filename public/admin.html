@@ -28,7 +28,6 @@
       <a href="#market" data-view="market">Marketplace</a>
       <a href="#enquiries" data-view="enquiries">Website enquiries</a>
       <a href="#import" data-view="import">Import from Maps</a>
-      <a href="#validation" data-view="validation">Validation queue</a>
       <a href="#leads" data-view="leads">Leads</a>
       <a href="#profiles" data-view="profiles">Profiles</a>
       <a href="#gigs" data-view="gigs">Shifts & workshops</a>
@@ -84,14 +83,9 @@
       </div>
     </section>
 
-    <section id="view-validation" hidden>
-      <div class="view-head"><div><h1>Validation queue</h1><p>Check each video or PDF before it goes live. Rejections need a note so the associate knows what to fix.</p></div></div>
-      <div id="mediaQueue"></div>
-    </section>
-
     <section id="view-leads" hidden>
       <div class="view-head">
-        <div><h1>Leads</h1><p>Every stage change needs a link to proof of the conversation.</p></div>
+        <div><h1>Leads</h1><p>Move each lead to its next stage. Add a note if it helps the team.</p></div>
         <select id="stageFilter" style="width:auto"><option value="">All stages</option></select>
       </div>
       <details class="panel">
@@ -118,15 +112,14 @@
 
     <section id="view-profiles" hidden>
       <div class="view-head">
-        <div><h1>Profiles</h1><p>Approve new partners and assign their manager.</p></div>
+        <div><h1>Profiles</h1><p>Every partner and their PMB manager.</p></div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <select id="roleFilter" style="width:auto"><option value="">Everyone</option><option value="business">Businesses</option><option value="associate">Associates</option></select>
-          <select id="statusFilter" style="width:auto"><option value="">Any status</option><option>pending</option><option>imported</option><option>approved</option><option>rejected</option></select>
           <input id="userSearch" placeholder="Search handle or name" style="width:220px">
         </div>
       </div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Handle</th><th>Name</th><th>Contact</th><th>Status</th><th>Manager</th></tr></thead>
+        <thead><tr><th>Handle</th><th>Name</th><th>Contact</th><th>Manager</th></tr></thead>
         <tbody id="userRows"></tbody>
       </table></div>
     </section>

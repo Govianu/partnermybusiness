@@ -1,10 +1,15 @@
 // Shared helpers for every page
+// PATCH, PUT and DELETE go out as POST with an override header: the live server's Apache blocks those methods
+// with a bare 403 before they reach the API. server.js turns them back into the real method.
 async function api(path, { method = 'GET', body } = {}) {
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const override = ['PATCH', 'PUT', 'DELETE'].includes(method);
+  const headers = body && !isFormData ? { 'Content-Type': 'application/json' } : {};
+  if (override) headers['X-HTTP-Method-Override'] = method;
   const res = await fetch('/api' + path, {
-    method,
+    method: override ? 'POST' : method,
     credentials: 'same-origin',
-    headers: body && !isFormData ? { 'Content-Type': 'application/json' } : {},
+    headers,
     body: body ? (isFormData ? body : JSON.stringify(body)) : undefined
   });
   const data = await res.json().catch(() => ({}));

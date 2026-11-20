@@ -98,7 +98,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
     role, name, email,
     phone: str(b.phone).slice(0, 40),
     location: location.toLowerCase(),
-    status: role === 'admin' || role === 'buyer' ? 'approved' : 'pending',
+    status: 'approved',
     termsAcceptedAt: new Date().toISOString(),
     termsVersion: TERMS_VERSION
   };

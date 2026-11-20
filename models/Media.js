@@ -9,7 +9,7 @@ module.exports = createModel('Media', {
     ],
     status: ['pending', 'approved', 'rejected']
   },
-  defaults: { status: 'pending' },
+  defaults: { status: 'approved' },
   refs: {
     owner: ['User', false],
     reviewedBy: ['User', false]

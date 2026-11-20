@@ -4,8 +4,7 @@
   const bizName = user.business?.businessName || user.name;
   fillWho(user, bizName);
   document.getElementById('hello').textContent = `Hello, ${firstNameOf(user.name)}`;
-  document.getElementById('statusLine').textContent =
-    user.status === 'approved' ? `${bizName} is live on the network.` : `${bizName} is being reviewed by the PMB team. You can explore everything meanwhile.`;
+  document.getElementById('statusLine').innerHTML = `${esc(bizName)} is live on the network. Your CTA is under <a href="#cta">My CTA</a>.`;
   document.getElementById('bookingLink').href = `/book.html?h=${encodeURIComponent(user.handle)}`;
 
   let state = { opportunities: [], bookings: [], stats: {}, meetConfigured: false, industry: {} };

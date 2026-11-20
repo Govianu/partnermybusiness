@@ -8,7 +8,7 @@ module.exports = createModel('User', {
     status: ['pending', 'approved', 'rejected', 'imported']
   },
   defaults: {
-    status: 'pending',
+    status: 'approved',
     business: { sops: [] },
     associate: {}
   },
