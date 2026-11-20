@@ -44,7 +44,13 @@
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var token = new URLSearchParams(location.search).get('token') || '';
+  var params = new URLSearchParams(location.search);
+  var token = params.get('token') || '';
+  // Optional tab to open (e.g. business.html#learn from an opportunity email), only on the account's own dashboard
+  function landing(redirect) {
+    var next = params.get('next') || '';
+    return /^(business|associate|buyer|admin)\.html(#[a-z-]+)?$/.test(next) && redirect === '/' + next.split('#')[0] ? '/' + next : redirect;
+  }
   function call(url, opts) {
     return fetch(url, opts).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpOk = r.ok; return j; }); });
   }
@@ -61,7 +67,7 @@
     $('loading').textContent = 'Opening your dashboard…';
     return call('/api/auth/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token }) })
       .then(function (a) {
-        if (a.httpOk) { location.replace(a.redirect); return; }
+        if (a.httpOk) { location.replace(landing(a.redirect)); return; }
         if (a.error && /expired|used/.test(a.error)) return show('bad');
         show('set');                     // something else went wrong: offer the button to try again
         $('setErr').textContent = a.error || '';
@@ -76,7 +82,7 @@
     $('setBtn').disabled = true;
     call('/api/auth/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token }) })
       .then(function (r) {
-        if (r.httpOk) { location.href = r.redirect; return; }
+        if (r.httpOk) { location.href = landing(r.redirect); return; }
         $('setBtn').disabled = false;
         if (r.error && /expired|used/.test(r.error)) return show('bad');
         err.textContent = r.error || 'Something went wrong. Try again.';

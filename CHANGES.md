@@ -18,6 +18,12 @@ media uploads, tests) is untouched; run `git status` to see everything not yet c
 - `routes/growth.js`: saves skills and lesson progress; the call to action creates a CRM lead and emails the team.
 - `public/js/business.js`, `public/js/associate.js`, `public/js/api.js`, `routes/*`: wiring for the above.
 
+## Agreement, opportunity emails and a human touch (from the boss's review)
+- Business and profession dropdowns are A to Z everywhere.
+- The homepage's last step is now "Your partnership agreement", with the commercial points; terms version 2026-11-20.1.
+- `utils/drip.js`: five business-opportunity emails after sign-up, every 3 days, with unsubscribe.
+- Dashboard overview: "people behind your growth" strip (manager, real numbers, example).
+
 ## npm run build for Apache/nginx with public_html
 - `scripts/build.js` (`npm run build`) writes the pages to `dist/` or `BUILD_OUT` (e.g. public_html), plus an
   `.htaccess` block that forwards `/api` to the Node API (PM2). The API must still run; the pages call it.

@@ -71,8 +71,10 @@
   }));
   // The PMB team sign-up is shown only to Govianu employees: it appears once a staff email is typed
   const isStaffEmail = email => staffDomains.includes(String(email || '').trim().toLowerCase().split('@')[1] || '');
-  document.getElementById('category').innerHTML = businessCategories.map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
-  document.getElementById('skill').innerHTML = associateSkills.map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
+  // A to Z, with "other" last
+  const az = list => list.slice().sort((a, b) => (a === 'other') - (b === 'other') || pretty(a).localeCompare(pretty(b)));
+  document.getElementById('category').innerHTML = az(businessCategories).map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
+  document.getElementById('skill').innerHTML = az(associateSkills).map(c => `<option value="${c}">${pretty(c)}</option>`).join('');
 
   const copy = {
     business: {

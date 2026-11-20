@@ -200,3 +200,23 @@
 .opp .actions { gap: .45rem; }
 .ctabar-main { max-width: 22rem; white-space: normal !important; text-align: center; line-height: 1.2; }
 @media (max-width: 860px) { .ctabar-main { max-width: none; flex: 1; } }
+
+/* People behind your growth: manager, real network numbers, an example */
+.people { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr); gap: 1rem 1.5rem; align-items: center;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 1.1rem 1.3rem; margin: 1.25rem 0; }
+.people-manager { display: flex; gap: .9rem; align-items: flex-start; min-width: 0; }
+.people-manager strong { display: block; font-family: var(--display); font-size: 1.05rem; }
+.people-manager small { display: block; color: var(--muted); margin: .15rem 0 .6rem; }
+.people-avatar { flex: none; width: 3rem; height: 3rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-weight: 800; font-family: var(--display); }
+.people-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.people-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .75rem; }
+.people-stats li { display: grid; gap: .1rem; }
+.people-stats b { font-family: var(--display); font-size: 1.6rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.people-stats span { font-size: .85rem; color: var(--muted); }
+.people-example { grid-column: 1 / -1; margin: 0; padding-top: .8rem; border-top: 1px dashed var(--line); font-size: .95rem; }
+.people-example span { display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .1rem .55rem; margin-right: .5rem; }
+@media (max-width: 760px) { .people { grid-template-columns: 1fr; } }
+.people-avatar { font-size: .85rem; }
+.people-example { max-width: none; }

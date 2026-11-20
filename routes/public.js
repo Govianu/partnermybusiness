@@ -57,4 +57,36 @@ router.post('/bookings/:handle', async (req, res) => {
   res.status(201).json({ ok: true, bookingId: booking._id });
 });
 
+
+// ---------- Stop opportunity emails (link and List-Unsubscribe header in utils/drip.js) ----------
+const { validUnsubscribe } = require('../utils/drip');
+const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title} | Partnermybusiness.ai</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="robots" content="noindex">
+<link rel="stylesheet" href="/css/site.css"></head><body><header class="top"><a href="/">Partnermybusiness<span>.ai</span></a></header>
+<main class="wrap" style="max-width:520px"><section class="card">${body}</section></main></body></html>`;
+async function optOutUser(req) {
+  const id = str(req.query.u), token = str(req.query.t);
+  if (!id || !validUnsubscribe(id, token)) return null;
+  return User.findById(id);
+}
+// Opening the link shows a button (email scanners open links on their own); pressing it, or the inbox's own
+// one-click unsubscribe (a POST), stops the emails.
+router.get('/unsubscribe', async (req, res) => {
+  const user = await optOutUser(req);
+  if (!user) return res.status(400).type('html').send(page('Link not valid', '<h1>This link isn’t valid</h1><p class="muted">Reply to any of our emails and we’ll stop them for you.</p>'));
+  if (user.emailOptOut) return res.type('html').send(page('Emails stopped', '<h1>You won’t get these emails any more</h1><p class="muted">Sign-in codes and booking emails still arrive as usual.</p>'));
+  const q = `u=${encodeURIComponent(req.query.u)}&t=${encodeURIComponent(req.query.t)}`;
+  res.type('html').send(page('Stop emails', `<h1>Stop opportunity emails?</h1>
+    <p class="muted">You’ll stop getting business opportunity emails for ${String(user.business?.businessName || user.name).replace(/[<>&"]/g, '')}. Sign-in codes and booking emails still arrive.</p>
+    <form method="post" action="/api/public/unsubscribe?${q}"><button class="btn wide" type="submit">Stop these emails</button></form>`));
+});
+router.post('/unsubscribe', async (req, res) => {
+  const user = await optOutUser(req);
+  if (!user) return res.status(400).type('html').send(page('Link not valid', '<h1>This link isn’t valid</h1>'));
+  user.emailOptOut = true;
+  user.emailOptOutAt = new Date().toISOString();
+  await user.save();
+  res.type('html').send(page('Emails stopped', '<h1>Done. You won’t get these emails any more.</h1><p class="muted">Changed your mind? Reply to any of our emails or call +91 81039 90990.</p>'));
+});
+
 module.exports = router;

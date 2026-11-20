@@ -927,18 +927,19 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       </form>
 
       <div class="terms-step" id="termsStep" hidden tabindex="-1">
-        <h3>Before we send your enquiry</h3>
-        <p style="margin:0">Please read and agree to our terms. Once you do, we send your enquiry to our team and email your dashboard link to <strong id="termsEmail"></strong>.</p>
+        <h3>Your partnership agreement</h3>
+        <p style="margin:0">This is how we work together. Once you agree, we send your enquiry to our team and email your dashboard link to <strong id="termsEmail"></strong>.</p>
         <ul class="terms-points">
-          <li>Every collaboration runs on a written agreement. Percentages and fees are agreed before anything starts.</li>
-          <li>We never split gross sales: taxes, refunds, payment charges and agreed costs come off first.</li>
-          <li>Payments are digital only, and every party sees the same statement.</li>
+          <li><strong>Partner in principle.</strong> You join as a partner. Every collaboration then gets its own one-page agreement, with percentages and fees, before anything starts.</li>
+          <li><strong>Group deals.</strong> You let us include your business when we negotiate bulk supplies, brand placements and orders for many partners. Nothing is ordered without your OK.</li>
+          <li><strong>One point of contact and billing.</strong> Orders and payments for collaborations we bring go through Partnermybusiness, and you won’t deal around us with the partners we introduce.</li>
+          <li><strong>We share net, not gross.</strong> Taxes, refunds, payment charges and agreed costs come off first. If someone funds equipment, an agreed share repays it first. The profit is then shared as agreed, case by case.</li>
           <li>Revenue figures on this site are illustrative, not a promise of income. Each opportunity depends on feasibility, licensing and partner availability.</li>
           <li>We use your details to handle your enquiry and run your dashboard, and we never sell them.</li>
         </ul>
         <p style="margin:0 0 1rem"><a href="/terms.html" target="_blank" rel="noopener">Read the full Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
         <label class="agree"><input type="checkbox" id="agreeBox">
-          <span>I have read and agree to the Terms and Conditions and Privacy Policy, and I’m happy for Partnermybusiness to contact me about this enquiry.</span></label>
+          <span>I agree to this partnership agreement, the Terms and Conditions and the Privacy Policy, and I’m happy for Partnermybusiness to email and call me about business opportunities.</span></label>
         <p class="err" id="termsErr" role="alert" hidden></p>
         <div class="cta-row">
           <button class="btn btn-blue" type="button" id="agreeBtn" disabled>Agree and continue</button>
@@ -1313,12 +1314,14 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 
   /* ================= the two dropdowns ================= */
   var bizSelect = $("bizSelect"), bizSwitch = $("bizSwitch"), fType = $("fType");
+  /* Every dropdown lists businesses and professions A to Z */
+  var SORTED = SECTORS.slice().sort(function(a, b){ return a.n.localeCompare(b.n, "en", {sensitivity: "base"}); });
   function fillGrouped(sel, placeholder){
     sel.textContent = "";
     if (placeholder){ var o0 = el("option", null, placeholder); o0.value = ""; sel.appendChild(o0); }
     [["b","Businesses"],["p","Professionals"]].forEach(function(g){
       var og = document.createElement("optgroup"); og.label = g[1];
-      SECTORS.filter(function(s){ return s.t === g[0]; }).forEach(function(s){
+      SORTED.filter(function(s){ return s.t === g[0]; }).forEach(function(s){
         var o = el("option", null, s.n); o.value = s.id; og.appendChild(o);
       });
       sel.appendChild(og);
@@ -1327,7 +1330,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
   function fillKind(kind){
     bizSelect.textContent = "";
     var o0 = el("option", null, kind === "b" ? "Choose your kind of business" : "Choose your profession"); o0.value = ""; bizSelect.appendChild(o0);
-    SECTORS.filter(function(s){ return s.t === kind; }).forEach(function(s){
+    SORTED.filter(function(s){ return s.t === kind; }).forEach(function(s){
       var o = el("option", null, s.n); o.value = s.id; bizSelect.appendChild(o);
     });
     $("bizLabel").textContent = kind === "b" ? "Your kind of business" : "Your profession";
@@ -1338,7 +1341,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     var placeholder = el("option", null, kind === "b" ? "Choose a business type" : "Choose a profession");
     placeholder.value = "";
     fType.appendChild(placeholder);
-    SECTORS.filter(function(s){ return s.t === kind; }).forEach(function(s){
+    SORTED.filter(function(s){ return s.t === kind; }).forEach(function(s){
       var option = el("option", null, s.n);
       option.value = s.id;
       fType.appendChild(option);

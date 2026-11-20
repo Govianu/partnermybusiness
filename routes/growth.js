@@ -16,6 +16,38 @@ const cleanSkills = list => (Array.isArray(list) ? list : String(list || '').spl
   .filter((x, i, all) => all.findIndex(y => y.toLowerCase() === x.toLowerCase()) === i)
   .slice(0, 12);
 
+// "People behind your growth" on the dashboard: who their manager is, and real numbers from the network.
+// Counts below COMMUNITY_MIN_COUNT (default 10) are left out rather than shown small. Nothing is made up.
+router.get('/community', async (req, res) => {
+  const User = require('../models/User');
+  const { sectorById, sectorFor, data } = require('../utils/catalog');
+  const min = Number(process.env.COMMUNITY_MIN_COUNT) || 10;
+  const me = req.user;
+  const sector = sectorById(me.sectorId) || sectorFor(me);
+  const members = (await User.find({})).filter(u => ['business', 'associate'].includes(u.role) && u.status !== 'rejected');
+  const area = String(me.location || '').trim().toLowerCase();
+  const sameType = sector ? members.filter(u => (sectorById(u.sectorId) || sectorFor(u))?.id === sector.id) : [];
+  const partnerIds = new Set((sector?.c || []).map(name => data.sectors.find(s => s.n === name)?.id).filter(Boolean));
+  const partners = members.filter(u => partnerIds.has((sectorById(u.sectorId) || sectorFor(u))?.id));
+  const show = n => (n >= min ? n : null);
+  const manager = me.assignedManager ? await User.findById(me.assignedManager) : null;
+  res.json({
+    manager: manager ? { name: manager.name, phone: manager.phone || '', email: manager.email || '' } : null,
+    team: { phone: '+91 81039 90990', whatsapp: '918103990990', email: process.env.TEAM_INBOX || 'info@partnermybusiness.ai' },
+    numbers: {
+      members: show(members.length),
+      sameType: show(sameType.length),
+      sameTypeNearby: area ? show(sameType.filter(u => String(u.location || '').trim().toLowerCase() === area).length) : null,
+      partners: show(partners.length),
+      area: me.location || ''
+    },
+    // Facts about this business type from our research (catalog), not counts of members
+    ideas: sector ? (sector.s || []).length + (sector.p || []).length : null,
+    partnerTypes: sector ? (sector.c || []).length : null,
+    example: sector?.e || null
+  });
+});
+
 router.get('/', async (req, res) => {
   res.json({ industry: industryFor(req.user), skills: req.user.skills || req.user.associate?.skills || [], lessonsWatched: req.user.lessonsWatched || [] });
 });

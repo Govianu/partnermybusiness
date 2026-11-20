@@ -183,6 +183,18 @@ Flow (`utils/deal.js`):
 
 Until step 5, buyers and sellers never see each other's email or phone.
 
+### After sign-up: opportunity emails and the human touch
+- **Agreement:** the homepage form's last step is a short partnership agreement (partner in principle, group deals,
+  PMB as the single point of contact and billing, net not gross, equipment funding repaid first). The full text is in
+  `/terms.html`; each sign-up records the terms version it agreed to (`utils/terms.js`).
+- **Opportunity emails** (`utils/drip.js`): five emails, `DRIP_INTERVAL_DAYS` apart (default 3), built from each
+  person's business type: services, products, partners, spare space and quiet hours, then "shall we set this up?".
+  Sent 9am–7pm IST, each with a one-tap dashboard button, replies to the team inbox and a one-click unsubscribe
+  (`/api/public/unsubscribe`). New sign-ups start automatically; set `DRIP_ENROLL_EXISTING=true` once to add
+  earlier partners.
+- **Dashboard strip:** the overview shows the person's PMB manager (call and WhatsApp), real network numbers
+  (hidden below `COMMUNITY_MIN_COUNT`) and an example for their business type. Nothing shown there is invented.
+
 ### PMB team access
 Only accounts with a Govianu email (`STAFF_EMAIL_DOMAINS`, default `govianu.com`) can open the PMB team dashboard.
 The team signs in at **`/team.html`**: enter a @govianu.com email, get a one-time code (and a one-tap button) in that

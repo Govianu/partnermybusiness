@@ -359,3 +359,6 @@ function matchConfirmed({ booking, listing, seller }) {
 }
 
 Object.assign(module.exports, { dealForApproval, dealUpdate, shareRequest, matchConfirmed, dealRef });
+
+// Building blocks for other email modules (utils/drip.js)
+Object.assign(module.exports, { layout, p, button, esc, inr, PHONE });

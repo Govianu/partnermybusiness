@@ -592,5 +592,44 @@
     dlg.showModal();
   }
 
-  window.Growth = { launchCta, contextFor, buildLessons, mountPlayer, renderLessonStrip, renderSlides, renderSkills, openSkillsDialog, renderPlanner, renderCtaBar, openCtaDialog };
+
+  // ---------- People behind your growth: a named manager, real network numbers, an example ----------
+  // Numbers come from /api/growth/community and are real counts; small ones are left out, never invented.
+  async function renderCommunity(el, ctx) {
+    if (!el) return;
+    let d;
+    try { d = await api('/growth/community'); } catch { el.innerHTML = ''; return; }
+    const m = d.manager;
+    const initials = n => (n ? String(n).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'PMB');
+    const titleCase = t => String(t || '').replace(/\b\w/g, c => c.toUpperCase());
+    const n = d.numbers || {};
+    const stats = [
+      n.members && [n.members, 'businesses and professionals have joined Partnermybusiness'],
+      n.sameTypeNearby && [n.sameTypeNearby, `${ctx.plural} in ${titleCase(n.area)} are on the network`],
+      !n.sameTypeNearby && n.sameType && [n.sameType, `${ctx.plural} are on the network`],
+      n.partners && [n.partners, `partners who suit ${ctx.isPro ? 'you' : (ctx.bizName || `your ${ctx.noun}`)} have signed up`],
+      d.ideas && [d.ideas, `ways ${ctx.plural} earn with us, ready to start`],
+      d.partnerTypes && [d.partnerTypes, `kinds of partners ready to team up with ${ctx.plural}`]
+    ].filter(Boolean).slice(0, 3);
+    const phone = m?.phone || d.team.phone;
+    const wa = (m?.phone || '').replace(/\D/g, '') || d.team.whatsapp;
+    el.innerHTML = `<section class="people" style="--accent:${ctx.style.accent};--accent-soft:${ctx.style.soft}" aria-labelledby="peopleTitle">
+      <h2 id="peopleTitle" class="sr-only">The people behind your growth</h2>
+      <div class="people-manager">
+        <span class="people-avatar" aria-hidden="true">${esc(initials(m?.name))}</span>
+        <div>
+          <strong>${m ? esc(m.name) : 'The Partnermybusiness team'}</strong>
+          <small>${m ? 'Your PMB manager. I’ll help you launch your first collaboration.' : 'We review every new partner and call you within one working day.'}</small>
+          <div class="people-actions">
+            <a class="btn small" href="tel:${esc(phone.replace(/\s+/g, ''))}">Call ${esc(phone)}</a>
+            <a class="btn ghost small" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(`Hi, I'm ${ctx.user.name}${ctx.bizName ? ` from ${ctx.bizName}` : ''} on Partnermybusiness.`)}" target="_blank" rel="noopener">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+      ${stats.length ? `<ul class="people-stats">${stats.map(([v, t]) => `<li><b>${Number(v).toLocaleString('en-IN')}</b><span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
+      ${d.example ? `<p class="people-example"><span>Example</span>${esc(d.example)}</p>` : ''}
+    </section>`;
+  }
+
+  window.Growth = { renderCommunity, launchCta, contextFor, buildLessons, mountPlayer, renderLessonStrip, renderSlides, renderSkills, openSkillsDialog, renderPlanner, renderCtaBar, openCtaDialog };
 })();

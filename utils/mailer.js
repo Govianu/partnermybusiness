@@ -35,14 +35,15 @@ function parseAddress(value) {
   return m ? { name: m[1].trim() || undefined, email: m[2].trim() } : { email: String(value || '').trim() };
 }
 
-async function sendViaBrevo({ to, subject, html, text, replyTo }) {
+async function sendViaBrevo({ to, subject, html, text, replyTo, headers }) {
   const body = {
     sender: parseAddress(fromAddress()),
     to: String(to).split(',').map(x => ({ email: x.trim() })).filter(x => x.email),
     subject,
     htmlContent: html,
     ...(text ? { textContent: text } : {}),
-    ...(replyTo ? { replyTo: parseAddress(replyTo) } : {})
+    ...(replyTo ? { replyTo: parseAddress(replyTo) } : {}),
+    ...(headers ? { headers } : {})
   };
   const res = await fetch(`${BREVO_BASE()}/smtp/email`, {
     method: 'POST',
@@ -54,7 +55,8 @@ async function sendViaBrevo({ to, subject, html, text, replyTo }) {
   return data.messageId;
 }
 
-async function sendMail({ to, subject, html, text, replyTo }) {
+// headers: optional extra email headers, e.g. List-Unsubscribe on opportunity emails
+async function sendMail({ to, subject, html, text, replyTo, headers }) {
   if (!to) return { sent: false, reason: 'no recipient' };
   if (!mailConfigured()) {
     fs.mkdirSync(OUTBOX, { recursive: true });
@@ -64,8 +66,8 @@ async function sendMail({ to, subject, html, text, replyTo }) {
     return { sent: false, outbox: file };
   }
   try {
-    if (brevoConfigured()) return { sent: true, id: await sendViaBrevo({ to, subject, html, text, replyTo }) };
-    const info = await getTransporter().sendMail({ from: fromAddress(), to, subject, html, text, replyTo });
+    if (brevoConfigured()) return { sent: true, id: await sendViaBrevo({ to, subject, html, text, replyTo, headers }) };
+    const info = await getTransporter().sendMail({ from: fromAddress(), to, subject, html, text, replyTo, ...(headers ? { headers } : {}) });
     return { sent: true, id: info.messageId };
   } catch (err) {
     // Email problems must never lose an enquiry: log and carry on

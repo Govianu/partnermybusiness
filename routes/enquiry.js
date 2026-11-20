@@ -11,6 +11,7 @@ const { sendMail, mailConfigured } = require('../utils/mailer');
 const { enquiryWelcome, teamEnquiry } = require('../utils/emails');
 const { issueOtp } = require('../utils/otp');
 const { issueLink } = require('../utils/links');
+const drip = require('../utils/drip');
 const { TERMS_VERSION } = require('../utils/terms');
 const rateLimit = require('../utils/rateLimit');
 const { fail, str } = require('../utils/http');
@@ -97,6 +98,8 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
               mapsUrl: /^https?:/i.test(fields.location) ? fields.location : '', sops: sopsFor(category) } }
           : { associate: { skill: category, bio: fields.message.slice(0, 500) } })
       });
+      // Business-opportunity emails over the next days (utils/drip.js)
+      if (drip.enroll(user)) await user.save();
       if (isBusiness) {
         generateOpportunities({ name: displayName, category, location: user.location, sectorId: sector?.id })
           .then(ops => Opportunity.insertMany(ops.map(o => ({ ...o, business: user._id }))))

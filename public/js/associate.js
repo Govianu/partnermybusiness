@@ -31,6 +31,7 @@
       <button class="btn ghost" type="button" data-cta="run_workshop">Run a workshop</button>`
   });
   Growth.renderSlides(document.getElementById('slides'), ctx, { onLesson: openLesson });
+  Growth.renderCommunity(document.getElementById('community'), ctx);
   Growth.renderPlanner(document.getElementById('planner'), ctx);
   player = Growth.mountPlayer(document.getElementById('player'), document.getElementById('playlist'), ctx, {
     onWatched: async lesson => {

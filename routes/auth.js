@@ -13,6 +13,7 @@ const { emailOtp, loginLink } = require('../utils/emails');
 const { clearOtp, issueOtp, otpIsActive, otpMatches, recordOtpFailure } = require('../utils/otp');
 const rateLimit = require('../utils/rateLimit');
 const { isStaffEmail, staffDomains } = require('../utils/staff');
+const drip = require('../utils/drip');
 
 const BUSINESS_CATEGORIES = ['restaurant', 'cafe', 'hotel', 'salon', 'gym', 'banquet_hall', 'office', 'other'];
 const ASSOCIATE_SKILLS = ['chef', 'steward', 'cleaning_staff', 'bartender', 'baker', 'beautician', 'trainer', 'other'];
@@ -136,6 +137,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
   }
 
   const user = await User.create(doc);
+  if (drip.enroll(user)) await user.save();   // business-opportunity emails over the next days (utils/drip.js)
   // Seed the opportunity feed in the background so signup stays fast
   if (role === 'business') {
     generateOpportunities({ name: user.business.businessName, category: user.category, sectorId: user.sectorId, location: user.location })

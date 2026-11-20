@@ -36,6 +36,7 @@
     });
     if (!growthRendered) {
       Growth.renderSlides(document.getElementById('slides'), ctx, { onLesson: openLesson });
+      Growth.renderCommunity(document.getElementById('community'), ctx);
       Growth.renderPlanner(document.getElementById('planner'), ctx);
       if (!player) player = Growth.mountPlayer(document.getElementById('player'), document.getElementById('playlist'), ctx, {
         onWatched: async lesson => {
