@@ -38,7 +38,7 @@ app.get('/js/catalog.js', (req, res) => {
 });
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));   // /business -> business.html
 
 // Express 5 forwards rejected promises from async handlers here
 app.use((err, req, res, next) => {

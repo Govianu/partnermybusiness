@@ -7,11 +7,11 @@ const PHONE = '+91 81039 90990';
 // A link into one person's dashboard. An email can hold several dashboards (e.g. two businesses), so the link
 // names which one; the login page switches to it, or asks for a code for it.
 const dashLink = (user, page) => user?._id && user?.email
-  ? `${APP_URL()}/login.html?next=${encodeURIComponent(page)}&email=${encodeURIComponent(user.email)}&profileId=${encodeURIComponent(user._id)}`
-  : `${APP_URL()}/login.html?next=${encodeURIComponent(page)}`;
-const sellerPage = (seller, tab) => `${seller?.role === 'associate' ? 'associate' : 'business'}.html#${tab}`;
+  ? `${APP_URL()}/login?next=${encodeURIComponent(page)}&email=${encodeURIComponent(user.email)}&profileId=${encodeURIComponent(user._id)}`
+  : `${APP_URL()}/login?next=${encodeURIComponent(page)}`;
+const sellerPage = (seller, tab) => `${seller?.role === 'associate' ? 'associate' : 'business'}#${tab}`;
 // Links in team emails open the PMB team sign-in (Govianu emails only), which lands on the right dashboard tab
-const teamLink = tab => `${APP_URL()}/team.html?next=${encodeURIComponent(tab)}`;
+const teamLink = tab => `${APP_URL()}/team?next=${encodeURIComponent(tab)}`;
 const { industryFor } = require('./industry');
 const { listOf } = require('./catalog');
 
@@ -126,7 +126,7 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
     body += codeBox(code);
     // Opens the code box for this exact dashboard (the email may already have other dashboards)
     // One tap signs in to this exact dashboard; without a link, open the code box for it
-    const signIn = link || `${APP_URL()}/login.html?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
+    const signIn = link || `${APP_URL()}/login?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
     body += button(signIn, biz && !industry.isProfessional ? `Open the ${biz} dashboard` : `Open my ${noun} dashboard`);
     body += p(`<span style="font-size:13px;color:#47537C">${link ? 'The button signs you in straight away (it works once, within 24 hours). On another device, type the code instead: it expires in 10 minutes.' : 'This code expires in 10 minutes. You can request another code from the login page.'}</span>`);
     body += planBlock(plan) + p('Your CTA, the policies you agreed to, is in your dashboard under My CTA.');
@@ -141,7 +141,7 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
     to: email,
     subject,
     html: layout(title, body),
-    text: `Hi ${first}, ${opening.replace(/&amp;/g, '&')} ${hasDashboard ? `Your verification code is ${code}. It expires in 10 minutes. ${link ? `Open your dashboard directly: ${link}` : `Sign in at ${APP_URL()}/login.html#login`}` : 'Our team will contact you within two working days.'}`
+    text: `Hi ${first}, ${opening.replace(/&amp;/g, '&')} ${hasDashboard ? `Your verification code is ${code}. It expires in 10 minutes. ${link ? `Open your dashboard directly: ${link}` : `Sign in at ${APP_URL()}/login#login`}` : 'Our team will contact you within two working days.'}`
   };
 }
 
@@ -184,7 +184,7 @@ function bookingRequested({ business, booking }) {
     ['Date', fmtDate(booking.eventDate)], ['Guests', booking.guests], ['Budget', booking.amount ? inr(booking.amount) : ''],
     ['Message', booking.message]
   ]) + p('Review the revenue split and the partner terms, then accept or decline from your dashboard.')
-    + button(dashLink(business, 'business.html#bookings'), 'Review and accept');
+    + button(dashLink(business, 'business#bookings'), 'Review and accept');
   return { to: business.email, subject: `New ${industry.bookingLabel} request: ${booking.eventType}`, html: layout('New booking request', body), text: `New ${industry.bookingLabel} request: ${booking.eventType}` };
 }
 
@@ -205,7 +205,7 @@ function bookingAccepted({ business, booking, share }) {
       to: business.email,
       subject: `${industry.display} booking accepted: ${booking.eventType}`,
       html: layout('Booking accepted', p('You accepted this booking under the Partnermybusiness partner terms.') + table([...rows, ['Booking value', booking.amount ? inr(booking.amount) : ''], ['Your share', share != null ? inr(share) : '']]) + meet
-        + button(dashLink(business, 'business.html#bookings'), 'View in your dashboard')),
+        + button(dashLink(business, 'business#bookings'), 'View in your dashboard')),
       text: `You accepted ${booking.eventType}.`
     }
   ].filter(Boolean);
@@ -245,7 +245,7 @@ function marketRequestReceived({ booking, listing }) {
   const body = p(`Hi ${esc(firstName(booking.requesterName))}, we’ve received your request for <strong>${esc(listing?.title || booking.eventType)}</strong>.`)
     + table(requestRows(booking, listing))
     + p('It has gone to the seller. Once they accept, our team approves the match and coordinates everything. We stay in the middle the whole way: your contact details are never shared with the seller.')
-    + button(`${APP_URL()}/login.html#login`, 'Track my request');
+    + button(`${APP_URL()}/login#login`, 'Track my request');
   return { to: booking.requesterEmail, subject: `Request received: ${listing?.title || booking.eventType}`, html: layout('Request received', body), text: `We received your request for ${listing?.title || booking.eventType}.` };
 }
 
@@ -268,7 +268,7 @@ function marketDecision({ booking, listing, outcome, note }) {
     declined: [`Your request for ${what} couldn’t go ahead this time.`, 'Reply to this email or use “Find it for me” in your dashboard, and we’ll suggest alternatives.']
   }[outcome];
   const body = p(`Hi ${esc(firstName(booking.requesterName))}, ${lines[0]}`) + (note ? p(`Note from our team: ${esc(note)}`) : '') + p(lines[1])
-    + button(`${APP_URL()}/login.html#login`, 'View my requests');
+    + button(`${APP_URL()}/login#login`, 'View my requests');
   const subject = { forwarded: 'Sent to the seller', accepted: 'Request accepted', declined: 'Request update' }[outcome];
   return { to: booking.requesterEmail, subject: `${subject}: ${listing?.title || booking.eventType}`, html: layout(subject, body), text: lines.join(' ') };
 }
@@ -352,7 +352,7 @@ function dealUpdate({ booking, listing, seller, stage, note, only }) {
     const to = who === 'buyer' ? booking.requesterEmail : seller?.email;
     if (!to) continue;
     const name = who === 'buyer' ? booking.requesterName : seller.name;
-    const next = who === 'buyer' ? `${APP_URL()}/login.html#login` : dashLink(seller, sellerPage(seller, seller.role === 'associate' ? 'offers' : 'bookings'));
+    const next = who === 'buyer' ? `${APP_URL()}/login#login` : dashLink(seller, sellerPage(seller, seller.role === 'associate' ? 'offers' : 'bookings'));
     const [first, second] = copy[who](what);
     mails.push({ to, subject: `${copy.subject}: ${listing?.title || booking.eventType}`,
       html: layout(copy.subject, p(`Hi ${esc(firstName(name))}, ${first}`) + (note ? p(`Note from our team: ${esc(note)}`) : '') + p(second) + button(next, 'Open my dashboard')),

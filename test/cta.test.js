@@ -55,7 +55,7 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
   const mail = toLead[0];
   assert.ok(!mail.subject.includes(user.leadId) && !mail.html.includes(user.leadId), 'the lead ID never goes to the lead');
   assert.match(mail.html, /letter-spacing:8px[^>]*>\d{6}</, 'has the code');
-  assert.match(mail.html, /activate\.html\?token=[a-f0-9]{64}/, 'has the one-tap dashboard button');
+  assert.match(mail.html, /activate\?token=[a-f0-9]{64}/, 'has the one-tap dashboard button');
   // Pitched, not a recipe: what it takes and that PMB does it, never the internal how-to notes
   // Five different ways to earn, not five versions of renting out the same hours
   for (const part of ['Rent out your space when it is empty', 'Let brands advertise in your place', 'Sell more to the customers you already have', 'Get big orders from companies', 'Earn from sending customers to partners', 'You just say yes'])
@@ -71,7 +71,7 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
   for (const part of [user.leadId, 'No specific opportunity picked', '98765 43210', 'Mint Masala', 'Open this lead in the PMB team dashboard'])
     assert.ok(team.html.includes(part), `team email has: ${part}`);
   assert.ok(!team.html.includes('5 ways to save'), 'the team copy has the details only, not the plan we emailed');
-  assert.ok(!/activate\.html\?token=/.test(team.html), 'the team copy never contains the lead’s own sign-in link');
+  assert.ok(!/activate\?token=/.test(team.html), 'the team copy never contains the lead’s own sign-in link');
 
   // A second sign-up the same month gets the next number, and what they asked about reaches the team
   await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Ravi', email: 'ravi@example.com', business: 'Ravi Cafe', business_type_id: 3, location: 'Indiranagar', termsAccepted: true, message: "I'd like to know more about: Paid coworking seats 11 AM–4 PM" });

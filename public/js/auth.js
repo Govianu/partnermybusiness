@@ -1,13 +1,14 @@
 (async function () {
   const params = new URLSearchParams(location.search);
-  const next = params.get('next') || '';
+  // Older emails say business.html#cta; pages now live at /business (no .html, so the server never caches them)
+  const next = (params.get('next') || '').replace(/^(business|associate|admin|buyer)\.html/, '$1');
   const emailParam = params.get('email') || '';
   const profileIdParam = params.get('profileId') || '';
   const switchMode = params.get('switch') === '1';
   // Links for the PMB team dashboard go to the team's own sign-in page
-  if (/^admin\.html/.test(next)) { location.replace(`/team.html?next=${encodeURIComponent(next.split('#')[1] || '')}`); return; }
+  if (/^admin(#|$)/.test(next)) { location.replace(`/team?next=${encodeURIComponent(next.split('#')[1] || '')}`); return; }
   const goTo = redirect => {
-    const safe = /^(business|associate|admin|buyer)\.html(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('.')[0]);
+    const safe = /^(business|associate|admin|buyer)(#[a-z-]+)?$/.test(next) && redirect.startsWith('/' + next.split('#')[0]);
     location.href = safe ? '/' + next : redirect;
   };
 
@@ -17,7 +18,7 @@
   try {
     const { user } = await api('/auth/me');
     signedIn = user;
-    const expectedRole = /^(business|associate|admin|buyer)\.html/.exec(next)?.[1];
+    const expectedRole = /^(business|associate|admin|buyer)(#|$)/.exec(next)?.[1];
     const sameEmail = user.email?.toLowerCase() === emailParam.toLowerCase();
     const sameRequestedProfile = sameEmail
       && (!profileIdParam || String(user._id) === profileIdParam)
@@ -32,7 +33,7 @@
     }
     if (!emailParam && !switchMode && expectedRole && user.role !== expectedRole) wrongAccount = { user, expectedRole };
     else if ((!emailParam && !switchMode) || (emailParam && sameRequestedProfile)) {
-      goTo(`/${user.role}.html`);
+      goTo(`/${user.role}`);
       return;
     }
   } catch { /* not logged in */ }
@@ -155,7 +156,7 @@
     const v = formData(form);
     const q = new URLSearchParams({ category: roleInput.value === 'associate' ? v.skill || '' : v.category || '',
       name: roleInput.value === 'business' ? v.businessName || '' : '', area: v.location || '', person: v.name || '' });
-    ctaLink.href = `/cta.html?${q}`;
+    ctaLink.href = `/cta?${q}`;
   };
   form.addEventListener('input', syncCta); form.addEventListener('change', syncCta); syncCta();
   form.addEventListener('change', updateHandle);
@@ -253,9 +254,9 @@
     note.style.marginBottom = '1rem';
     note.innerHTML = expectedRole === 'admin'
       ? `<p><strong>This link opens the PMB team dashboard.</strong> It is only for Govianu employees.</p>
-         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with your @${esc((staffDomains[0] || 'govianu.com'))} email to open it, or <a href="/${esc(user.role)}.html">go back to your own dashboard</a>.</p>`
+         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with your @${esc((staffDomains[0] || 'govianu.com'))} email to open it, or <a href="/${esc(user.role)}">go back to your own dashboard</a>.</p>`
       : `<p><strong>This link opens a ${esc(LABEL[expectedRole])} dashboard.</strong></p>
-         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with the account the link was meant for, or <a href="/${esc(user.role)}.html">go back to your own dashboard</a>.</p>`;
+         <p class="meta">You’re signed in as ${esc(user.email || user.name)} (${esc(LABEL[user.role] || user.role)} dashboard). Sign in below with the account the link was meant for, or <a href="/${esc(user.role)}">go back to your own dashboard</a>.</p>`;
     const pane = document.getElementById('loginPane');
     pane.insertBefore(note, pane.querySelector('#loginForm'));
   }

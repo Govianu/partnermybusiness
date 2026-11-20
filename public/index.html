@@ -504,7 +504,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
 /* ---- terms step + login link ---- */
 .top-login{color:#fff;text-decoration:none;font-weight:600;font-size:.95rem;padding:.5rem .25rem;white-space:nowrap}
 .top-login:hover{text-decoration:underline}
-@media (max-width:719px){.top-actions a[href="/find.html"]{display:none}}
+@media (max-width:719px){.top-actions a[href="/find"]{display:none}}
 /* PMB login for the team, at the very end of the page */
 .team-btn{display:inline-flex;align-items:center;min-height:36px;padding:0 1rem;margin-top:.4rem;border:1px solid rgba(255,255,255,.45);border-radius:999px;color:#fff;text-decoration:none;font-weight:600;white-space:nowrap}
 .team-btn:hover,.team-btn:focus-visible{background:rgba(255,255,255,.14)}
@@ -542,8 +542,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <a href="#faq">Questions</a>
     </nav>
     <div class="top-actions">
-      <a class="top-login" href="/find.html">Find a space</a>
-      <a class="top-login" href="/login.html#login">Log in</a>
+      <a class="top-login" href="/find">Find a space</a>
+      <a class="top-login" href="/login#login">Log in</a>
       <a class="btn btn-gold btn-sm" href="#start" data-role="host">Enquire now</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -559,8 +559,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <a href="#trust">Trust and safety</a>
       <a href="#faq">Questions</a>
       <a href="#start">Get started</a>
-      <a href="/find.html">Find a space or professional</a>
-      <a href="/login.html#login">Log in to your dashboard</a>
+      <a href="/find">Find a space or professional</a>
+      <a href="/login#login">Log in to your dashboard</a>
       <a href="tel:+918103990990">Call +91 81039 90990</a>
     </nav>
   </div>
@@ -984,7 +984,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       <div class="terms-step" id="termsStep" hidden tabindex="-1">
         <h3>Your CTA</h3>
         <span id="termsEmail" hidden></span>
-        <p style="margin:.5rem 0 0"><a class="btn btn-line" id="viewCta" href="/cta.html" target="_blank" rel="noopener">View your full CTA</a></p>
+        <p style="margin:.5rem 0 0"><a class="btn btn-line" id="viewCta" href="/cta" target="_blank" rel="noopener">View your full CTA</a></p>
         <ul class="terms-points">
           <li><strong>Partner in principle.</strong> You join as a partner. The CTA is the agreement: there is nothing else to sign. Each opportunity starts only after you approve it in your dashboard.</li>
           <li><strong>Group deals.</strong> You let us include your business when we negotiate bulk supplies, brand placements and orders for many partners. Nothing is ordered without your OK.</li>
@@ -993,7 +993,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
           <li>Revenue figures on this site are illustrative, not a promise of income. Each opportunity depends on feasibility, licensing and partner availability.</li>
           <li>We use your details to handle your enquiry and run your dashboard, and we never sell them.</li>
         </ul>
-        <p style="margin:0 0 1rem"><a href="/terms.html" target="_blank" rel="noopener">Read the full Terms and Conditions</a> and <a href="/terms.html#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+        <p style="margin:0 0 1rem"><a href="/terms" target="_blank" rel="noopener">Read the full Terms and Conditions</a> and <a href="/terms#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
         <label class="agree"><input type="checkbox" id="agreeBox">
           <span>I have read and agree to the CTA, the Terms and Conditions and the Privacy Policy, and I’m happy for Partnermybusiness to email and call me about business opportunities.</span></label>
         <p class="err" id="termsErr" role="alert" hidden></p>
@@ -1007,7 +1007,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
         <h3 id="sentHead">Check your inbox</h3>
         <p id="sentText" style="margin:0"></p>
         <div class="cta-row" style="margin-top:1rem">
-          <a class="btn btn-blue" id="goLogin" href="/login.html#login">Go to login</a>
+          <a class="btn btn-blue" id="goLogin" href="/login#login">Go to login</a>
           <button class="btn btn-line" type="button" id="resendBtn">Resend the email</button>
         </div>
         <p class="hint" id="resendMsg" role="status" style="margin:.75rem 0 0"></p>
@@ -1068,7 +1068,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     <div class="legal">
       <p>Revenue projections on this site are illustrative and are not a forecast or guarantee of income. Every opportunity is subject to feasibility, local regulation, licensing and partner availability.</p>
       <p>© 2026 Partnermybusiness. All rights reserved.</p>
-      <p><a class="team-btn" href="/team.html">PMB login</a></p>
+      <p><a class="team-btn" href="/team">PMB login</a></p>
     </div>
   </div>
 </footer>
@@ -1759,7 +1759,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
     if (data.business) ctaQ.set("name", data.business);
     if (data.location) ctaQ.set("area", data.location.split(",")[0]);
     ctaQ.set("person", name);
-    $("viewCta").href = "/cta.html?" + ctaQ.toString();
+    $("viewCta").href = "/cta?" + ctaQ.toString();
     $("viewCta").hidden = !data.business_type_id;
     agreeBox.checked = false; agreeBtn.disabled = true; termsErr.hidden = true;
     showPanel(termsStep);
@@ -1796,8 +1796,8 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       $("resendBtn").textContent = "Email another code";
       $("resendMsg").textContent = "";
       /* The sign-in opens the dashboard this enquiry created, even if the email already has others */
-      var signInHref = "/login.html?email=" + encodeURIComponent(r.email) + (r.profileId ? "&profileId=" + encodeURIComponent(r.profileId) : "") + "&step=code#login";
-      $("goLogin").href = r.hasDashboard ? signInHref : "/login.html#login";
+      var signInHref = "/login?email=" + encodeURIComponent(r.email) + (r.profileId ? "&profileId=" + encodeURIComponent(r.profileId) : "") + "&step=code#login";
+      $("goLogin").href = r.hasDashboard ? signInHref : "/login#login";
       var dev = $("devNote");
       if (r.devOtp){
         dev.textContent = "Local test code: " + r.devOtp + ". ";

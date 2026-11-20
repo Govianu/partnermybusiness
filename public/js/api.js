@@ -51,8 +51,8 @@ function toast(msg, isError = false) {
 // link was going (e.g. admin.html#leads from a team email), so the right account lands on the right tab.
 async function guard(role) {
   const backTo = role === 'admin'
-    ? `/team.html?next=${encodeURIComponent(location.hash.slice(1))}`     // the PMB team has its own sign-in
-    : `/login.html?next=${encodeURIComponent(`${role}.html${location.hash}`)}#login`;
+    ? `/team?next=${encodeURIComponent(location.hash.slice(1))}`     // the PMB team has its own sign-in
+    : `/login?next=${encodeURIComponent(`${role}${location.hash}`)}#login`;
   try {
     const { user } = await api('/auth/me');
     if (user.role !== role) { location.href = backTo; return null; }
@@ -65,7 +65,7 @@ async function guard(role) {
 
 async function logout() {
   await api('/auth/logout', { method: 'POST' }).catch(() => {});
-  location.href = '/login.html#login';
+  location.href = '/login#login';
 }
 
 function handleHtml(handle) {

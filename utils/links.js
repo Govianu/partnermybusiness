@@ -17,7 +17,7 @@ async function issueLink(user, purpose = 'activate', ttlMs = purpose === 'signin
   user.linkTokens = [...(user.linkTokens || []).filter(live), entry].slice(-MAX_ACTIVE);
   user.linkTokenPurpose = purpose;
   await user.save();
-  return `${APP_URL()}/activate.html?token=${token}`;
+  return `${APP_URL()}/activate?token=${token}`;
 }
 
 async function findByToken(User, token) {

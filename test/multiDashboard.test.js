@@ -49,7 +49,7 @@ test('a second business on the same email gets its own dashboard, and its code o
 
   const welcome = sent.filter(m => m.to === EMAIL && /smoor/.test(m.html) && !/^Your CTA/.test(m.subject)).at(-1);
   assert.match(welcome.html, /Open the smoor dashboard/);
-  assert.match(welcome.html, /activate\.html\?token=[a-f0-9]{64}/, 'button signs in to this dashboard');
+  assert.match(welcome.html, /activate\?token=[a-f0-9]{64}/, 'button signs in to this dashboard');
 
   // The smoor code opens smoor, even though coffe katte is older and has its own live code
   const smoor = await call('POST', '/auth/verify-otp', { email: EMAIL, code: codeIn(welcome) });
@@ -92,7 +92,7 @@ test('the sign-up form allows a new business on an email that has one, but not t
 });
 
 test('the email button signs in to its own dashboard in one step, once', async () => {
-  const linkIn = m => /href="([^"]*activate\.html\?token=[a-f0-9]{64})"/.exec(m.html)?.[1]?.replace(/&amp;/g, '&');
+  const linkIn = m => /href="([^"]*activate\?token=[a-f0-9]{64})"/.exec(m.html)?.[1]?.replace(/&amp;/g, '&');
   sent.length = 0;
   const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divyaj', email: 'one.tap@example.com', business: 'smoor', business_type_id: 3, location: 'RR Nagar', termsAccepted: true });
   assert.equal(r.status, 201);

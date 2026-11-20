@@ -57,7 +57,7 @@ test('a new café gets ten emails, revenue and cost saving in turn, three days a
       assert.equal(m.to, 'smoor.drip@example.com');
       assert.match(m.html, /paid coworking seats/i, 'uses the team research for this café type');
       assert.match(m.html, /\/api\/public\/media\/[\w-]+\?w=1000/, 'shows the matching creative, served by our own server');
-      assert.match(m.html, /activate\.html\?next=business\.html%23learn&amp;token=[a-f0-9]{64}/, 'one-tap button into the dashboard');
+      assert.match(m.html, /activate\?next=business%23learn&amp;token=[a-f0-9]{64}/, 'one-tap button into the dashboard');
       assert.match(m.headers['List-Unsubscribe'], /\/api\/public\/unsubscribe\?u=/);
       assert.equal(m.replyTo, 'info@partnermybusiness.ai');
     }

@@ -38,7 +38,7 @@
       <div class="field"><label for="newEmail">Email</label><input id="newEmail" type="email" autocomplete="email" required></div>
       <button class="btn wide" type="submit">Email me a sign-in code</button>
     </form>
-    <p style="margin-top:1rem"><a href="/login.html#login">Back to login</a></p>
+    <p style="margin-top:1rem"><a href="/login#login">Back to login</a></p>
   </section>
 </main>
 <script>
@@ -48,8 +48,8 @@
   var token = params.get('token') || '';
   // Optional tab to open (e.g. business.html#learn from an opportunity email), only on the account's own dashboard
   function landing(redirect) {
-    var next = params.get('next') || '';
-    return /^(business|associate|buyer|admin)\.html(#[a-z-]+)?$/.test(next) && redirect === '/' + next.split('#')[0] ? '/' + next : redirect;
+    var next = (params.get('next') || '').replace(/^(business|associate|buyer|admin)\.html/, '$1');
+    return /^(business|associate|buyer|admin)(#[a-z-]+)?$/.test(next) && redirect === '/' + next.split('#')[0] ? '/' + next : redirect;
   }
   function call(url, opts) {
     return fetch(url, opts).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpOk = r.ok; return j; }); });
@@ -99,7 +99,7 @@
         if (!r.httpOk) { $('newErr').textContent = r.error || 'Couldn’t send right now.'; return; }
         $('newOk').textContent = 'If that email has a dashboard, a sign-in code is on its way. Opening the code box…';
         if (r.devOtp) $('newOk').textContent += ' Local test code: ' + r.devOtp;
-        setTimeout(function () { location.href = '/login.html?email=' + encodeURIComponent(email) + '&step=code#login'; }, r.devOtp ? 4000 : 1200);
+        setTimeout(function () { location.href = '/login?email=' + encodeURIComponent(email) + '&step=code#login'; }, r.devOtp ? 4000 : 1200);
       });
   });
 })();

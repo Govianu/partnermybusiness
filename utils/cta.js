@@ -1,6 +1,6 @@
 // The CTA: the policies a business or professional views and agrees to online (nothing else to sign).
 // Policies only: no revenue streams. Opportunities, cost saving and the team's research stay in the dashboard
-// and emails. Used on the website before agreeing (/cta.html), in the dashboard (My CTA) and by email at sign-up.
+// and emails. Used on the website before agreeing (/cta), in the dashboard (My CTA) and by email at sign-up.
 // ctaFor() still gathers the type's research, which the dashboard uses for media and cost saving.
 const { playbookFor } = require('./playbook');
 const { costSavingFor } = require('./costSaving');
@@ -97,7 +97,7 @@ function renderCta(c, { preview = false } = {}) {
   return `<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;color:${C.ink}">${header}`
     + h2('Policies you agree to') + list(termsList(c))
     + (c.agreed ? box(`<strong>Agreed.</strong> Accepted online on ${fmtDate(c.agreed.at)} (terms version ${esc(c.agreed.version)}).`) : '')
-    + small(`Full Terms and Privacy Policy: partnermybusiness.ai/terms.html. Terms version ${esc(c.terms.version)}.`)
+    + small(`Full Terms and Privacy Policy: partnermybusiness.ai/terms. Terms version ${esc(c.terms.version)}.`)
     + '</div>';
 }
 
@@ -125,8 +125,8 @@ async function sendCtaEmail(user) {
     if (!['business', 'associate'].includes(user.role)) return null;
     const { issueLink } = require('./links');
     const { sendMail } = require('./mailer');
-    const page = user.role === 'associate' ? 'associate.html#cta' : 'business.html#cta';
-    const link = (await issueLink(user, 'signin')).replace('activate.html?', `activate.html?next=${encodeURIComponent(page)}&`);
+    const page = user.role === 'associate' ? 'associate#cta' : 'business#cta';
+    const link = (await issueLink(user, 'signin')).replace('activate?', `activate?next=${encodeURIComponent(page)}&`);
     const mail = ctaEmail({ user, link });
     return mail ? await sendMail(mail) : null;
   } catch (err) {

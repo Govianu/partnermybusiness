@@ -73,6 +73,17 @@ const block = `${BEGIN}
 </IfModule>
 </IfModule>
 
+# Pages are linked without .html (/business, /login). The hosting's nginx front tells browsers to keep any
+# address ending in .html for 10 years, so after a deploy people kept seeing the old page; these addresses
+# come from Apache with no-cache instead. Old .html links still work.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([a-z][a-z-]*)$ $1.html [L]
+</IfModule>
+
 <IfModule mod_headers.c>
   <FilesMatch "\\.(html)$">
     Header set Cache-Control "no-cache"

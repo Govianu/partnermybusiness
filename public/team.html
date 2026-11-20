@@ -38,7 +38,7 @@
         <input id="name" name="name" autocomplete="name" maxlength="120"></div>
       <button class="btn wide" type="submit" id="sendBtn">Email me a sign-in code</button>
     </form>
-    <p class="muted" style="margin-top:1rem;font-size:.9rem">Partners and buyers sign in at <a href="/login.html#login">the partner login</a>.</p>
+    <p class="muted" style="margin-top:1rem;font-size:.9rem">Partners and buyers sign in at <a href="/login#login">the partner login</a>.</p>
   </section>
 
   <!-- Step 2: code -->
@@ -65,7 +65,7 @@
   // Which dashboard tab to open afterwards (from team email links: leads, market, enquiries…)
   var tab = (new URLSearchParams(location.search).get('next') || '').replace(/^admin\.html#?/, '');
   if (!/^[a-z-]{1,30}$/.test(tab)) tab = '';
-  var dashboard = '/admin.html' + (tab ? '#' + tab : '');
+  var dashboard = '/admin' + (tab ? '#' + tab : '');
   var staffDomains = ['govianu.com'];
   var email = '';
 

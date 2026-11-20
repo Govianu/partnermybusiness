@@ -5,7 +5,7 @@
   fillWho(user, bizName);
   document.getElementById('hello').textContent = `Hello, ${firstNameOf(user.name)}`;
   document.getElementById('statusLine').innerHTML = `${esc(bizName)} is live on the network. Your CTA is under <a href="#cta">My CTA</a>.`;
-  document.getElementById('bookingLink').href = `/book.html?h=${encodeURIComponent(user.handle)}`;
+  document.getElementById('bookingLink').href = `/book?h=${encodeURIComponent(user.handle)}`;
 
   let state = { opportunities: [], bookings: [], stats: {}, meetConfigured: false, industry: {} };
 

@@ -89,8 +89,8 @@ async function emailFor(user, step) {
   const sector = sectorById(user.sectorId) || sectorFor(user);
   if (!sector) return null;
   const c = contentFor(user, step, sector);
-  const page = user.role === 'associate' ? 'associate.html' : 'business.html';
-  const link = (await issueLink(user, 'signin')).replace('activate.html?', `activate.html?next=${encodeURIComponent(page + (step % 2 ? '#learn' : '#savings'))}&`);
+  const page = user.role === 'associate' ? 'associate' : 'business';
+  const link = (await issueLink(user, 'signin')).replace('activate?', `activate?next=${encodeURIComponent(page + (step % 2 ? '#learn' : '#savings'))}&`);
   const manager = user.assignedManager ? await User.findById(user.assignedManager) : null;
   const from = manager ? `${esc(manager.name)}, your Partnermybusiness manager` : 'The Partnermybusiness team';
   const unsub = unsubscribeUrl(user);

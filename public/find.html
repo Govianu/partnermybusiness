@@ -37,8 +37,8 @@
   <a class="brandmark" href="/">Partnermybusiness<span>.ai</span></a>
   <nav aria-label="Main">
     <a href="/">Home</a>
-    <a href="/login.html#login" id="loginLink">Log in</a>
-    <a class="btn small" href="/login.html">List your space or service</a>
+    <a href="/login#login" id="loginLink">Log in</a>
+    <a class="btn small" href="/login">List your space or service</a>
   </nav>
 </header>
 <section class="fhero">
@@ -64,7 +64,7 @@
   if (user) {
     const link = document.getElementById('loginLink');
     link.textContent = 'My dashboard';
-    link.href = `/${user.role}.html`;
+    link.href = `/${user.role}`;
   }
   Market.renderBrowse(document.getElementById('findBox'), { user });
 })();

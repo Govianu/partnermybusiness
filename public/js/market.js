@@ -93,7 +93,7 @@
           <div class="field"><label for="rqEmail">Email</label><input id="rqEmail" type="email" autocomplete="email"></div>
           <div class="field"><label for="rqPhone">Phone <span class="hint">(optional)</span></label><input id="rqPhone" type="tel" autocomplete="tel"></div>
         </div>
-        <label class="check field"><input type="checkbox" id="rqTerms"><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>`}
+        <label class="check field"><input type="checkbox" id="rqTerms"><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>`}
       <p class="error-box" role="alert"></p>
       <div class="gdialog-actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" data-send>Send request</button></div>
     </form>`;
@@ -110,7 +110,7 @@
         const r = await api('/market/requests', { method: 'POST', body });
         d.querySelector('.gdialog-body').innerHTML = `<h2>Request sent</h2>
           <p>It’s with the seller now. When they accept, our team approves the match and connects you. We’ve emailed you a confirmation.</p>
-          ${r.loggedIn ? '<p class="meta">You can follow it under “My requests”.</p>' : '<p class="meta">Want to track all your requests in one place? <a href="/login.html?as=buyer">Create a free buyer account</a> with the same email.</p>'}
+          ${r.loggedIn ? '<p class="meta">You can follow it under “My requests”.</p>' : '<p class="meta">Want to track all your requests in one place? <a href="/login?as=buyer">Create a free buyer account</a> with the same email.</p>'}
           <div class="gdialog-actions"><button type="button" class="btn" data-close>Done</button></div>`;
         onDone && onDone();
         document.dispatchEvent(new CustomEvent('market:requested'));

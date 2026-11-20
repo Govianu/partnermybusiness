@@ -261,7 +261,7 @@ router.post('/verify-otp', rateLimit(10, 15 * 60 * 1000), async (req, res) => {
   await user.save();
   if (user.role === 'admin' && !isStaffEmail(user.email)) throw fail('The PMB team dashboard is only for Govianu employees.', 403);
   issueToken(res, user);
-  res.json({ user, redirect: `/${user.role}.html` });
+  res.json({ user, redirect: `/${user.role}` });
 });
 
 router.get('/profiles', requireAuth(), async (req, res) => {
@@ -277,7 +277,7 @@ router.post('/switch-profile', requireAuth(), async (req, res) => {
   profile.lastLoginAt = new Date().toISOString();
   await profile.save();
   issueToken(res, profile);
-  res.json({ user: profile, redirect: `/${profile.role}.html` });
+  res.json({ user: profile, redirect: `/${profile.role}` });
 });
 
 router.post('/logout', (req, res) => {
@@ -308,7 +308,7 @@ router.post('/activate', async (req, res) => {
   user.linkTokenPurpose = null;
   await user.save();
   issueToken(res, user);
-  res.json({ user, redirect: `/${user.role}.html` });
+  res.json({ user, redirect: `/${user.role}` });
 });
 
 // Always answers the same way, so it can't be used to find out who has an account
