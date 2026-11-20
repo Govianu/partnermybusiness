@@ -628,7 +628,7 @@
           </div>
         </div>
       </div>
-      ${stats.length ? `<ul class="people-stats">${stats.map(([v, t]) => `<li><b>${Number(v).toLocaleString('en-IN')}</b><span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
+      ${stats.length ? `<ul class="people-stats">${stats.map(([v, t]) => `<li><b>${esc(typeof v === 'number' ? v.toLocaleString('en-IN') : String(v))}</b><span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
       ${d.example ? `<p class="people-example"><span>Example</span>${esc(d.example)}</p>` : ''}
     </section>`;
   }

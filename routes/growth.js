@@ -50,7 +50,7 @@ router.get('/community', async (req, res) => {
     headline: [
       [process.env.NETWORK_MEMBERS || '5,000+', 'people have joined Partnermybusiness'],
       [`${Math.floor(data.sectors.length / 10) * 10}+`, 'kinds of businesses and professionals on the network'],
-      ['10', `ways to earn and save, picked for ${me.role === 'associate' ? 'you' : (me.business?.businessName || 'your business')}`]
+      ['100+', 'opportunities to earn more and spend less']
     ]
   });
 });
