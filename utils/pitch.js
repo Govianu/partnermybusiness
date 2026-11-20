@@ -98,8 +98,31 @@ const PLAIN = {
   'One marketing platform': 'One place to market yourself, at one low cost'
 };
 
-function savingPitch(lever) {
-  return { title: PLAIN[lever.title] || lever.title, saving: lever.saving };
+// How PMB cuts each cost, said as what we do (never do-it-yourself steps). First match wins.
+const HOW_WE_CUT = [
+  [/waste|forecast|planning/i, 'We give you a simple daily plan from your past sales, so less is thrown away.'],
+  [/direct bookings|marketing platform/i, 'Customers come to you through PMB, so you pay less to booking sites and ads.'],
+  [/brand|sponsor|shelf|wall space|rent out|idle/i, 'We bring brands and partners who pay to use what you have, which covers part of your costs.'],
+  [/clustered/i, 'We group your bookings close together, so you spend less time and money on travel.'],
+  [/solar|power|energy|cooling|lighting|meter/i, 'We bring a trusted solar and power partner who sets it all up, often with nothing to pay upfront.'],
+  [/water/i, 'We bring a partner who sets up water reuse for you.'],
+  [/direct|farmer|producer|manufacturer|distributor|sourcing/i, 'We connect you straight to the makers, so no middleman takes a cut.'],
+  [/group|bulk|pooled|together|contract/i, 'We add your order to other PMB partners nearby, so you all get the bulk price.'],
+  [/shar(e|ed)|software|insurance|transport|delivery|staff|teacher|technician|trainer|bus/i, 'We find partners nearby to share it with, so you pay only for what you use.']
+];
+const howWeCut = title => (HOW_WE_CUT.find(([re]) => re.test(title)) || [null, 'We find the right partner and set it all up for you.'])[1];
+
+// "5–10% on raw material" -> "Raw material": the cost this saving cuts
+function costOf(saving) {
+  const m = /\b(?:on|of|in|offsets|saves) (.+)$/i.exec(String(saving || ''));
+  const c = m ? m[1].replace(/^(those|common-area)\s+/i, '') : '';
+  return c ? c.charAt(0).toUpperCase() + c.slice(1) : '';
 }
 
-module.exports = { PITCH, waysToEarn, savingPitch };
+// One way to save: the plain name, the cost it cuts, how much, and how PMB does it
+function savingPitch(lever) {
+  return { title: PLAIN[lever.title] || lever.title, saving: lever.saving,
+    cost: lever.cost || costOf(lever.saving), we: lever.we || howWeCut(lever.title) };
+}
+
+module.exports = { PITCH, waysToEarn, savingPitch, costOf, howWeCut };

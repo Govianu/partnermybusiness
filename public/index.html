@@ -221,6 +221,7 @@ h3{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.2;
 .deck-sub{margin:0;font-size:.92rem;color:#B9C4EC}
 .deck-facts{margin:0;padding:0;list-style:none;display:grid;gap:.3rem;font-size:.92rem;color:#D5DCF6}
 .deck-facts li::before{content:"• ";color:#F7B32B}
+.deck-save .deck-kicker,.deck-save-intro .deck-kicker{color:#7EE2A8}
 .deck-media{width:100%;max-width:100%;max-height:360px;object-fit:contain;border-radius:14px;background:#0F1F5C}
 .deck-video{position:relative;aspect-ratio:16/9;overflow:hidden}
 .deck-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -1482,9 +1483,14 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       if (!d || mine !== playbookReq) return;
       if (d.savings && d.savings.levers){
         var list = el("ul", "list");
-        d.savings.levers.forEach(function(l){ var item = el("li"); item.appendChild(el("strong", null, l.title)); item.appendChild(document.createTextNode(": save " + l.saving)); list.appendChild(item); });
+        d.savings.levers.forEach(function(l){
+          var item = el("li");
+          if (l.cost) item.appendChild(el("span", "hint-line", "You spend on: " + l.cost.toLowerCase() + ". "));
+          item.appendChild(el("strong", null, l.title)); item.appendChild(document.createTextNode(": save " + l.saving + ". " + (l.we || "")));
+          list.appendChild(item);
+        });
         var saveBtn = el("button", "btn btn-line btn-sm", "Enquire now"); saveBtn.type = "button"; saveBtn.setAttribute("data-enquire", "Cutting my costs");
-        setBody("bodySave", [el("p", null, "Your biggest costs: " + d.savings.topCosts.join(", ") + ". 5 ways to spend less on them:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
+        setBody("bodySave", [el("p", null, "Where your money goes: " + d.savings.topCosts.join(", ") + ". How we cut each one:"), list, el("p", "hint-line", "Example: " + d.savings.example), saveBtn]);
       }
       var v = d.videos && d.videos[0], imgs = d.images || [];
       var norm = function(x){ return String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
@@ -1492,7 +1498,7 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
       /* The same 5 ways to earn as the welcome email and the dashboard: five different ways, not five versions of one */
       var ways = d.ways || [];
       var slides = [];
-      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What you are not using can earn money", body: "Not used today: " + (d.idle || s.a) + ".", sub: "5 ways to earn more, one per slide. Press the arrows to see each one.", topic: "Earning more from my business"});
+      slides.push({kind: "intro", kicker: s.n, title: d.hook || "What you are not using can earn money", body: "Not used today: " + (d.idle || s.a) + ".", sub: "5 ways to earn more, then 5 ways to spend less, one per slide. Press the arrows to see each one.", topic: "Earning more from my business"});
       ways.forEach(function(w, n){
         var img = null;
         (w.examples || []).some(function(ex){ img = imgs.filter(function(i){ return norm(i.title) === norm(ex) || norm(i.title).indexOf(norm(ex)) > -1; })[0]; return !!img; });
@@ -1500,7 +1506,19 @@ details p{color:var(--ink-2);padding:0 2.5rem 1.25rem 0;max-width:44rem}
           facts: w.examples && w.examples.length ? ["For example: " + w.examples.join(", ") + "."] : [],
           img: img, topic: w.title});
       });
-      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Having the idea is easy. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});
+      /* Then where the money goes, and one slide per way we cut it (same as the email and the dashboard) */
+      var levers = (d.savings && d.savings.levers) || [];
+      if (levers.length){
+        slides.push({kind: "save-intro", kicker: "Spend less", title: "Where your money goes",
+          body: "Your biggest costs each month: " + d.savings.topCosts.join(", ") + ".",
+          sub: "Next: 5 ways we cut them, one per slide.", topic: "Cutting my costs"});
+        levers.forEach(function(l, n){
+          slides.push({kind: "save", kicker: "Save " + (n + 1) + " of " + levers.length + (l.cost ? ": " + l.cost.toLowerCase() : ""),
+            title: l.title, body: l.we || "We find the right partner and set it all up for you.",
+            facts: ["Save " + l.saving + "."], topic: "Saving: " + l.title});
+        });
+      }
+      slides.push({kind: "close", kicker: "Next step", title: "Ready to start?", body: "Earning more and spending less is easy to say. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.", sub: "Enquire now. Your PMB manager shows you who you will work with, how the money is shared and what you can expect.", topic: ""});
 
       var row = el("div", "deck");
       row.setAttribute("role", "region"); row.setAttribute("aria-roledescription", "slides"); row.setAttribute("aria-label", "Opportunities for " + s.n);

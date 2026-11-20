@@ -72,7 +72,7 @@ function savingEmail(user, k, savings) {
     subject: /^(\d|up to)/i.test(lever.saving) ? `Save ${lower(lever.saving)}: ${lower(lever.title)}` : `${lever.title}: ${lower(lever.saving)}`,
     title: `Cut costs: ${lever.title}`,
     body: p(`Earning more is half of it. The other half is spending less. Here is money-saving idea ${k} of 5:`)
-      + p(`<strong>${esc(lever.title)}</strong>: save ${esc(lever.saving)}.`)
+      + p(`${lever.cost ? `Where your money goes: <strong>${esc(lever.cost.toLowerCase())}</strong>.<br>` : ''}<strong>${esc(lever.title)}</strong>: save ${esc(lever.saving)}.${lever.we ? `<br>${esc(lever.we)}` : ''}`)
       + (k === 1 ? p(`<strong>For example:</strong> ${esc(savings.example)} ${muted('Illustrative.')}`) : '')
       + p(`We find the suppliers and partners and set it all up. Send us your 5 biggest monthly costs and we will show you what you can really save.`)
       + (last ? p(`That’s the last of these emails. The quickest way to start is one pilot: press the button and we’ll call you to pick it. Or reply, or call ${PHONE}.`) : ''),

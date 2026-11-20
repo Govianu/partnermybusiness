@@ -73,7 +73,7 @@ router.get('/my-cta', async (req, res) => {
   }
   const plan = planFor(req.user);
   // Researched businesses get their own five ways to save in place of the general ones for their type
-  const savings = c?.savings && plan?.researched ? { ...c.savings, levers: plan.savings.levers } : (c?.savings || null);
+  const savings = c?.savings && plan?.researched ? { ...c.savings, levers: plan.savings.levers, topCosts: plan.savings.levers.map(l => l.cost.toLowerCase()).filter(Boolean) } : (c?.savings || null);
   res.json({ agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings,
     about: plan?.researched ? { text: plan.about, busy: plan.busyHours, quiet: plan.quietHours } : null,
     ways: plan?.ways   // type not known: the general five ways

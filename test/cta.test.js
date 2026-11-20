@@ -62,7 +62,7 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
     assert.ok(mail.html.includes(part), `email pitches: ${part}`);
   assert.ok(!mail.html.includes('Milk, vegetables and staples straight from farms'), 'no do-it-yourself steps');
   for (const w of ['Partner we bring', 'With PMB:', 'Alone:']) assert.ok(!mail.html.includes(w), `no repeated "${w}" lines`);
-  for (const part of ['5 ways to earn more', 'cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
+  for (const part of ['5 ways to earn more', 'cloud kitchen in morning hours', 'Where your money goes, and how we cut it', 'Buy direct from farmers', 'You spend on: raw material', 'We connect you straight to the makers', 'My CTA'])
     assert.ok(mail.html.includes(part), `email has: ${part}`);
 
   // The team gets everything, even though no opportunity was picked
@@ -70,7 +70,7 @@ test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to
   assert.ok(team, 'team email carries the lead ID');
   for (const part of [user.leadId, 'No specific opportunity picked', '98765 43210', 'Mint Masala', 'Open this lead in the PMB team dashboard'])
     assert.ok(team.html.includes(part), `team email has: ${part}`);
-  assert.ok(!team.html.includes('5 ways to save'), 'the team copy has the details only, not the plan we emailed');
+  assert.ok(!team.html.includes('Where your money goes'), 'the team copy has the details only, not the plan we emailed');
   assert.ok(!/activate\?token=/.test(team.html), 'the team copy never contains the lead’s own sign-in link');
 
   // A second sign-up the same month gets the next number, and what they asked about reaches the team
@@ -88,7 +88,7 @@ test('signing up on the sign-up page also sends one email, and tells the team', 
   const user = await User.findOne({ email: 'sana@example.com' });
   const toLead = sent.filter(m => m.to === 'sana@example.com');
   assert.equal(toLead.length, 1, 'one email');
-  assert.match(toLead[0].html, /5 ways to save/);
+  assert.match(toLead[0].html, /Where your money goes/);
   assert.ok(!toLead[0].html.includes(user.leadId) && !toLead[0].subject.includes(user.leadId));
   const team = sent.find(m => m.to === 'info@partnermybusiness.ai');
   assert.ok(team && team.subject.includes(user.leadId) && /New sign-up/.test(team.subject));

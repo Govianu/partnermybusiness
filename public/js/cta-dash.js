@@ -51,11 +51,13 @@
     try {
       const { savings: s } = await load();
       if (!s) { el.innerHTML = ''; return; }
-      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Your biggest costs: ${esc(s.topCosts.join(', '))}. Here is how you can spend less on them.</p>
+      el.innerHTML = `<p class="meta" style="margin:0 0 1rem">Where your money goes: ${esc(s.topCosts.join(', '))}. Here is how we cut each one.</p>
         <div class="save-grid">${s.levers.map((l, i) => `<article class="save-card">
           <span class="save-n">${i + 1}</span>
+          ${l.cost ? `<p class="save-eg" style="margin:0">You spend on: ${esc(l.cost.toLowerCase())}</p>` : ''}
           <h3>${esc(l.title)}</h3>
           <strong>Save ${esc(l.saving)}</strong>
+          ${l.we ? `<p>${esc(l.we)}</p>` : ''}
         </article>`).join('')}</div>
         <div class="save-example"><span>Example</span>${esc(s.example)} <span class="meta">These numbers are only examples. Send us your 5 biggest monthly costs and we will show you what you can really save. We find the suppliers and partners and set it all up.</span></div>
         <button class="btn" type="button" data-save-plan>Get my savings plan</button>`;

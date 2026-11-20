@@ -64,8 +64,8 @@ function planBlock(plan) {
     : '';
   return found + h2('5 ways to earn more')
       + ol(plan.ways.map(w => `<li style="margin-bottom:10px"><strong>${esc(w.title)}</strong><br>${esc(w.line)}${w.examples.length ? `<br>${small(`For example: ${esc(w.examples.join(', '))}.`)}` : ''}${w.estMonthly ? `<br>${small(`Could bring about ${inr(w.estMonthly)} a month.`)}` : ''}</li>`))
-      + h2('5 ways to save')
-      + ol(plan.savings.levers.map(l => `<li><strong>${esc(l.title)}</strong>: save ${esc(l.saving)}</li>`))
+      + h2('Where your money goes, and how we cut it')
+      + ol(plan.savings.levers.map(l => `<li style="margin-bottom:10px">${l.cost ? `${small(`You spend on: ${esc(l.cost.toLowerCase())}`)}<br>` : ''}<strong>${esc(l.title)}</strong>: save ${esc(l.saving)}${l.we ? `<br>${esc(l.we)}` : ''}</li>`))
       + p(small(`For example: ${esc(plan.savings.example)} These numbers are only examples.`))
       + `<div style="margin:0 0 16px;padding:14px 16px;border-left:4px solid #F7B32B;background:#FFF8E8;border-radius:8px;font-size:15px;line-height:1.6;color:#0F1B3D">${esc(PITCH.hook)}<br><strong>${esc(PITCH.deal)}</strong></div>`
       + p(esc(PITCH.call));

@@ -3,6 +3,7 @@
 // Runs once per sign-up when ANTHROPIC_API_KEY is set; without it (or if the lookup fails) everyone gets the
 // general plan for their type of business, as before. The result is kept on the user as `research`.
 const Anthropic = require('@anthropic-ai/sdk');
+const { savingPitch } = require('./pitch');
 
 const BUSINESS_KEYS = {
   space: 'Rent out your space when it is empty',
@@ -35,7 +36,7 @@ Find out what they sell or do, who their customers are, their price range, when 
 Then write their plan. The five ways to earn are fixed; write one line and two short examples for each that fit THIS ${isPro ? 'person' : 'business'} (their menu, products, space, hours, area and customers):
 ${Object.entries(keys).map(([k, t]) => `- ${k}: ${t}`).join('\n')}
 
-Also write five ways to save money on their biggest costs, each with a realistic saving range.
+Also find their 5 biggest costs (where their money goes each month) and write one way to save on each: the cost, a realistic saving range, and one line on how PMB cuts it (PMB brings the supplier, partner or group deal; never a do-it-yourself step).
 
 Writing rules:
 - Very simple English anyone can read. Short sentences. No business words.
@@ -50,7 +51,7 @@ Reply with ONLY one JSON object, no other text:
   "busyHours": "When they are busy, e.g. weekday mornings 8–11 AM and weekend evenings",
   "quietHours": "When they are quiet, e.g. weekday afternoons 3–6 PM",
   "ways": { ${Object.keys(keys).map(k => `"${k}": { "line": "...", "examples": ["...", "..."], "estMonthly": 20000 }`).join(', ')} },
-  "savings": [ { "title": "Short name of the saving", "saving": "e.g. 10–15% on milk and coffee beans" } ]
+  "savings": [ { "cost": "Milk", "title": "Buy milk straight from a dairy", "saving": "10–15% on milk", "we": "We connect you to a dairy farm near Bengaluru, so you skip the middleman." } ]
 }`;
 }
 
@@ -75,7 +76,8 @@ function normalise(raw, isPro) {
     };
   });
   const savings = (Array.isArray(raw.savings) ? raw.savings : [])
-    .map(s => ({ title: clean(s.title, 90), saving: clean(s.saving, 90) }))
+    .map(s => ({ title: clean(s.title, 90), saving: clean(s.saving, 90), cost: clean(s.cost, 40), we: clean(s.we, 200) }))
+    .map(s => savingPitch(s))
     .filter(s => s.title && s.saving).slice(0, 5);
   if (ways.filter(w => w.line).length < 4 || savings.length < 3) throw new Error('Reply was missing ways or savings');
   return {
