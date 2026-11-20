@@ -35,6 +35,11 @@ function settle(p, mode) {
 // public_html itself must stay enterable by the web server
 try { fs.chmodSync(OUT, (outStat.mode & 0o777) | 0o055); } catch { /* keep going */ }
 
+// Every build stamps the pages' own scripts and styles with ?v=<build>, so browsers fetch the new ones right
+// after a deploy instead of running an hour-old cached copy against the new pages
+const BUILD = Date.now().toString(36);
+const stamp = html => html.replace(/((?:src|href)="\/(?:js|css)\/[^"?#]+\.(?:js|css))"/g, `$1?v=${BUILD}"`);
+
 let files = 0;
 function copyDir(from, to) {
   fs.mkdirSync(to, { recursive: true });
@@ -42,6 +47,7 @@ function copyDir(from, to) {
   for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
     const a = path.join(from, entry.name), b = path.join(to, entry.name);
     if (entry.isDirectory()) copyDir(a, b);
+    else if (entry.name.endsWith('.html')) { fs.writeFileSync(b, stamp(fs.readFileSync(a, 'utf8'))); settle(b, 0o644); files += 1; }
     else { fs.copyFileSync(a, b); settle(b, 0o644); files += 1; }
   }
 }

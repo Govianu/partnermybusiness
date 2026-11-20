@@ -54,7 +54,11 @@ router.get('/my-cta', async (req, res) => {
   const { ctaFor, renderCta } = require('../utils/cta');
   const c = ctaFor({ user: req.user });
   res.json({ leadId: req.user.leadId || null, agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings: c?.savings || null,
-    ways: (() => { const { planFor } = require('../utils/cta'); return planFor(req.user)?.ways || null; })() });
+    ways: (() => {
+      const { planFor } = require('../utils/cta'), { waysToEarn } = require('../utils/pitch');
+      return planFor(req.user)?.ways   // type not known: the general five ways
+        || waysToEarn({ sector: { t: req.user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] });
+    })() });
 });
 
 router.get('/', async (req, res) => {

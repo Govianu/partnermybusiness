@@ -134,3 +134,15 @@ test('earlier sign-ups get lead IDs from the month they joined', async () => {
   assert.match((await User.findById(old._id)).leadId, /^PMB-OCT26-\d{2}$/);
   assert.equal(await backfillLeadIds(), 0, 'only once');
 });
+
+test('a sign-up with an unknown business type still sees its CTA and savings', async () => {
+  sent.length = 0;
+  const r = await call('POST', '/auth/signup', { role: 'business', name: 'Vg', email: 'vg.other@example.com', phone: '+91 91234 56780', businessName: 'vg', category: 'other', location: 'Malleshwaram', termsAccepted: true });
+  assert.equal(r.status, 201);
+  const code = /letter-spacing:8px[^>]*>(\d{6})</.exec(sent.find(m => m.to === 'vg.other@example.com').html)[1];
+  const { cookie } = await call('POST', '/auth/verify-otp', { email: 'vg.other@example.com', code });
+  const d = (await call('GET', '/growth/my-cta', null, cookie)).body;
+  assert.match(d.html, /Policies you agree to/);
+  assert.ok(d.savings && d.savings.levers.length === 5, 'savings show');
+  assert.equal(d.ways.length, 5, 'the 5 ways to earn show');
+});

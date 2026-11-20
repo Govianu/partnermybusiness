@@ -27,7 +27,19 @@ function assess(opportunity) {
 function ctaFor({ user = {}, sectorId, name, area } = {}) {
   const who = user._id ? user : { ...user, sectorId: sectorId || user.sectorId, business: { businessName: name || user.business?.businessName }, location: area || user.location };
   const pb = playbookFor(who);
-  if (!pb) return null;
+  if (!pb) {
+    if (!user._id) return null;
+    // Type not known (e.g. "other"): the policies are the same for everyone, so show them with general wording
+    const isPro = user.role === 'associate';
+    return {
+      leadId: user.leadId || null, isPro,
+      business: isPro ? (user.name || 'You') : (user.business?.businessName || user.name || 'Your business'),
+      area: titleCase(user.location || ''), type: isPro ? 'Professional partner' : 'Business partner',
+      savings: costSavingFor(user), terms: { version: TERMS_VERSION },
+      agreed: user.termsAcceptedAt ? { at: user.termsAcceptedAt, version: user.termsVersion || TERMS_VERSION } : null,
+      preparedOn: new Date().toISOString(), media: null
+    };
+  }
   const s = pb.sector;
   const isPro = s.t === 'p';
   const savings = costSavingFor(who);

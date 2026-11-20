@@ -166,7 +166,7 @@ textarea { min-height: 96px; resize: vertical; }
 .nav a:hover { background: var(--paper); }
 .nav a[aria-current="page"] { background: var(--teal-soft); color: var(--teal); font-weight: 650; }
 .nav .count { font-size: .75rem; background: var(--marigold); color: #2A1A00; border-radius: 999px; padding: 0 .45rem; font-weight: 700; }
-.side-foot { margin-top: auto; font-size: .9rem; }
+.side-foot { margin-top: auto; font-size: .9rem; display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; }
 
 .main { padding: clamp(1.25rem, 3vw, 2.5rem); max-width: 1180px; width: 100%; }
 .view-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }

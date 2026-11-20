@@ -3,7 +3,8 @@ const { industryFor } = require('../utils/industry');
 const User = require('../models/User');
 const Opportunity = require('../models/Opportunity');
 const { issueToken, requireAuth, COOKIE } = require('../middleware/auth');
-const { uniqueHandle } = require('../utils/handle');
+const { uniqueHandle, slugify } = require('../utils/handle');
+const { sectorFor } = require('../utils/catalog');
 const { generateOpportunities, sopsFor } = require('../utils/ai');
 const { fail, str } = require('../utils/http');
 const { TERMS_VERSION } = require('../utils/terms');
@@ -105,7 +106,9 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
 
   if (role === 'business') {
     const businessName = str(b.businessName).slice(0, 160);
-    const category = BUSINESS_CATEGORIES.includes(b.category) ? b.category : 'other';
+    const known = sectorFor({ category: str(b.category) });
+    const category = BUSINESS_CATEGORIES.includes(b.category) ? b.category : known ? slugify(known.noun, true) : 'other';
+    if (known) doc.sectorId = known.id;
     if (!businessName) throw fail('Enter your business name');
     Object.assign(doc, {
       category,
