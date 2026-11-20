@@ -42,7 +42,7 @@ test('lead IDs look like PMB-NOV26-01 and count up within the month', () => {
   assert.equal(prefixFor(new Date('2026-11-30T19:00:00Z')), 'PMB-DEC26-', 'months follow India time');
 });
 
-test('signing up sends one email: code, dashboard, lead ID, 5 opportunities and 5 ways to save', async () => {
+test('signing up sends one email: code, dashboard, 5 opportunities and 5 ways to save', async () => {
   const r = await call('POST', '/enquiry', { role: 'host', phone: '+91 98765 43210', name: 'Divya', email: 'mint@example.com', business: 'Mint Masala', business_type_id: 1, location: 'Sadashivanagar, Bengaluru', termsAccepted: true });
   assert.equal(r.status, 201);
   const user = await User.findOne({ email: 'mint@example.com' });
@@ -53,17 +53,18 @@ test('signing up sends one email: code, dashboard, lead ID, 5 opportunities and 
   const toLead = sent.filter(m => m.to === 'mint@example.com');
   assert.equal(toLead.length, 1, 'exactly one email to the lead');
   const mail = toLead[0];
-  assert.match(mail.subject, new RegExp(user.leadId));
+  assert.ok(!mail.subject.includes(user.leadId) && !mail.html.includes(user.leadId), 'the lead ID never goes to the lead');
   assert.match(mail.html, /letter-spacing:8px[^>]*>\d{6}</, 'has the code');
   assert.match(mail.html, /activate\.html\?token=[a-f0-9]{64}/, 'has the one-tap dashboard button');
-  for (const part of [user.leadId, '5 ways to earn more', 'Cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
+  for (const part of ['5 ways to earn more', 'Cloud kitchen in morning hours', '5 ways to save', 'Buy direct from farmers', 'My CTA'])
     assert.ok(mail.html.includes(part), `email has: ${part}`);
 
   // The team gets everything, even though no opportunity was picked
   const team = sent.find(m => m.to === 'info@partnermybusiness.ai' && m.subject.includes(user.leadId));
   assert.ok(team, 'team email carries the lead ID');
-  for (const part of ['No specific opportunity picked', 'Cloud kitchen in morning hours', 'Buy direct from farmers', '98765 43210', 'Open this lead in the PMB team dashboard'])
+  for (const part of [user.leadId, 'No specific opportunity picked', '98765 43210', 'Mint Masala', 'Open this lead in the PMB team dashboard'])
     assert.ok(team.html.includes(part), `team email has: ${part}`);
+  assert.ok(!team.html.includes('5 ways to save'), 'the team copy has the details only, not the plan we emailed');
   assert.ok(!/activate\.html\?token=/.test(team.html), 'the team copy never contains the lead’s own sign-in link');
 
   // A second sign-up the same month gets the next number, and what they asked about reaches the team
@@ -82,7 +83,7 @@ test('signing up on the sign-up page also sends one email, and tells the team', 
   const toLead = sent.filter(m => m.to === 'sana@example.com');
   assert.equal(toLead.length, 1, 'one email');
   assert.match(toLead[0].html, /5 ways to save/);
-  assert.ok(toLead[0].html.includes(user.leadId));
+  assert.ok(!toLead[0].html.includes(user.leadId) && !toLead[0].subject.includes(user.leadId));
   const team = sent.find(m => m.to === 'info@partnermybusiness.ai');
   assert.ok(team && team.subject.includes(user.leadId) && /New sign-up/.test(team.subject));
   assert.equal((await call('POST', '/auth/signup', { role: 'business', name: 'NoPhone', email: 'np@example.com', businessName: 'X', category: 'salon', location: 'Jayanagar', termsAccepted: true })).status, 400, 'phone is required');

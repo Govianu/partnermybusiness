@@ -50,21 +50,20 @@ const table = rows => `<table role="presentation" cellpadding="0" cellspacing="0
 ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:7px 10px 7px 0;color:#47537C;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:7px 0;color:#0F1B3D;vertical-align:top">${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}
 </table>`;
 
-// In the sign-up email and the team's copy: lead ID, what sits idle, 5 opportunities and 5 ways to save
-function planBlock(plan, leadId) {
-  if (!plan && !leadId) return '';
+// In the sign-up email (never the lead ID): what sits idle, 5 opportunities and 5 ways to save
+function planBlock(plan) {
+  if (!plan) return '';
   const li = items => `<ol style="margin:0 0 16px;padding-left:22px;font-size:15px;line-height:1.7;color:#0F1B3D">${items.join('')}</ol>`;
-  return (leadId ? `<div style="margin:18px 0;padding:12px 16px;border-radius:12px;background:#F6F8FC;border:1px solid #D5DCEC;font-size:15px">Your lead ID: <strong style="letter-spacing:.04em;color:#142C7A">${esc(leadId)}</strong></div>` : '')
-    + (plan ? `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">5 ways to earn more</h2>`
+  return `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">5 ways to earn more</h2>`
       + p(`What sits idle today: <strong>${esc(plan.idle)}</strong>.`)
       + li(plan.opportunities.map(o => `<li><strong>${esc(o.name)}</strong><br><span style="font-size:13px;color:#47537C">Investment: ${esc(o.investment)} · First revenue in ${esc(o.time)}</span></li>`))
       + `<h2 style="margin:22px 0 8px;font-size:18px;color:#142C7A">5 ways to save</h2>`
       + li(plan.savings.levers.map(l => `<li><strong>${esc(l.title)}</strong> (${esc(l.saving)})<br><span style="font-size:13px;color:#47537C">${esc(l.how)}</span></li>`))
-      + p(`<span style="font-size:13px;color:#47537C">For example: ${esc(plan.savings.example)} Figures are illustrative; your PMB manager confirms what fits you.</span>`) : '');
+      + p(`<span style="font-size:13px;color:#47537C">For example: ${esc(plan.savings.example)} Figures are illustrative; your PMB manager confirms what fits you.</span>`);
 }
 const codeBox = code => `<div style="margin:20px 0;padding:18px;background:#F6F8FC;border:1px solid #D5DCEC;border-radius:12px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;color:#142C7A">${esc(code)}</div>`;
 
-function emailOtp({ name, email, code, role, category, sectorId, businessName = '', link = '', plan = null, leadId = '', welcome = false }) {
+function emailOtp({ name, email, code, role, category, sectorId, businessName = '', link = '', plan = null, welcome = false }) {
   const industry = industryFor({ category, sectorId });
   const audience = role === 'business'
     ? `${industry.display} partner`
@@ -75,11 +74,11 @@ function emailOtp({ name, email, code, role, category, sectorId, businessName = 
     + codeBox(code)
     + (link ? button(link, businessName ? `Open the ${businessName} dashboard` : 'Open my dashboard') : '')
     + p(`<span style="font-size:13px;color:#47537C">${link ? 'The button signs you in straight away (it works once, within 24 hours). Or type the code: it expires in 10 minutes.' : 'This code expires in 10 minutes and can be used once.'} If you did not request it, you can ignore this email.</span>`)
-    + (welcome ? planBlock(plan, leadId) + p('Your CTA, the policies you agreed to, is in your dashboard under My CTA.') : '');
+    + (welcome ? planBlock(plan) + p('Your CTA, the policies you agreed to, is in your dashboard under My CTA.') : '');
   return {
     to: email,
     subject: welcome
-      ? `Welcome${businessName ? `, ${businessName}` : ''}: your dashboard code${leadId ? ` · ${leadId}` : ''}`
+      ? `Welcome${businessName ? `, ${businessName}` : ''}: your dashboard code`
       : `Your ${role === 'business' ? `${industry.display} partner` : audience} dashboard sign-in code${businessName ? `: ${businessName}` : ''}`,
     html: layout(welcome ? 'Welcome to Partnermybusiness' : 'Verify your email', body),
     text: `Your Partnermybusiness verification code is ${code}. It expires in 10 minutes.${link ? ` Or open your dashboard directly: ${link}` : ''}`
@@ -87,7 +86,7 @@ function emailOtp({ name, email, code, role, category, sectorId, businessName = 
 }
 
 // 1. To the person who enquired: confirmation in their own business type's words + dashboard code
-function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, profileId, link, plan = null, leadId = '' }) {
+function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAccount, category, sectorId, businessName, profileId, link, plan = null }) {
   const first = firstName(name);
   const industry = industryFor({ category, sectorId });
   const kw = industry.keywords;
@@ -120,13 +119,12 @@ function enquiryWelcome({ name, email, roleName, code, hasDashboard, existingAcc
     const signIn = link || `${APP_URL()}/login.html?email=${encodeURIComponent(email)}${profileId ? `&profileId=${encodeURIComponent(profileId)}` : ''}&step=code#login`;
     body += button(signIn, biz && !industry.isProfessional ? `Open the ${biz} dashboard` : `Open my ${noun} dashboard`);
     body += p(`<span style="font-size:13px;color:#47537C">${link ? 'The button signs you in straight away (it works once, within 24 hours). On another device, type the code instead: it expires in 10 minutes.' : 'This code expires in 10 minutes. You can request another code from the login page.'}</span>`);
-    body += planBlock(plan, leadId) + p('Your CTA, the policies you agreed to, is in your dashboard under My CTA.');
+    body += planBlock(plan) + p('Your CTA, the policies you agreed to, is in your dashboard under My CTA.');
   } else {
-    if (leadId) body += planBlock(null, leadId);
     body += p('A member of our partnerships team will contact you within two working days to talk about your territory.');
   }
   const subject = hasDashboard
-    ? `${kw && biz && !industry.isProfessional ? `${biz}: your ${noun} dashboard code` : `Your ${noun} dashboard code`}${leadId ? ` · ${leadId}` : ''}`
+    ? `${kw && biz && !industry.isProfessional ? `${biz}: your ${noun} dashboard code` : `Your ${noun} dashboard code`}`
     : 'We’ve received your enquiry';
   const title = kw ? (industry.isProfessional ? `Welcome, ${noun}` : `Welcome to Partnermybusiness, ${biz || noun}`) : 'Enquiry received';
   return {
@@ -148,8 +146,7 @@ function teamEnquiry(e) {
     ['Offer', e.offer], ['Territory', e.territory], ['Notes', e.message], ['Dashboard plan', e.plan],
     ['Terms accepted', `Yes, version ${e.termsVersion}, ${new Date(e.termsAcceptedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST`],
     ['Dashboard', e.handle ? `${e.handle} (verification code sent${e.existingAccount ? ', existing account' : ''})` : 'Not applicable']
-  ]) + (e.sentPlan ? `<p style="margin:18px 0 6px;font-size:14px;color:#47537C">What we emailed them with their code and dashboard link:</p>${planBlock(e.sentPlan, '')}` : '')
-    + button(teamLink('leads'), 'Open this lead in the PMB team dashboard')
+  ]) + button(teamLink('leads'), 'Open this lead in the PMB team dashboard')
     + p(`<span style="font-size:13px;color:#47537C">Their own dashboard opens only with the code sent to their email, so it stays private to them.</span>`);
   return {
     to: TEAM_INBOX(),

@@ -78,7 +78,7 @@ function termsList(c) {
 function renderCta(c, { preview = false } = {}) {
   if (!c) return '';
   const header = `<div style="padding:18px 20px;border-radius:14px;background:${C.navy};color:#fff">
-    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.85">Partnermybusiness · CTA${c.leadId ? ` · ${esc(c.leadId)}` : ''}</div>
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.85">Partnermybusiness · CTA</div>
     <div style="font-size:22px;font-weight:700;margin:6px 0 4px">${esc(c.business)}</div>
     <div style="font-size:14px;opacity:.9">${esc(c.type)}${c.area ? ` · ${esc(c.area)}` : ''} · ${preview ? 'The policies you agree to' : 'Your policies with Partnermybusiness'}</div>
   </div>`;
@@ -94,15 +94,15 @@ function ctaEmail({ user, link }) {
   const { layout, button, firstName, TEAM_INBOX } = require('./emails');
   const c = ctaFor({ user });
   if (!c || !user.email) return null;
-  const body = para(`Hi ${esc(firstName(user.name))}, here is your CTA${c.leadId ? `, lead ID <strong>${esc(c.leadId)}</strong>` : ''}: the policies you agreed to with Partnermybusiness. Keep it for your records.`)
+  const body = para(`Hi ${esc(firstName(user.name))}, here is your CTA: the policies you agreed to with Partnermybusiness. Keep it for your records.`)
     + renderCta(c)
     + (link ? button(link, 'Open my dashboard') : '')
     + small('Reply to this email with any questions. Partnermybusiness is your only point of contact.');
   return {
     to: user.email, replyTo: TEAM_INBOX(),
-    subject: `Your CTA: ${c.business}${c.leadId ? ` · ${c.leadId}` : ''}`,
+    subject: `Your CTA: ${c.business}`,
     html: layout('Your CTA', body),
-    text: `Your CTA for ${c.business}${c.leadId ? ` (${c.leadId})` : ''}: the policies you agreed to with Partnermybusiness.${link ? ` Open your dashboard: ${link}` : ''}`
+    text: `Your CTA for ${c.business}: the policies you agreed to with Partnermybusiness.${link ? ` Open your dashboard: ${link}` : ''}`
   };
 }
 

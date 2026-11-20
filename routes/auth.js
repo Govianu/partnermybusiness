@@ -44,7 +44,7 @@ const otpMail = async (user, code, { welcome = false, plan = null } = {}) => ema
   name: user.name, email: user.email, code, role: user.role, category: user.category, sectorId: user.sectorId,
   businessName: user.role === 'business' ? user.business?.businessName : '',
   link: await issueLink(user, 'signin'),
-  welcome, plan, leadId: welcome ? user.leadId || '' : ''
+  welcome, plan
 });
 
 // staffDomains: the login page shows the PMB team sign-up only for these email domains
@@ -170,7 +170,7 @@ router.post('/signup', rateLimit(5, 15 * 60 * 1000), async (req, res) => {
       name: user.name, business: user.business?.businessName || user.buyer?.company || '', email, phone: user.phone,
       businessType: user.category ? user.category.replace(/_/g, ' ') : '', location: user.location,
       message: role === 'associate' ? [user.associate?.skills?.join(', '), user.associate?.availability].filter(Boolean).join(' · ') : (user.business?.idleSlots || ''),
-      termsVersion: user.termsVersion, termsAcceptedAt: user.termsAcceptedAt, handle: user.handle, sentPlan: plan
+      termsVersion: user.termsVersion, termsAcceptedAt: user.termsAcceptedAt, handle: user.handle
     })).catch(err => console.error('[signup] team email failed:', err.message));
   }
 

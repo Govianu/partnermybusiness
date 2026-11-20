@@ -137,10 +137,10 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
       name, email, roleName: ROLE_NAMES[role], code: emailCode,
       hasDashboard: !!accountRole, existingAccount, category: user?.category,
       sectorId: user?.sectorId || sector?.id, businessName: role === 'host' ? (user?.business?.businessName || fields.business) : '',
-      profileId: user?._id || null, link: signInLink, plan, leadId
+      profileId: user?._id || null, link: signInLink, plan
     })),
     // The team gets everything, whether or not they picked an opportunity
-    sendMail(teamEnquiry({ ...enquiry, leadId, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount, sentPlan: plan, source: 'enquiry' }))
+    sendMail(teamEnquiry({ ...enquiry, leadId, roleName: ROLE_NAMES[role], handle: user?.handle, existingAccount, source: 'enquiry' }))
   ]);
   enquiry.emailStatus = { person: toPerson.sent ? 'sent' : (toPerson.error ? 'failed' : 'outbox'), team: toTeam.sent ? 'sent' : (toTeam.error ? 'failed' : 'outbox') };
   await enquiry.save();
