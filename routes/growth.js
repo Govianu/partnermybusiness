@@ -57,6 +57,27 @@ router.get('/community', async (req, res) => {
 
 // This person's own CTA (feasibility, revenue, cost saving, terms they agreed to), the type's media and the
 // cost-saving plan for the dashboard
+// The detailed CTA (dashboard only): Deal Sheet, 14 sections and the acceptance form (utils/ctaFull.js)
+router.post('/cta/accept', async (req, res) => {
+  const full = require('../utils/ctaFull');
+  const a = full.acceptCta(req.user, req.body || {}, req);
+  await req.user.save();
+  // A copy to them (and the team), like a signed PDF
+  const { sendMail } = require('../utils/mailer');
+  const { layout, p, esc, TEAM_INBOX } = require('../utils/emails');
+  const body = p(`Hi ${esc(String(req.user.name || '').split(' ')[0])}, thank you. This is your copy of the Partnermybusiness CTA you accepted. Keep it for your records.`) + full.acceptedHtml(req.user);
+  sendMail({ to: req.user.email, subject: `Your Partnermybusiness CTA (${a.version})`, html: layout('Your CTA', body) }).catch(() => {});
+  sendMail({ to: TEAM_INBOX(), subject: `CTA accepted: ${req.user.business?.businessName || req.user.name}${req.user.leadId ? ` [${req.user.leadId}]` : ''}`,
+    html: layout('CTA accepted', p(`${esc(a.name)} accepted ${esc(a.version)} on ${esc(a.atIST)} from IP ${esc(a.ip)}.`) + full.acceptedHtml(req.user)) }).catch(() => {});
+  res.json({ full: full.ctaFull(req.user) });
+});
+router.post('/cta/optional', async (req, res) => {
+  const full = require('../utils/ctaFull');
+  full.setOptional(req.user, String(req.body?.id || ''), req.body?.value);
+  await req.user.save();
+  res.json({ full: full.ctaFull(req.user) });
+});
+
 router.get('/my-cta', async (req, res) => {
   const { ctaFor, renderCta } = require('../utils/cta');
   const c = ctaFor({ user: req.user });
@@ -74,7 +95,7 @@ router.get('/my-cta', async (req, res) => {
   const plan = planFor(req.user);
   // Researched businesses get their own five ways to save in place of the general ones for their type
   const savings = c?.savings && plan?.researched ? { ...c.savings, levers: plan.savings.levers, topCosts: plan.savings.levers.map(l => l.cost.toLowerCase()).filter(Boolean) } : (c?.savings || null);
-  res.json({ agreed: c?.agreed || null, html: renderCta(c), media: c?.media || null, savings,
+  res.json({ agreed: c?.agreed || null, html: renderCta(c), full: require('../utils/ctaFull').ctaFull(req.user), media: c?.media || null, savings,
     about: plan?.researched ? { text: plan.about, busy: plan.busyHours, quiet: plan.quietHours } : null,
     ways: plan?.ways   // type not known: the general five ways
       || waysToEarn({ sector: { t: req.user.role === 'associate' ? 'p' : 'b' }, opportunities: [], moreOpportunities: [] }) });

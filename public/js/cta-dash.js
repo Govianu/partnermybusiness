@@ -6,16 +6,64 @@
   const load = () => (cache = cache || api('/growth/my-cta'));
   const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 
+  // The detailed CTA (dashboard only): status, Deal Sheet, 14 sections, and the acceptance form with separate
+  // tick-boxes, a typed signature and a record of when and where it was accepted (utils/ctaFull.js)
   async function renderMyCta(el) {
     if (!el) return;
     el.innerHTML = '<p class="meta">Loading your CTA…</p>';
     try {
       const d = await load();
-      el.innerHTML = `<div class="cta-status">${d.agreed
-        ? `<span class="pill approved">Agreed</span> <span class="meta">You agreed to this CTA online on ${fmtDate(d.agreed.at)} (terms version ${esc(d.agreed.version)}).</span>`
-        : '<span class="pill pending">Not agreed yet</span>'}</div>
-        <div class="cta-doc">${d.html}</div>`;   // built and escaped on the server (utils/cta.js)
+      draw(el, d.full);
     } catch (e) { el.innerHTML = `<p class="error-box">${esc(e.message)}</p>`; }
+  }
+  function draw(el, f) {
+    const a = f.accepted;
+    el.innerHTML = `<div class="cta-status">${a
+        ? `<span class="pill approved">Accepted</span> <span class="meta">Signed by ${esc(a.name)}${a.designation ? `, ${esc(a.designation)}` : ''} on ${fmtDate(a.at)}. ${esc(f.version)}. A copy was emailed to you.</span>`
+        : `<span class="pill pending">Not accepted yet</span> <span class="meta">Read your Deal Sheet and the terms, then accept at the bottom. ${esc(f.version)}.</span>`}</div>
+      <div class="cta-full">
+        <h3>Your Deal Sheet</h3>
+        <table class="cta-sheet"><tbody>${f.dealSheet.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table>
+        <h3>Partner terms</h3>
+        <div class="cta-sections">${f.sections.map((s, i) => `<details ${i === 0 ? 'open' : ''}><summary>${esc(s.title)}</summary>
+          <ul>${s.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></details>`).join('')}</div>
+        ${a ? `<h3>Your choices</h3><div class="cta-optional">${f.consents.filter(c => !c.required).map(c => {
+            const on = a.optional.find(o => o.id === c.id)?.value;
+            return `<label class="cta-check"><input type="checkbox" data-optional="${c.id}" ${on ? 'checked' : ''}> <span>${esc(c.label.replace(/^Optional: /, ''))}</span></label>`;
+          }).join('')}<p class="meta">You can change these any time.</p></div>`
+        : `<form class="cta-accept" novalidate>
+          <h3>Accept your CTA</h3>
+          <p class="meta">Tick each box to show you agree. Boxes marked optional are your choice.</p>
+          ${f.consents.map(c => `<label class="cta-check"><input type="checkbox" name="${c.id}" ${c.required ? 'data-required' : ''}> <span>${esc(c.label)}</span></label>`).join('')}
+          <div class="row">
+            <div class="field"><label for="ctaName">Type your full name to sign</label><input id="ctaName" name="signName" autocomplete="name" maxlength="120"></div>
+            <div class="field"><label for="ctaRole">Your role <span class="hint">e.g. Owner, Partner, Manager</span></label><input id="ctaRole" name="designation" maxlength="80"></div>
+          </div>
+          <p class="error-box" role="alert"></p>
+          <button class="btn" type="submit" disabled>Accept and go live</button>
+          <p class="meta">We record your name, the time, your device and IP address, and the exact version you accepted, and email you a copy.</p>
+        </form>`}
+      </div>`;
+    const form = el.querySelector('.cta-accept');
+    if (form) {
+      const btn = form.querySelector('button[type=submit]');
+      const sync = () => { btn.disabled = ![...form.querySelectorAll('[data-required]')].every(x => x.checked) || form.signName.value.trim().length < 3; };
+      form.addEventListener('input', sync); form.addEventListener('change', sync);
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        btn.disabled = true;
+        const consents = Object.fromEntries(f.consents.map(c => [c.id, form[c.id].checked]));
+        try {
+          const r = await api('/growth/cta/accept', { method: 'POST', body: { version: f.version, consents, name: form.signName.value, designation: form.designation.value } });
+          cache = null; draw(el, r.full); toast('CTA accepted. A copy is in your email.');
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (ex) { form.querySelector('.error-box').textContent = ex.message; sync(); }
+      });
+    }
+    el.querySelectorAll('[data-optional]').forEach(box => box.addEventListener('change', async () => {
+      try { await api('/growth/cta/optional', { method: 'POST', body: { id: box.dataset.optional, value: box.checked } }); toast('Saved'); }
+      catch (ex) { toast(ex.message, true); box.checked = !box.checked; }
+    }));
   }
 
   const PITCH = 'Having the idea is easy. Making it work is hard: you need a partner you can trust, a fair deal, customers and payments on time. We do all of that for you. You just say yes.';

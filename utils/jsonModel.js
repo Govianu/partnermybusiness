@@ -12,6 +12,7 @@ const models = {};
 const USER_SECRETS = [
   'passwordHash', 'linkTokenHash', 'linkTokenExpires', 'linkTokenPurpose', 'linkTokens',
   'emailOtpHash', 'emailOtpExpiresAt', 'emailOtpAttempts',
+  'ctaAcceptance', 'ctaAcceptanceLog',   // signature record with IP and device: only through utils/ctaFull.js
   'kyc'   // Aadhaar, PAN and bank details: only through /api/kyc, masked (utils/kyc.js)
 ];
 let data;
