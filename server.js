@@ -31,6 +31,7 @@ app.use('/api/enquiry', require('./routes/enquiry'));
 app.use('/api/growth', require('./routes/growth'));
 app.use('/api/kyc', require('./routes/kyc'));
 app.use('/api/market', require('./routes/market').router);
+app.use('/api/plots', require('./routes/plots'));   // Places: uploads from business dashboards, team approval with KYC, public listing
 app.use('/api/lesson-videos', require('./routes/lessonVideos'));
 app.use('/api/hub', require('./routes/hub'));   // WhatsApp & Calls tab: the Govianu Hub (MyOperator)
 app.use('/api/myoperator-webhook', require('./routes/myoperatorWebhook'));   // MyOperator → Hub (no login; the Hub checks the token)

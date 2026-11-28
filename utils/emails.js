@@ -156,7 +156,7 @@ function teamEnquiry(e) {
     ['Offer', e.offer], ['Territory', e.territory], ['Notes', e.message], ['Dashboard plan', e.plan],
     ['Terms accepted', `Yes, version ${e.termsVersion}, ${new Date(e.termsAcceptedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST`],
     ['Dashboard', e.handle ? `${e.handle} (verification code sent${e.existingAccount ? ', existing account' : ''})` : 'Not applicable']
-  ]) + button(teamLink('leads'), 'Open this lead in the PMB team dashboard')
+  ]) + button(teamLink('comms'), 'Open this lead in the PMB team dashboard')
     + p(`<span style="font-size:13px;color:#47537C">Their own dashboard opens only with the code sent to their email, so it stays private to them.</span>`);
   return {
     to: TEAM_INBOX(),
@@ -220,7 +220,7 @@ function ctaRequest({ user, industry, label, topic, note, preferred }) {
     ['Lead ID', user.leadId], ['Request', label], ['About', topic], ['Name', user.name], ['Business', company], ['Type', industry.display],
     ['Email', user.email], ['Phone', user.phone], ['Area', user.location], ['Best time to call', preferred], ['Note', note],
     ['Skills', (user.skills || user.associate?.skills || []).join(', ')], ['Handle', user.handle]
-  ]) + button(teamLink('leads'), 'Open in the PMB team dashboard');
+  ]) + button(teamLink('comms'), 'Open in the PMB team dashboard');
   return {
     to: TEAM_INBOX(),
     replyTo: user.email || undefined,
@@ -394,3 +394,46 @@ Object.assign(module.exports, { dealForApproval, dealUpdate, shareRequest, match
 
 // Building blocks for other email modules (utils/drip.js)
 Object.assign(module.exports, { layout, p, button, esc, inr, PHONE });
+
+// ---------- Uploads: plots (RentMySite) / places (PartnerMyBusiness) → team approval → shown to seekers ----------
+// Wording comes from utils/plotWords.js, so the same block works on both sites.
+const { W: PW } = require('./plotWords');
+function plotRows(plot) {
+  return [
+    [`${PW.Noun} ID`, plot.plotId], ['Title', plot.title], ['Type', plot.type], ['Size', plot.sizeText],
+    ['Area', [plot.locality, plot.city].filter(Boolean).join(', ')], ['Road', [plot.roadText, plot.roadWidthFt ? `${plot.roadWidthFt} ft wide` : ''].filter(Boolean).join(', ')],
+    ['Frontage', plot.frontageFt ? `${plot.frontageFt} ft` : ''], ['Zoning', plot.zoning], ['Current use', plot.currentUse],
+    ['Available from', plot.availableFrom], ['Owner prefers', plot.preferenceText], ['Expected per month', plot.expectedRent ? inr(plot.expectedRent) : ''],
+    ['Amenities', (plot.amenities || []).join(', ')], ['Description', plot.description]
+  ];
+}
+function plotSubmitted({ plot }) {
+  const body = p(`A ${PW.noun} was uploaded from a dashboard. Check the photos, videos, documents and the owner's KYC, then approve it to publish it for ${PW.seekers}.`)
+    + table([['Owner', plot.ownerName], ['Phone', plot.ownerPhone], ['Email', plot.ownerEmail], ['Address', plot.address], ['Google Maps', plot.mapUrl], ['Survey no.', plot.surveyNo],
+      ...plotRows(plot), ['Photos', String(plot.photos.length)], ['Videos', String((plot.videos || []).length)], ['Documents', plot.documents.map(d => d.kindText).join(', ') || 'None uploaded']])
+    + button(teamLink('plots'), `Review ${PW.noun} and KYC in Approvals`);
+  return { to: TEAM_INBOX(), replyTo: plot.ownerEmail || undefined, subject: `[${plot.plotId}] New ${PW.noun} to approve: ${plot.title}`, html: layout(`New ${PW.noun} to approve`, body), text: `New ${PW.noun} ${plot.plotId} from ${plot.ownerName} (${plot.ownerPhone}): ${plot.title}` };
+}
+function plotReceived({ plot }) {
+  const body = p(`Hi ${esc(firstName(plot.ownerName))},`) + p(`Thank you for uploading your ${PW.noun} to ${PW.site}. Our team is checking the details, documents and your KYC, and will publish it for ${PW.seekers}, usually within one working day. If your KYC is not complete yet, please finish it in your dashboard under Profile.`)
+    + table(plotRows(plot).slice(0, 6)) + p(`Your reference is <strong>${esc(plot.plotId)}</strong>. Questions? WhatsApp or call us on ${PHONE}.`);
+  return { to: plot.ownerEmail, subject: `We received your ${PW.noun} (${plot.plotId})`, html: layout(`${PW.Noun} received`, body), text: `We received your ${PW.noun} ${plot.plotId}. Our team will publish it after checking.` };
+}
+function plotPublished({ plot }) {
+  const body = p(`Hi ${esc(firstName(plot.ownerName))},`) + p(`Good news: your ${PW.noun} <strong>${esc(plot.title)}</strong> (${esc(plot.plotId)}) is now live on ${PW.site} for ${PW.seekers}. When someone is interested, our team will call you and coordinate everything. Your phone number and exact address are never shown publicly.`)
+    + button(`${APP_URL()}/find#plots`, `See your ${PW.noun}`);
+  return { to: plot.ownerEmail, subject: `Your ${PW.noun} is live on ${PW.site} (${plot.plotId})`, html: layout(`Your ${PW.noun} is live`, body), text: `Your ${PW.noun} ${plot.plotId} is now live on ${PW.site}.` };
+}
+function plotRejected({ plot }) {
+  const body = p(`Hi ${esc(firstName(plot.ownerName))},`) + p(`Thank you for uploading your ${PW.noun} (${esc(plot.plotId)}). We could not publish it yet${plot.reviewNote ? `: ${esc(plot.reviewNote)}` : '.'}`)
+    + p(`Please WhatsApp us on ${PHONE} with the missing details or documents and we will publish it.`);
+  return { to: plot.ownerEmail, subject: `About your ${PW.noun} (${plot.plotId})`, html: layout(`About your ${PW.noun}`, body), text: `We could not publish ${PW.noun} ${plot.plotId} yet. ${plot.reviewNote || ''}` };
+}
+function plotEnquiry({ plot, enquiry }) {
+  const body = p(`Someone is interested in a published ${PW.noun}. Call them, then coordinate with the owner (no direct contact between them).`)
+    + table([['Name', enquiry.name], ['Phone', enquiry.phone], ['Email', enquiry.email], ['What they want it for', enquiry.purpose], ['Message', enquiry.message]])
+    + p(`<strong>The ${PW.noun}</strong>`) + table([['Owner', `${plot.ownerName}, ${plot.ownerPhone}`], ['Address', plot.address], ['Google Maps', plot.mapUrl], ...plotRows(plot).slice(0, 6)])
+    + button(teamLink('comms'), 'Open WhatsApp & Calls');
+  return { to: TEAM_INBOX(), replyTo: enquiry.email || undefined, subject: `[${plot.plotId}] Enquiry from ${enquiry.name}: ${plot.title}`, html: layout(`${PW.Noun} enquiry`, body), text: `${enquiry.name} (${enquiry.phone}) is interested in ${plot.plotId}.` };
+}
+Object.assign(module.exports, { plotSubmitted, plotReceived, plotPublished, plotRejected, plotEnquiry });

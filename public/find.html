@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/growth.css">
   <link rel="stylesheet" href="/css/market.css">
+  <link rel="stylesheet" href="/css/plots.css">
   <style>
     .fh { background: #142C7A; color: #fff; padding: 1rem clamp(1rem, 4vw, 2.5rem); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .fh .brandmark { color: #fff; }
@@ -46,6 +47,7 @@
   <p>Halls, kitchens, studios and quiet hours from partner businesses, plus chefs, trainers, photographers and more. We check every request and connect you, so your details stay private.</p>
 </section>
 <main class="fwrap">
+  <div id="plotsBox"></div>
   <div id="findBox"></div>
   <h2 style="margin-top:2.5rem">How it works</h2>
   <ol class="fhow">
@@ -57,6 +59,7 @@
 </main>
 <script src="/js/api.js"></script>
 <script src="/js/market.js"></script>
+<script src="/js/plots.js"></script>
 <script>
 (async function () {
   let user = null;
@@ -66,7 +69,9 @@
     link.textContent = 'My dashboard';
     link.href = `/${user.role}`;
   }
+  Plots.renderBrowse(document.getElementById('plotsBox'), { user });
   Market.renderBrowse(document.getElementById('findBox'), { user });
+  if (location.hash === '#plots') document.getElementById('plotsBox').scrollIntoView();
 })();
 </script>
 </body>

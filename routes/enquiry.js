@@ -131,6 +131,12 @@ router.post('/', rateLimit(5, 10 * 60 * 1000), async (req, res) => {
     history: [{ stage: 'new', note: `Website enquiry, terms ${TERMS_VERSION} accepted`, at: termsAcceptedAt }]
   });
 
+  // WhatsApp: into the Hub's Leads straight away, with the first message (a question about their business)
+  require('../utils/hubNotify').notifyHub({
+    type: 'enquiry', phone, name, email, role, roleName: ROLE_NAMES[role], leadId, area: fields.location,
+    details: [fields.business, fields.businessType, fields.location, fields.message].filter(Boolean).join(', ')
+  });
+
   // One email to them: code, dashboard, lead ID, 5 opportunities and 5 ways to save (the CTA is in the dashboard)
   // Look this exact business up on the web first (once), so the plan fits it; the email waits up to 25s
   if (user && !user.research) await within(researchUser(user), Number(process.env.RESEARCH_WAIT_MS) || 25000);

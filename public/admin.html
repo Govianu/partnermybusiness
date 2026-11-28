@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/market.css">
   <link rel="stylesheet" href="/css/comms.css">
+  <link rel="stylesheet" href="/css/plots.css">
 </head>
 <body>
 <div class="shell">
@@ -27,13 +28,8 @@
     <nav class="nav" aria-label="Operations">
       <a href="#overview" data-view="overview">Today</a>
       <a href="#comms" data-view="comms">WhatsApp &amp; Calls</a>
-      <a href="#market" data-view="market">Marketplace</a>
-      <a href="#enquiries" data-view="enquiries">Website enquiries</a>
+      <a href="#plots" data-view="plots">Approvals</a>
       <a href="#import" data-view="import">Import from Maps</a>
-      <a href="#leads" data-view="leads">Leads</a>
-      <a href="#profiles" data-view="profiles">Profiles</a>
-      <a href="#kyc" data-view="kyc">KYC</a>
-      <a href="#gigs" data-view="gigs">Shifts & workshops</a>
       <a href="#bookings" data-view="bookings">Bookings & splits</a>
     </nav>
     <div class="side-foot"><button class="link-btn" onclick="logout()">Log out</button></div>
@@ -50,6 +46,11 @@
     <section id="view-comms" hidden>
       <div class="view-head"><div><h1>WhatsApp &amp; Calls</h1><p>Every WhatsApp message, call and email on the MyOperator number, who handled it, and who is still waiting for a reply.</p></div></div>
       <div id="comms"></div>
+    </section>
+
+    <section id="view-plots" hidden>
+      <div class="view-head"><div><h1>Approvals</h1><p>Places businesses uploaded from their dashboard, each with the owner’s KYC (Aadhaar, PAN, bank and documents). Check both, then approve together: the place is published straight away for partners and brands looking, and the KYC is marked verified. Below: KYC from people without a place. Contact details, exact address, map pin and documents are never shown publicly.</p></div></div>
+      <div id="plotsAdmin"></div>
     </section>
 
     <section id="view-market" hidden>
@@ -183,6 +184,7 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/comms.js"></script>
+<script src="/js/admin-plots.js"></script>
 <script src="/js/admin.js"></script>
 </body>
 </html>
