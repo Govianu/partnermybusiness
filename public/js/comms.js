@@ -18,7 +18,7 @@
   }
 
   // Per-employee numbers live in the Govianu Hub report (hub.govianu.com), so there is no Team tab here
-  const SUBS = [['overview', 'Overview'], ['leads', 'Leads'], ['uploads', 'Uploaded plots'], ['calls', 'Calls'], ['campaign', 'Campaign']];
+  const SUBS = [['overview', 'Overview'], ['leads', 'Leads'], ['calls', 'Calls'], ['campaign', 'Campaign']];
   const L10 = (v) => String(v || '').replace(/[^0-9]/g, '').slice(-10);
   // Plots owners uploaded on this site (/list-plot) – only RentMySite has them; elsewhere the tab stays hidden
   async function plotPhones() {
